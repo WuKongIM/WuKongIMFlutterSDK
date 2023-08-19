@@ -14,6 +14,11 @@ import '../model/wk_unknown_content.dart';
 import '../wkim.dart';
 
 class WKMessageManager {
+  WKMessageManager._privateConstructor();
+  static final WKMessageManager _instance =
+      WKMessageManager._privateConstructor();
+  static WKMessageManager get shared => _instance;
+
   final Map<int, WKMessageContent Function(dynamic data)> _msgContentList =
       HashMap<int, WKMessageContent Function(dynamic data)>();
   Function(WKMsg wkMsg, Function(WKMsg wkMsg))? _uploadAttachmentBack;

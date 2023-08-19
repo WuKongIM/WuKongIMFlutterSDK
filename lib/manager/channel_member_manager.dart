@@ -5,6 +5,11 @@ import 'package:wukongimfluttersdk/db/channel_member.dart';
 import '../entity/channel_member.dart';
 
 class WKChannelMemberManager {
+  WKChannelMemberManager._privateConstructor();
+  static final WKChannelMemberManager _instance =
+      WKChannelMemberManager._privateConstructor();
+  static WKChannelMemberManager get shared => _instance;
+
   HashMap<String, Function(List<WKChannelMember>)>? _newMembersBack;
   HashMap<String, Function(WKChannelMember, bool)>? _refreshMembersBack;
   HashMap<String, Function(List<WKChannelMember>)>? _deleteMembersBack;

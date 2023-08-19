@@ -64,11 +64,11 @@ class WKIM {
     });
   }
 
-  WKConnectionManager connectionManager = WKConnectionManager();
-  WKMessageManager messageManager = WKMessageManager();
-  WKConversationManager conversationManager = WKConversationManager();
-  WKChannelManager channelManager = WKChannelManager();
-  WKChannelMemberManager channelMemberManager = WKChannelMemberManager();
-  WKReminderManager reminderManager = WKReminderManager();
-  WKCMDManager cmdManager = WKCMDManager();
+  WKConnectionManager connectionManager = WKConnectionManager.shared;
+  WKMessageManager messageManager = WKMessageManager.shared;
+  WKConversationManager conversationManager = WKConversationManager.shared;
+  WKChannelManager channelManager = WKChannelManager.shared;
+  WKChannelMemberManager channelMemberManager = WKChannelMemberManager.shared;
+  WKReminderManager reminderManager = WKReminderManager.shared;
+  WKCMDManager cmdManager = WKCMDManager.shared;
 }

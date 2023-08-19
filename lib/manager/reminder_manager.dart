@@ -4,6 +4,11 @@ import 'package:wukongimfluttersdk/db/reminder.dart';
 import 'package:wukongimfluttersdk/entity/reminder.dart';
 
 class WKReminderManager {
+  WKReminderManager._privateConstructor();
+  static final WKReminderManager _instance =
+      WKReminderManager._privateConstructor();
+  static WKReminderManager get shared => _instance;
+
   HashMap<String, Function(List<WKReminder>)>? _newReminderback;
 
   Future<List<WKReminder>> getWithChannel(

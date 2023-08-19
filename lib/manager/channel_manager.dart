@@ -4,6 +4,11 @@ import '../db/channel.dart';
 import '../entity/channel.dart';
 
 class WKChannelManager {
+  WKChannelManager._privateConstructor();
+  static final WKChannelManager _instance =
+      WKChannelManager._privateConstructor();
+  static WKChannelManager get shared => _instance;
+
   final List<WKChannel> _list = [];
   HashMap<String, Function(WKChannel)>? _refeshChannelMap;
   Function(String channelID, int channelType, Function(WKChannel) back)?

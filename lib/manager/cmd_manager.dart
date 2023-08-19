@@ -3,6 +3,10 @@ import 'dart:collection';
 import '../entity/cmd.dart';
 
 class WKCMDManager {
+  WKCMDManager._privateConstructor();
+  static final WKCMDManager _instance = WKCMDManager._privateConstructor();
+  static WKCMDManager get shared => _instance;
+
   HashMap<String, Function(WKCMD)>? _cmdback;
   handleCMD(dynamic json) {
     String cmd = json['cmd'];

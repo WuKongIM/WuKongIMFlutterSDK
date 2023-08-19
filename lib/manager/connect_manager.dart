@@ -43,6 +43,11 @@ class _WKSocket {
 }
 
 class WKConnectionManager {
+  WKConnectionManager._privateConstructor();
+  static final WKConnectionManager _instance =
+      WKConnectionManager._privateConstructor();
+  static WKConnectionManager get shared => _instance;
+
   bool isReconnection = false;
   final int reconnMilliseconds = 1500;
   Timer? heartTimer;

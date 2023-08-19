@@ -9,6 +9,11 @@ import '../entity/conversation.dart';
 import '../type/const.dart';
 
 class WKConversationManager {
+  WKConversationManager._privateConstructor();
+  static final WKConversationManager _instance =
+      WKConversationManager._privateConstructor();
+  static WKConversationManager get shared => _instance;
+
   HashMap<String, Function(WKUIConversationMsg, bool)>? _refeshMsgMap;
   HashMap<String, Function(String, int)>? _deleteMsgMap;
 
