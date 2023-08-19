@@ -44,6 +44,7 @@ class _WKSocket {
 
 class WKConnectionManager {
   bool isReconnection = false;
+  final int reconnMilliseconds = 1500;
   Timer? heartTimer;
   Timer? checkNetworkTimer;
   final heartIntervalSecond = const Duration(seconds: 60);
@@ -99,7 +100,7 @@ class WKConnectionManager {
   }
 
   _socketConnect(String addr) {
-    Logs.info("addr--->$addr");
+    Logs.info("连接地址--->$addr");
     var addrs = addr.split(":");
     var host = addrs[0];
     var port = addrs[1];
@@ -110,10 +111,8 @@ class WKConnectionManager {
         _socket = _WKSocket.newSocket(socket);
         _connectSuccess();
       }).catchError((err) {
-        Logs.info("失败");
         _connectFail(err);
       }).onError((err, stackTrace) {
-        Logs.info("错误");
         _connectFail(err);
       });
     } catch (e) {
@@ -121,7 +120,7 @@ class WKConnectionManager {
     }
   }
 
-// socket 连接成功
+  // socket 连接成功
   _connectSuccess() {
     // 监听消息
     _socket?.listen((Uint8List data) {
@@ -129,7 +128,8 @@ class WKConnectionManager {
       // _decodePacket(data);
     }, () {
       isReconnection = true;
-      Future.delayed(const Duration(milliseconds: 1500), () {
+      Logs.error('发送消息失败');
+      Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
         connect();
       });
     });
@@ -138,7 +138,10 @@ class WKConnectionManager {
   }
 
   _connectFail(error) {
-    Logs.error(error);
+    Logs.error('连接失败：${error.toString()}');
+    Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
+      connect();
+    });
   }
 
   testCutData(Uint8List data) {
@@ -272,7 +275,6 @@ class WKConnectionManager {
   }
 
   _sendConnectPacket() {
-    Logs.info("发送连接包");
     var connectPacket = ConnectPacket(
         uid: WKIM.shared.options.uid!,
         token: WKIM.shared.options.token!,
@@ -393,24 +395,23 @@ class WKConnectionManager {
     msg.messageContent = WKIM.shared.messageManager
         .getMessageModel(msg.contentType, contentJson);
     WKIM.shared.messageManager.parsingMsg(msg);
-    WKIM.shared.messageManager.saveMsg(msg);
     if (msg.isDeleted == 0 &&
         !msg.header.noPersist &&
         msg.contentType != WkMessageContentType.insideMsg) {
-      List<WKMsg> list = [];
-      list.add(msg);
-      WKIM.shared.messageManager.pushNewMsg(list);
-
+      int row = await WKIM.shared.messageManager.saveMsg(msg);
+      msg.clientSeq = row;
       WKUIConversationMsg? uiMsg =
           await WKIM.shared.conversationManager.saveWithLiMMsg(msg);
       if (uiMsg != null) {
-        Logs.info('刷新最近会话');
         WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
       }
     } else {
       Logs.debug(
           '消息不能存库:is_deleted=${msg.isDeleted},no_persist=${msg.header.noPersist},content_type:${msg.contentType}');
     }
+    List<WKMsg> list = [];
+    list.add(msg);
+    WKIM.shared.messageManager.pushNewMsg(list);
   }
 
   int _isDeletedMsg(dynamic jsonObject) {

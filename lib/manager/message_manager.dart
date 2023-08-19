@@ -80,8 +80,8 @@ class WKMessageManager {
     return MessaggeDB.shared.queryWithClientMsgNo(clientMsgNo);
   }
 
-  saveMsg(WKMsg msg) {
-    MessaggeDB.shared.insert(msg);
+  Future<int> saveMsg(WKMsg msg) async {
+    return await MessaggeDB.shared.insert(msg);
   }
 
   String generateClientMsgNo() {
@@ -181,7 +181,8 @@ class WKMessageManager {
       int pullMode,
       int limit,
       int aroundMsgOrderSeq,
-      final Function(List<WKMsg>) iGetOrSyncHistoryMsgBack) async {
+      final Function(List<WKMsg>) iGetOrSyncHistoryMsgBack,
+      final Function() syncBack) async {
     if (aroundMsgOrderSeq != 0) {
       int maxMsgSeq = await getMaxMessageSeq(channelId, channelType);
       int aroundMsgSeq = getOrNearbyMsgSeq(aroundMsgOrderSeq);
@@ -222,8 +223,15 @@ class WKMessageManager {
         contain = true;
       }
     }
-    MessaggeDB.shared.getOrSyncHistoryMessages(channelId, channelType,
-        oldestOrderSeq, contain, pullMode, limit, iGetOrSyncHistoryMsgBack);
+    MessaggeDB.shared.getOrSyncHistoryMessages(
+        channelId,
+        channelType,
+        oldestOrderSeq,
+        contain,
+        pullMode,
+        limit,
+        iGetOrSyncHistoryMsgBack,
+        syncBack);
   }
 
   int getOrNearbyMsgSeq(int orderSeq) {
@@ -319,7 +327,7 @@ class WKMessageManager {
     dynamic json = wkMsg.messageContent!.encodeJson();
     json['type'] = wkMsg.contentType;
     wkMsg.content = jsonEncode(json);
-    int row = await MessaggeDB.shared.insert(wkMsg);
+    int row = await saveMsg(wkMsg);
     wkMsg.clientSeq = row;
     WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
     if (wkMsg.messageContent is WKMediaMessageContent) {

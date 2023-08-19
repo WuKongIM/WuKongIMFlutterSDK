@@ -260,11 +260,11 @@ class MessaggeDB {
       bool contain,
       int pullMode,
       int limit,
-      final Function(List<WKMsg>) iGetOrSyncHistoryMsgBack) async {
+      final Function(List<WKMsg>) iGetOrSyncHistoryMsgBack,
+      final Function() syncBack) async {
     //获取原始数据
     List<WKMsg> list = await getMessages(
         channelId, channelType, oldestOrderSeq, contain, pullMode, limit);
-
     //业务判断数据
     List<WKMsg> tempList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -383,9 +383,9 @@ class MessaggeDB {
     if (isSyncMsg &&
         (startMsgSeq != endMsgSeq || (startMsgSeq == 0 && endMsgSeq == 0)) &&
         requestCount < 5) {
-      // if (requestCount == 0) {
-      //     iGetOrSyncHistoryMsgBack.onSyncing();
-      // }
+      if (requestCount == 0) {
+        syncBack();
+      }
       //同步消息
       requestCount++;
       WKIM.shared.messageManager.setSyncChannelMsgListener(
@@ -395,7 +395,7 @@ class MessaggeDB {
             syncChannelMsg.messages != null &&
             syncChannelMsg.messages!.isNotEmpty) {
           getOrSyncHistoryMessages(channelId, channelType, oldestOrderSeq,
-              contain, pullMode, limit, iGetOrSyncHistoryMsgBack);
+              contain, pullMode, limit, iGetOrSyncHistoryMsgBack, syncBack);
         } else {
           requestCount = 0;
           iGetOrSyncHistoryMsgBack(list);

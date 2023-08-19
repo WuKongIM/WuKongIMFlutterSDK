@@ -80,7 +80,6 @@ class Proto {
 }
 
 Uint8List encodeConnect(ConnectPacket packet) {
-  Logs.info("连接包信息${packet.toString()}");
   WriteData write = WriteData();
   write.writeUint8(packet.version);
   write.writeUint8(packet.deviceFlag);

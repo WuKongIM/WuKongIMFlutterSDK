@@ -102,6 +102,8 @@ class ChatListDataState extends State<ChatList> {
       Future.delayed(const Duration(milliseconds: 300), () {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       });
+    }, () {
+      print('消息同步中');
     });
   }
 

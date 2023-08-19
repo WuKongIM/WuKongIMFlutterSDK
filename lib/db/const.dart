@@ -28,7 +28,7 @@ class WKDBConst {
     msg.messageSeq = readInt(data, 'message_seq');
     msg.clientSeq = readInt(data, 'client_seq');
     msg.timestamp = readInt(data, 'timestamp');
-    msg.fromUID = readString(data, ' from_uid');
+    msg.fromUID = readString(data, 'from_uid');
     msg.channelID = readString(data, 'channel_id');
     msg.channelType = readInt(data, 'channel_type');
     msg.contentType = readInt(data, 'type');
