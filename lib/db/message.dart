@@ -109,7 +109,7 @@ class MessaggeDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
-      maxOrderSeq = data['order_seq'];
+      maxOrderSeq = WKDBConst.readInt(data, 'order_seq');
     }
     return maxOrderSeq;
   }
@@ -122,7 +122,7 @@ class MessaggeDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
-      messageSeq = data['message_seq'];
+      messageSeq = WKDBConst.readInt(data, 'message_seq');
     }
     return messageSeq;
   }
@@ -136,7 +136,7 @@ class MessaggeDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
-      minOrderSeq = data['order_seq'];
+      minOrderSeq = WKDBConst.readInt(data, 'order_seq');
     }
     return minOrderSeq;
   }
@@ -416,7 +416,7 @@ class MessaggeDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
-      num = data['num'];
+      num = WKDBConst.readInt(data, 'num');
     }
     return num;
   }
@@ -437,7 +437,7 @@ class MessaggeDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
-      messageSeq = data['message_seq'];
+      messageSeq = WKDBConst.readInt(data, 'message_seq');
     }
     return messageSeq;
   }

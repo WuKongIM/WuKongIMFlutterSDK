@@ -57,7 +57,7 @@ class LoginDemoState extends State<LoginDemo> {
                           TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '悟空IM演示程序。当前SDK版本：V1.0.0',
+                      '悟空IM演示程序。当前SDK版本：V1.0.1',
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),

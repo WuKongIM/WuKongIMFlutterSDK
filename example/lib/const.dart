@@ -11,6 +11,9 @@ class ChatChannel {
 
 class CommonUtils {
   static String getAvatar(String channelID) {
+    if (channelID == '') {
+      return '';
+    }
     return channelID.substring(0, 1);
   }
 

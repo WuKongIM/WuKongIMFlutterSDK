@@ -78,9 +78,12 @@ class ChannelDB {
     List<Map<String, Object?>> list =
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (list.isNotEmpty) {
-      String channelID = list[0]['channel_id']!.toString();
-      if (channelID != '' && channelID.isNotEmpty) {
-        isExit = true;
+      dynamic data = list[0];
+      if (data != null) {
+        String channelID = WKDBConst.readString(data, 'channel_id');
+        if (channelID != '' && channelID.isNotEmpty) {
+          isExit = true;
+        }
       }
     }
     return isExit;

@@ -7,8 +7,14 @@
 
 ## 快速入门
 
+#### 安装
+```
+dependencies:
+  wukongimfluttersdk: ^1.0.1
+```
+#### 引入
 ```dart
-
+import 'package:wukongimfluttersdk/wkim.dart';
 ```
 
 **初始化sdk**

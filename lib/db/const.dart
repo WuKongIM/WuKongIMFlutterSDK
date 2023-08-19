@@ -27,27 +27,27 @@ class WKDBConst {
     msg.messageID = readString(data, 'message_id');
     msg.messageSeq = readInt(data, 'message_seq');
     msg.clientSeq = readInt(data, 'client_seq');
-    msg.timestamp = data['timestamp'];
-    msg.fromUID = data['from_uid'];
-    msg.channelID = data['channel_id'];
-    msg.channelType = data['channel_type'];
-    msg.contentType = data['type'];
-    msg.content = data['content'];
-    msg.status = data['status'];
-    msg.voiceStatus = data['voice_status'];
-    msg.searchableWord = data['searchable_word'];
-    msg.clientMsgNO = data['client_msg_no'];
-    msg.isDeleted = data['is_deleted'];
-    msg.orderSeq = data['order_seq'];
-    int setting = data['setting'];
+    msg.timestamp = readInt(data, 'timestamp');
+    msg.fromUID = readString(data, ' from_uid');
+    msg.channelID = readString(data, 'channel_id');
+    msg.channelType = readInt(data, 'channel_type');
+    msg.contentType = readInt(data, 'type');
+    msg.content = readString(data, 'content');
+    msg.status = readInt(data, 'status');
+    msg.voiceStatus = readInt(data, 'voice_status');
+    msg.searchableWord = readString(data, 'searchable_word');
+    msg.clientMsgNO = readString(data, 'client_msg_no');
+    msg.isDeleted = readInt(data, 'is_deleted');
+    msg.orderSeq = readInt(data, 'order_seq');
+    int setting = readInt(data, 'setting');
     msg.setting = Setting().decode(setting);
-    msg.viewed = data['viewed'];
-    msg.viewedAt = data['viewed_at'];
-    msg.topicID = data['topic_id'];
+    msg.viewed = readInt(data, 'viewed');
+    msg.viewedAt = readInt(data, 'viewed_at');
+    msg.topicID = readString(data, 'topic_id');
     // 扩展表数据
     msg.wkMsgExtra = serializeMsgExtra(data);
 
-    String extra = data['extra'];
+    String extra = readString(data, 'extra');
     if (extra != '') {
       msg.localExtraMap = jsonEncode(extra);
     }
@@ -85,32 +85,32 @@ class WKDBConst {
 
   static WKMsgReaction serializeMsgReation(dynamic data) {
     WKMsgReaction reaction = WKMsgReaction();
-    reaction.channelID = data['channel_id'];
-    reaction.channelType = data['channel_type'];
-    reaction.isDeleted = data['is_deleted'];
-    reaction.uid = data['uid'];
-    reaction.name = data['name'];
-    reaction.messageID = data['message_id'];
-    reaction.createdAt = data['created_at'];
-    reaction.seq = data['seq'];
-    reaction.emoji = data['emoji'];
-    reaction.isDeleted = data['is_deleted'];
+    reaction.channelID = readString(data, 'channel_id');
+    reaction.channelType = readInt(data, 'channel_type');
+    reaction.isDeleted = readInt(data, 'is_deleted');
+    reaction.uid = readString(data, 'uid');
+    reaction.name = readString(data, 'name');
+    reaction.messageID = readString(data, 'message_id');
+    reaction.createdAt = readString(data, 'created_at');
+    reaction.seq = readInt(data, 'seq');
+    reaction.emoji = readString(data, 'emoji');
+    reaction.isDeleted = readInt(data, 'is_deleted');
     return reaction;
   }
 
   static WKConversationMsg serializeCoversation(dynamic data) {
     WKConversationMsg msg = WKConversationMsg();
-    msg.channelID = data['channel_id'];
-    msg.channelType = data['channel_type'];
-    msg.lastMsgTimestamp = data['last_msg_timestamp'];
-    msg.unreadCount = data['unread_count'];
-    msg.isDeleted = data['is_deleted'];
-    msg.version = data['version'];
-    msg.lastClientMsgNO = data['last_client_msg_no'];
-    msg.lastMsgSeq = data['last_msg_seq'];
-    msg.parentChannelID = data['parent_channel_id'];
-    msg.parentChannelType = data['parent_channel_type'];
-    String extra = data['extra'];
+    msg.channelID = readString(data, 'channel_id');
+    msg.channelType = readInt(data, 'channel_type');
+    msg.lastMsgTimestamp = readInt(data, 'last_msg_timestamp');
+    msg.unreadCount = readInt(data, 'unread_count');
+    msg.isDeleted = readInt(data, 'is_deleted');
+    msg.version = readInt(data, 'version');
+    msg.lastClientMsgNO = readString(data, 'last_client_msg_no');
+    msg.lastMsgSeq = readInt(data, 'last_msg_seq');
+    msg.parentChannelID = readString(data, 'parent_channel_id');
+    msg.parentChannelType = readInt(data, 'parent_channel_type');
+    String extra = readString(data, 'extra');
     if (extra != '') {
       msg.localExtraMap = jsonDecode(extra);
     }
@@ -129,44 +129,44 @@ class WKDBConst {
     extra.draftUpdatedAt = readInt(data, 'draft_updated_at');
     extra.version = readInt(data, 'version');
     if (data['extra_version'] != null) {
-      extra.version = data['extra_version'];
+      extra.version = readInt(data, 'extra_version');
     }
     return extra;
   }
 
   static WKChannel serializeChannel(dynamic data) {
-    String channelID = data['channel_id'];
-    int channelType = data['channel_type'];
+    String channelID = readString(data, 'channel_id');
+    int channelType = readInt(data, 'channel_type');
     WKChannel channel = WKChannel(channelID, channelType);
-    channel.channelName = data['channel_name'];
-    channel.channelRemark = data['channel_remark'];
-    channel.showNick = data['show_nick'];
-    channel.top = data['top'];
-    channel.mute = data['mute'];
-    channel.isDeleted = data['is_deleted'];
-    channel.forbidden = data['forbidden'];
-    channel.status = data['status'];
-    channel.follow = data['follow'];
-    channel.invite = data['invite'];
-    channel.version = data['version'];
-    channel.avatar = data['avatar'];
-    channel.online = data['online'];
-    channel.lastOffline = data['last_offline'];
-    channel.category = data['category'];
-    channel.receipt = data['receipt'];
-    channel.robot = data['robot'];
-    channel.username = data['username'];
-    channel.avatarCacheKey = data['avatar_cache_key'];
-    channel.deviceFlag = data['device_flag'];
-    channel.parentChannelID = data['parent_channel_id'];
-    channel.parentChannelType = data['parent_channel_type'];
-    channel.createdAt = data['created_at'];
-    channel.updatedAt = data['updated_at'];
-    String remoteExtra = data['remote_extra'];
+    channel.channelName = readString(data, 'channel_name');
+    channel.channelRemark = readString(data, 'channel_remark');
+    channel.showNick = readInt(data, 'show_nick');
+    channel.top = readInt(data, 'top');
+    channel.mute = readInt(data, 'mute');
+    channel.isDeleted = readInt(data, 'is_deleted');
+    channel.forbidden = readInt(data, 'forbidden');
+    channel.status = readInt(data, 'status');
+    channel.follow = readInt(data, 'follow');
+    channel.invite = readInt(data, 'invite');
+    channel.version = readInt(data, 'version');
+    channel.avatar = readString(data, 'avatar');
+    channel.online = readInt(data, 'online');
+    channel.lastOffline = readInt(data, 'last_offline');
+    channel.category = readString(data, 'category');
+    channel.receipt = readInt(data, 'receipt');
+    channel.robot = readInt(data, 'robot');
+    channel.username = readString(data, 'username');
+    channel.avatarCacheKey = readString(data, 'avatar_cache_key');
+    channel.deviceFlag = readInt(data, 'device_flag');
+    channel.parentChannelID = readString(data, 'parent_channel_id');
+    channel.parentChannelType = readInt(data, 'parent_channel_type');
+    channel.createdAt = readString(data, 'created_at');
+    channel.updatedAt = readString(data, 'updated_at');
+    String remoteExtra = readString(data, 'remote_extra');
     if (remoteExtra != '') {
       channel.remoteExtraMap = jsonDecode(remoteExtra);
     }
-    String localExtra = data['extra'];
+    String localExtra = readString(data, 'extra');
     if (remoteExtra != '') {
       channel.localExtra = jsonDecode(localExtra);
     }
@@ -175,21 +175,21 @@ class WKDBConst {
 
   static WKChannelMember serializeChannelMember(dynamic data) {
     WKChannelMember member = WKChannelMember();
-    member.status = data['status'];
-    member.channelID = data['channel_id'];
-    member.channelType = data['channel_type'];
-    member.memberUID = data['member_uid'];
-    member.memberName = data['member_name'];
-    member.memberAvatar = data['member_avatar'];
-    member.memberRemark = data['member_remark'];
-    member.role = data['role'];
-    member.isDeleted = data['is_deleted'];
-    member.version = data['version'];
-    member.createdAt = data['created_at'];
-    member.updatedAt = data['updated_at'];
-    member.memberInviteUID = data['member_invite_uid'];
-    member.robot = data['robot'];
-    member.forbiddenExpirationTime = data['forbidden_expiration_time'];
+    member.status = readInt(data, 'status');
+    member.channelID = readString(data, 'channel_id');
+    member.channelType = readInt(data, 'channel_type');
+    member.memberUID = readString(data, 'member_uid');
+    member.memberName = readString(data, 'member_name');
+    member.memberAvatar = readString(data, 'member_avatar');
+    member.memberRemark = readString(data, 'member_remark');
+    member.role = readInt(data, 'role');
+    member.isDeleted = readInt(data, 'is_deleted');
+    member.version = readInt(data, 'version');
+    member.createdAt = readString(data, 'created_at');
+    member.updatedAt = readString(data, 'updated_at');
+    member.memberInviteUID = readString(data, 'member_invite_uid');
+    member.robot = readInt(data, 'robot');
+    member.forbiddenExpirationTime = readInt(data, 'forbidden_expiration_time');
     String channelName = readString(data, 'channel_name');
     if (channelName != '') {
       member.memberName = channelName;
@@ -212,19 +212,19 @@ class WKDBConst {
 
   static WKReminder serializeReminder(dynamic data) {
     WKReminder reminder = WKReminder();
-    reminder.type = data['type'];
-    reminder.reminderID = data['reminder_id'];
-    reminder.messageID = data['message_id'];
-    reminder.messageSeq = data['message_seq'];
-    reminder.isLocate = data['is_locate'];
-    reminder.channelID = data['channel_id'];
-    reminder.channelType = data['channel_type'];
-    reminder.text = data['text'];
-    reminder.version = data['version'];
-    reminder.done = data['done'];
-    String data1 = data['data'];
-    reminder.needUpload = data['needUpload'];
-    reminder.publisher = data['publisher'];
+    reminder.type = readInt(data, 'type');
+    reminder.reminderID = readInt(data, 'reminder_id');
+    reminder.messageID = readString(data, 'message_id');
+    reminder.messageSeq = readInt(data, 'message_seq');
+    reminder.isLocate = readInt(data, 'is_locate');
+    reminder.channelID = readString(data, 'channel_id');
+    reminder.channelType = readInt(data, 'channel_type');
+    reminder.text = readString(data, 'text');
+    reminder.version = readInt(data, 'version');
+    reminder.done = readInt(data, 'done');
+    String data1 = readString(data, 'data');
+    reminder.needUpload = readInt(data, 'needUpload');
+    reminder.publisher = readString(data, 'publisher');
     if (data1 != '') {
       reminder.data = jsonDecode(data1);
     }

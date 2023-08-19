@@ -43,7 +43,7 @@ class ChannelMemberDB {
         await WKDBHelper.shared.getDB().rawQuery(sql);
     if (results.isNotEmpty) {
       dynamic data = results[0];
-      version = data['version'];
+      version = WKDBConst.readInt(data, 'version');
     }
     return version;
   }
