@@ -104,49 +104,49 @@ class WKMsgReaction {
 }
 
 class WKSyncMsg {
-  String message_id = '';
-  int message_seq = 0;
-  String client_msg_no = '';
-  String from_uid = '';
-  String channel_id = '';
-  int channel_type = 0;
+  String messageID = '';
+  int messageSeq = 0;
+  String clientMsgNO = '';
+  String fromUID = '';
+  String channelID = '';
+  int channelType = 0;
   int timestamp = 0;
-  int voice_status = 0;
-  int is_deleted = 0;
+  int voiceStatus = 0;
+  int isDeleted = 0;
   int revoke = 0;
   String revoker = '';
-  int extra_version = 0;
-  int unread_count = 0;
-  int readed_count = 0;
+  int extraVersion = 0;
+  int unreadCount = 0;
+  int readedCount = 0;
   int readed = 0;
   int receipt = 0;
   int setting = 0;
   dynamic payload;
   List<WKSyncMsgReaction>? reactions;
-  WKSyncExtraMsg? message_extra;
+  WKSyncExtraMsg? messageExtra;
 
   WKMsg getWKMsg() {
     WKMsg msg = WKMsg();
-    msg.channelID = channel_id;
-    msg.channelType = channel_type;
-    msg.messageID = message_id;
-    msg.messageSeq = message_seq;
-    msg.clientMsgNO = client_msg_no;
-    msg.fromUID = from_uid;
+    msg.channelID = channelID;
+    msg.channelType = channelType;
+    msg.messageID = messageID;
+    msg.messageSeq = messageSeq;
+    msg.clientMsgNO = clientMsgNO;
+    msg.fromUID = fromUID;
     msg.timestamp = timestamp;
     msg.orderSeq = msg.messageSeq * WKIM.shared.messageManager.wkOrderSeqFactor;
-    msg.voiceStatus = voice_status;
-    msg.isDeleted = is_deleted;
+    msg.voiceStatus = voiceStatus;
+    msg.isDeleted = isDeleted;
     msg.status = WKSendMsgResult.sendSuccess;
     msg.wkMsgExtra = WKMsgExtra();
     msg.wkMsgExtra!.revoke = revoke;
     msg.wkMsgExtra!.revoker = revoker;
-    msg.wkMsgExtra!.unreadCount = unread_count;
-    msg.wkMsgExtra!.readedCount = readed_count;
+    msg.wkMsgExtra!.unreadCount = unreadCount;
+    msg.wkMsgExtra!.readedCount = readedCount;
     msg.wkMsgExtra!.readed = readed;
     // msg.reactionList = reactions;
     // msg.receipt = receipt;
-    msg.wkMsgExtra!.extraVersion = extra_version;
+    msg.wkMsgExtra!.extraVersion = extraVersion;
     //处理消息设置
     msg.setting = msg.setting.decode(setting);
     //如果是单聊先将channelId改成发送者ID
@@ -177,15 +177,15 @@ class WKSyncMsg {
     List<WKMsgReaction> list = [];
     for (int i = 0, size = msgReaction.length; i < size; i++) {
       WKMsgReaction reaction = WKMsgReaction();
-      reaction.channelID = msgReaction[i].channel_id;
-      reaction.channelType = msgReaction[i].channel_type;
+      reaction.channelID = msgReaction[i].channelID;
+      reaction.channelType = msgReaction[i].channelType;
       reaction.uid = msgReaction[i].uid;
       reaction.name = msgReaction[i].name;
       reaction.emoji = msgReaction[i].emoji;
       reaction.seq = msgReaction[i].seq;
-      reaction.isDeleted = msgReaction[i].is_deleted;
-      reaction.messageID = msgReaction[i].message_id;
-      reaction.createdAt = msgReaction[i].created_at;
+      reaction.isDeleted = msgReaction[i].isDeleted;
+      reaction.messageID = msgReaction[i].messageID;
+      reaction.createdAt = msgReaction[i].createdAt;
       list.add(reaction);
     }
     return list;
@@ -193,35 +193,35 @@ class WKSyncMsg {
 }
 
 class WKSyncMsgReaction {
-  String message_id = '';
+  String messageID = '';
   String uid = '';
   String name = '';
-  String channel_id = '';
-  int channel_type = 0;
+  String channelID = '';
+  int channelType = 0;
   int seq = 0;
   String emoji = '';
-  int is_deleted = 0;
-  String created_at = '';
+  int isDeleted = 0;
+  String createdAt = '';
 }
 
 class WKSyncExtraMsg {
-  int message_id = 0;
-  String message_id_str = '';
+  int messageID = 0;
+  String messageIdStr = '';
   int revoke = 0;
   String revoker = '';
-  int voice_status = 0;
-  int is_mutual_deleted = 0;
-  int extra_version = 0;
-  int unread_count = 0;
-  int readed_count = 0;
+  int voiceStatus = 0;
+  int isMutualDeleted = 0;
+  int extraVersion = 0;
+  int unreadCount = 0;
+  int readedCount = 0;
   int readed = 0;
-  dynamic content_edit;
-  int edited_at = 0;
+  dynamic contentEdit;
+  int editedAt = 0;
 }
 
 class WKSyncChannelMsg {
-  int start_message_seq = 0;
-  int end_message_seq = 0;
+  int startMessageSeq = 0;
+  int endMessageSeq = 0;
   int more = 0;
   List<WKSyncMsg>? messages = [];
 }

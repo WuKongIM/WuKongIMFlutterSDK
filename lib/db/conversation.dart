@@ -59,8 +59,6 @@ class ConversationDB {
     }
     if (row > 0) {
       return getUIMsg(conversationMsg);
-    } else {
-      print('新消息的修改失败');
     }
     return null;
   }

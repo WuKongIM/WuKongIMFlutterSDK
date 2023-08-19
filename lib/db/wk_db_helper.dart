@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 
 import '../wkim.dart';
 
@@ -13,7 +13,7 @@ class WKDBHelper {
   Database? _database;
   Future<bool> init() async {
     var databasesPath = await getDatabasesPath();
-    String path = join(databasesPath, 'wk_${WKIM.shared.options.uid}.db');
+    String path = p.join(databasesPath, 'wk_${WKIM.shared.options.uid}.db');
     _database = await openDatabase(
       path,
       version: dbVersion,

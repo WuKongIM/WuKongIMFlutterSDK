@@ -122,18 +122,18 @@ class WKConversationManager {
     if (syncChat.conversations != null && syncChat.conversations!.isNotEmpty) {
       for (int i = 0, size = syncChat.conversations!.length; i < size; i++) {
         WKConversationMsg conversationMsg = WKConversationMsg();
-        int channelType = syncChat.conversations![i].channel_type;
-        String channelID = syncChat.conversations![i].channel_id;
+        int channelType = syncChat.conversations![i].channelType;
+        String channelID = syncChat.conversations![i].channelID;
         if (channelType == WKChannelType.communityTopic) {
           var str = channelID.split("@");
           conversationMsg.parentChannelID = str[0];
           conversationMsg.parentChannelType = WKChannelType.community;
         }
-        conversationMsg.channelID = syncChat.conversations![i].channel_id;
-        conversationMsg.channelType = syncChat.conversations![i].channel_type;
-        conversationMsg.lastMsgSeq = syncChat.conversations![i].last_msg_seq;
+        conversationMsg.channelID = syncChat.conversations![i].channelID;
+        conversationMsg.channelType = syncChat.conversations![i].channelType;
+        conversationMsg.lastMsgSeq = syncChat.conversations![i].lastMsgSeq;
         conversationMsg.lastClientMsgNO =
-            syncChat.conversations![i].last_client_msg_no;
+            syncChat.conversations![i].lastClientMsgNO;
         conversationMsg.lastMsgTimestamp = syncChat.conversations![i].timestamp;
         conversationMsg.unreadCount = syncChat.conversations![i].unread;
         conversationMsg.version = syncChat.conversations![i].version;
@@ -149,10 +149,10 @@ class WKConversationManager {
             if (conversationMsg.lastClientMsgNO == msg.clientMsgNO) {
               conversationMsg.isDeleted = msg.isDeleted;
             }
-            if (wkSyncRecent.message_extra != null) {
+            if (wkSyncRecent.messageExtra != null) {
               WKMsgExtra extra = WKIM.shared.messageManager
                   .wkSyncExtraMsg2WKMsgExtra(msg.channelID, msg.channelType,
-                      wkSyncRecent.message_extra!);
+                      wkSyncRecent.messageExtra!);
               msgExtraList.add(extra);
             }
             msgList.add(msg);

@@ -28,7 +28,7 @@ class _WKSocket {
       _socket.add(data);
       _socket.flush();
     } catch (e) {
-      Logs.error('发送消息错误${e}');
+      Logs.debug('发送消息错误');
     }
   }
 
@@ -383,10 +383,10 @@ class WKConnectionManager {
     msg.orderSeq = await WKIM.shared.messageManager
         .getMessageOrderSeq(msg.messageSeq, msg.channelID, msg.channelType);
     dynamic contentJson = jsonDecode(msg.content);
+    msg.contentType = contentJson['type'];
     msg.isDeleted = _isDeletedMsg(contentJson);
     msg.messageContent = WKIM.shared.messageManager
         .getMessageModel(msg.contentType, contentJson);
-    msg.contentType = msg.messageContent!.contentType;
     WKIM.shared.messageManager.parsingMsg(msg);
     WKIM.shared.messageManager.saveMsg(msg);
     if (msg.isDeleted == 0 &&

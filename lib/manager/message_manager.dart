@@ -123,10 +123,10 @@ class WKMessageManager {
     for (int j = 0, len = list.length; j < len; j++) {
       WKMsg wkMsg = list[j].getWKMsg();
       msgList.add(wkMsg);
-      if (list[j].message_extra != null) {
-        if (list[j].message_extra != null) {
+      if (list[j].messageExtra != null) {
+        if (list[j].messageExtra != null) {
           WKMsgExtra extra = wkSyncExtraMsg2WKMsgExtra(
-              wkMsg.channelID, wkMsg.channelType, list[j].message_extra!);
+              wkMsg.channelID, wkMsg.channelType, list[j].messageExtra!);
           msgExtraList.add(extra);
         }
       }
@@ -144,20 +144,20 @@ class WKMessageManager {
     WKMsgExtra extra = WKMsgExtra();
     extra.channelID = channelID;
     extra.channelType = channelType;
-    extra.unreadCount = extraMsg.unread_count;
-    extra.readedCount = extraMsg.readed_count;
+    extra.unreadCount = extraMsg.unreadCount;
+    extra.readedCount = extraMsg.readedCount;
     extra.readed = extraMsg.readed;
-    extra.messageID = extraMsg.message_id_str;
-    extra.isMutualDeleted = extraMsg.is_mutual_deleted;
-    extra.extraVersion = extraMsg.extra_version;
+    extra.messageID = extraMsg.messageIdStr;
+    extra.isMutualDeleted = extraMsg.isMutualDeleted;
+    extra.extraVersion = extraMsg.extraVersion;
     extra.revoke = extraMsg.revoke;
     extra.revoker = extraMsg.revoker;
     extra.needUpload = 0;
-    if (extraMsg.content_edit != null) {
-      extra.contentEdit = jsonEncode(extraMsg.content_edit);
+    if (extraMsg.contentEdit != null) {
+      extra.contentEdit = jsonEncode(extraMsg.contentEdit);
     }
 
-    extra.editedAt = extraMsg.edited_at;
+    extra.editedAt = extraMsg.editedAt;
     return extra;
   }
 

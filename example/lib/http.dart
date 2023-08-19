@@ -47,12 +47,12 @@ class HttpUtils {
       for (int i = 0; i < list.length; i++) {
         var json = list[i];
         WKSyncConvMsg convMsg = WKSyncConvMsg();
-        convMsg.channel_id = json['channel_id'];
-        convMsg.channel_type = json['channel_type'];
+        convMsg.channelID = json['channel_id'];
+        convMsg.channelType = json['channel_type'];
         convMsg.unread = json['unread'];
         convMsg.timestamp = json['timestamp'];
-        convMsg.last_msg_seq = json['last_msg_seq'];
-        convMsg.last_client_msg_no = json['last_client_msg_no'];
+        convMsg.lastMsgSeq = json['last_msg_seq'];
+        convMsg.lastClientMsgNO = json['last_client_msg_no'];
         convMsg.version = json['version'];
         var msgListJson = json['recents'] as List<dynamic>;
         List<WKSyncMsg> msgList = [];
@@ -92,8 +92,8 @@ class HttpUtils {
     if (response.statusCode == HttpStatus.ok) {
       var data = response.data;
       WKSyncChannelMsg msg = WKSyncChannelMsg();
-      msg.start_message_seq = data['start_message_seq'];
-      msg.end_message_seq = data['end_message_seq'];
+      msg.startMessageSeq = data['start_message_seq'];
+      msg.endMessageSeq = data['end_message_seq'];
       msg.more = data['more'];
       var messages = data['messages'] as List<dynamic>;
       List<WKSyncMsg> msgList = [];
@@ -108,20 +108,18 @@ class HttpUtils {
 
   static WKSyncMsg getWKSyncMsg(dynamic json) {
     WKSyncMsg msg = WKSyncMsg();
-    msg.channel_id = json['channel_id'];
-    msg.message_id = json['message_id'].toString();
-    msg.channel_type = json['channel_type'];
-    msg.client_msg_no = json['client_msg_no'];
-    msg.message_seq = json['message_seq'];
-    msg.from_uid = json['from_uid'];
+    msg.channelID = json['channel_id'];
+    msg.messageID = json['message_id'].toString();
+    msg.channelType = json['channel_type'];
+    msg.clientMsgNO = json['client_msg_no'];
+    msg.messageSeq = json['message_seq'];
+    msg.fromUID = json['from_uid'];
     msg.timestamp = json['timestamp'];
-    msg.channel_id = json['channel_id'];
+    msg.channelID = json['channel_id'];
     //  msg.payload = json['payload'];
     String payload = json['payload'];
     // print('消息发送着：${msg.from_uid},${msg.channel_id}');
     try {
-      print(
-          '消息内容：${msg.from_uid},${msg.channel_id}：${utf8.decode(base64Decode(payload))}');
       msg.payload = jsonDecode(utf8.decode(base64Decode(payload)));
       // print('查询的消息${msg.payload}');
     } catch (e) {

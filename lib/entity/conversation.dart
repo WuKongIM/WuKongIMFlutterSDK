@@ -104,18 +104,18 @@ class WKUIConversationMsg {
 }
 
 class WKSyncConversation {
-  int cmd_version = 0;
+  int cmdVersion = 0;
   List<WkSyncCMD>? cmds;
   String uid = '';
   List<WKSyncConvMsg>? conversations;
 }
 
 class WKSyncConvMsg {
-  String channel_id = '';
-  int channel_type = 0;
-  String last_client_msg_no = '';
-  int last_msg_seq = 0;
-  int offset_msg_seq = 0;
+  String channelID = '';
+  int channelType = 0;
+  String lastClientMsgNO = '';
+  int lastMsgSeq = 0;
+  int offsetMsgSeq = 0;
   int timestamp = 0;
   int unread = 0;
   int version = 0;

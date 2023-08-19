@@ -112,7 +112,6 @@ PacketHeader decodeHeader(ReadData reader) {
   if (header.packetType != PacketType.ping &&
       header.packetType != PacketType.pong) {
     header.remainingLength = reader.readVariableLength();
-    print('科技长度${header.remainingLength}');
   }
   return header;
 }
