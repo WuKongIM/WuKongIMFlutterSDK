@@ -1,2 +1,6 @@
 ### 1.0.0
  * first commint
+### 1.0.1
+ * update connection
+### 1.0.2
+ * Reconnect when handling connection errors

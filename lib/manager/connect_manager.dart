@@ -32,11 +32,12 @@ class _WKSocket {
     }
   }
 
-  void listen(void Function(Uint8List data) onData) {
+  void listen(void Function(Uint8List data) onData, void Function() error) {
     _socket.listen(onData, onError: (err) {
       Logs.debug('socket断开了${err.toString()}');
     }, onDone: () {
       Logs.debug('socketonDone');
+      error();
     });
   }
 }
@@ -126,6 +127,11 @@ class WKConnectionManager {
     _socket?.listen((Uint8List data) {
       _cutDatas(data);
       // _decodePacket(data);
+    }, () {
+      isReconnection = true;
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        connect();
+      });
     });
     // 发送连接包
     _sendConnectPacket();
@@ -205,7 +211,6 @@ class WKConnectionManager {
   }
 
   _decodePacket(Uint8List data) {
-    Logs.debug("收到数据->$data");
     var packet = WKIM.shared.options.proto.decode(data);
     Logs.debug('解码出包->$packet');
     if (packet.header.packetType == PacketType.connack) {
