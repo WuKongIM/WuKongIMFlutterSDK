@@ -2,7 +2,7 @@
 
  ![](https://img.shields.io/static/v1?label=platform&message=flutter&color=green) ![](https://img.shields.io/hexpm/l/plug.svg)
 
-悟空IM flutter sdk 源码 [详细文档](http://githubim.com "文档")
+悟空IM flutter sdk 源码 [详细文档](http://githubim.com/sdk/flutter.html "文档")
 
 
 ## 快速入门
