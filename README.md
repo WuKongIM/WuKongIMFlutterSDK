@@ -2,8 +2,7 @@
 
  ![](https://img.shields.io/static/v1?label=platform&message=flutter&color=green) ![](https://img.shields.io/hexpm/l/plug.svg)
 
-悟空IM flutter sdk 源码 [详细文档](http://githubim.com/sdk/flutter.html "文档")
-
+[悟空IM](https://github.com/WuKongIM/WuKongIM "文档") flutter sdk 源码 [详细文档](http://githubim.com/sdk/flutter.html "文档")
 
 ## 快速入门
 
@@ -85,4 +84,4 @@ WKIM.shared.cmdManager.addOnCmdListener('chat', (cmdMsg) {
     // todo 按需处理cmd消息
 });
 ```
-- 包含`key`的事件监听均有移除监听的方法，为了避免重复收到事件回掉，在退出或销毁页面时需移除事件
+- 包含`key`的事件监听均有移除监听的方法，为了避免重复收到事件回掉，在退出或销毁页面时通过传入的`key`移除事件
