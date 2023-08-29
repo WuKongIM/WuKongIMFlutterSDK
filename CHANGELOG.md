@@ -8,3 +8,5 @@
  * update sync channel msgs
 ### 1.0.4
  * update manager method of obtaining
+### 1.0.5
+ * Optimize processing of incorrect data
