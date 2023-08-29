@@ -32,7 +32,8 @@ class WKDBHelper {
         .loadString('packages/wukongimfluttersdk/assets/sql.txt');
     List<String> names = path.split(';');
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    int maxVersion = preferences.getInt('wk_max_sql_version') ?? 0;
+    String wkUid = WKIM.shared.options.uid!;
+    int maxVersion = preferences.getInt('wk_max_sql_version_$wkUid') ?? 0;
     int saveVersion = 0;
     for (int i = 0; i < names.length; i++) {
       if (names[i] == '') {
@@ -55,7 +56,7 @@ class WKDBHelper {
       }
     }
     if (saveVersion > 0) {
-      preferences.setInt('wk_max_sql_version', saveVersion);
+      preferences.setInt('wk_max_sql_version_$wkUid', saveVersion);
     }
     return true;
   }
