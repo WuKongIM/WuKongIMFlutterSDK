@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:connectivity/connectivity.dart';
+import 'package:wukongimfluttersdk/db/const.dart';
 
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
@@ -395,7 +396,7 @@ class WKConnectionManager {
     msg.orderSeq = await WKIM.shared.messageManager
         .getMessageOrderSeq(msg.messageSeq, msg.channelID, msg.channelType);
     dynamic contentJson = jsonDecode(msg.content);
-    msg.contentType = contentJson['type'];
+    msg.contentType = WKDBConst.readInt(contentJson, 'type');
     msg.isDeleted = _isDeletedMsg(contentJson);
     msg.messageContent = WKIM.shared.messageManager
         .getMessageModel(msg.contentType, contentJson);

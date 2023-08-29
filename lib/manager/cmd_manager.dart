@@ -1,5 +1,7 @@
 import 'dart:collection';
 
+import 'package:wukongimfluttersdk/db/const.dart';
+
 import '../entity/cmd.dart';
 
 class WKCMDManager {
@@ -9,7 +11,7 @@ class WKCMDManager {
 
   HashMap<String, Function(WKCMD)>? _cmdback;
   handleCMD(dynamic json) {
-    String cmd = json['cmd'];
+    String cmd = WKDBConst.readString(json, 'cmd');
     dynamic param = json['param'];
     WKCMD wkcmd = WKCMD();
     wkcmd.cmd = cmd;

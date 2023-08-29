@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:uuid/uuid.dart';
 import 'package:wukongimfluttersdk/common/logs.dart';
+import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/db/message.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/model/wk_media_message_content.dart';
@@ -63,8 +64,8 @@ class WKMessageManager {
       wkMsg.contentType = WkMessageContentType.contentFormatError;
       return;
     }
-    if (wkMsg.fromUID == '') {
-      wkMsg.fromUID = json['from_uid'];
+    if (wkMsg.fromUID == "") {
+      wkMsg.fromUID = WKDBConst.readString(json, 'from_uid');
     }
     if (wkMsg.channelType == WKChannelType.personal &&
         wkMsg.channelID != '' &&
