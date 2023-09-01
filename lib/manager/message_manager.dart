@@ -10,6 +10,7 @@ import 'package:wukongimfluttersdk/model/wk_media_message_content.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 
 import '../entity/channel.dart';
+import '../entity/conversation.dart';
 import '../model/wk_message_content.dart';
 import '../model/wk_unknown_content.dart';
 import '../wkim.dart';
@@ -336,6 +337,13 @@ class WKMessageManager {
     int row = await saveMsg(wkMsg);
     wkMsg.clientSeq = row;
     WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
+    if (row > 0) {
+      WKUIConversationMsg? uiMsg =
+          await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg);
+      if (uiMsg != null) {
+        WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
+      }
+    }
     if (wkMsg.messageContent is WKMediaMessageContent) {
       // 附件消息
       if (_uploadAttachmentBack != null) {

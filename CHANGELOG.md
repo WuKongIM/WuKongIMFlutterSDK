@@ -10,3 +10,5 @@
  * update manager method of obtaining
 ### 1.0.5
  * Optimize processing of incorrect data
+### 1.0.6
+ * Update sending messages without notification to refresh conversation messsage
