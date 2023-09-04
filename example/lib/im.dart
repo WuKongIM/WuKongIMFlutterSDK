@@ -42,21 +42,21 @@ class IMUtils {
         WKImageContent imageContent = wkMsg.messageContent! as WKImageContent;
         imageContent.url = 'xxxxxx';
         wkMsg.messageContent = imageContent;
-        back(wkMsg);
+        back(true, wkMsg);
       }
       if (wkMsg.contentType == WkMessageContentType.voice) {
         // todo 上传语音
         WKVoiceContent voiceContent = wkMsg.messageContent! as WKVoiceContent;
         voiceContent.url = 'xxxxxx';
         wkMsg.messageContent = voiceContent;
-        back(wkMsg);
+        back(true, wkMsg);
       } else if (wkMsg.contentType == WkMessageContentType.video) {
         WKVideoContent videoContent = wkMsg.messageContent! as WKVideoContent;
         // todo 上传封面及视频
         videoContent.cover = 'xxxxxx';
         videoContent.url = 'ssssss';
         wkMsg.messageContent = videoContent;
-        back(wkMsg);
+        back(true, wkMsg);
       }
     });
   }

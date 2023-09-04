@@ -87,6 +87,30 @@ class MessaggeDB {
     return wkMsg;
   }
 
+  Future<List<WKMsg>> queryWithMessageIds(List<String> messageIds) async {
+    StringBuffer sb = StringBuffer();
+    for (int i = 0, size = messageIds.length; i < size; i++) {
+      if (i != 0) {
+        sb.write(",");
+      }
+      sb.write("'");
+      sb.write(messageIds[i]);
+      sb.write("'");
+    }
+
+    String sql =
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (${sb.toString()})";
+    List<WKMsg> list = [];
+    List<Map<String, Object?>> results =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (results.isNotEmpty) {
+      for (Map<String, Object?> data in results) {
+        list.add(WKDBConst.serializeWKMsg(data));
+      }
+    }
+    return list;
+  }
+
   Future<List<WKMsgReaction>> queryReactions(String messageID) async {
     String sql =
         "select * from  ${WKDBConst.tableMessageReaction} where message_id='$messageID' and is_deleted=0 ORDER BY created_at desc";
@@ -536,7 +560,7 @@ class MessaggeDB {
     return msgs;
   }
 
-  insertOrUpdateMsgExtras(List<WKMsgExtra> list) async {
+  Future<bool> insertOrUpdateMsgExtras(List<WKMsgExtra> list) async {
     List<String> msgIds = [];
     for (int i = 0, size = list.length; i < size; i++) {
       if (list[i].messageID != '') {
@@ -574,6 +598,21 @@ class MessaggeDB {
         }
       });
     }
+    return true;
+  }
+
+  Future<int> queryMaxExtraVersionWithChannel(
+      String channelID, int channelType) async {
+    int extraVersion = 0;
+    String sql =
+        "select max(extra_version) extra_version from ${WKDBConst.tableMessageExtra} where channel_id ='$channelID' and channel_type=$channelType";
+    List<Map<String, Object?>> list =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (list.isNotEmpty) {
+      dynamic data = list[0];
+      extraVersion = WKDBConst.readInt(data, 'extra_version');
+    }
+    return extraVersion;
   }
 
   Future<List<WKMsgExtra>> queryMsgExtrasWithMsgIds(List<String> msgIds) async {
@@ -719,7 +758,6 @@ class MessaggeDB {
     map['extra_version'] = extra.extraVersion;
     map['is_mutual_deleted'] = extra.isMutualDeleted;
     map['content_edit'] = extra.contentEdit;
-    map['edited_at'] = extra.editedAt;
     map['edited_at'] = extra.editedAt;
     map['need_upload'] = extra.needUpload;
     map['message_id'] = extra.messageID;

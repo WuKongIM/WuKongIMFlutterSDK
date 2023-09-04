@@ -1,11 +1,13 @@
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
+import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/model/wk_card_content.dart';
 import 'package:wukongimfluttersdk/model/wk_image_content.dart';
 import 'package:wukongimfluttersdk/model/wk_text_content.dart';
 import 'package:wukongimfluttersdk/model/wk_video_content.dart';
 import 'package:wukongimfluttersdk/model/wk_voice_content.dart';
+import 'package:wukongimfluttersdk/proto/proto.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
@@ -72,6 +74,10 @@ class ChatListDataState extends State<ChatList> {
     WKIM.shared.messageManager.addOnNewMsgListener('chat', (msgs) {
       setState(() {
         for (var i = 0; i < msgs.length; i++) {
+          if (msgs[i].setting.receipt == 1) {
+            // 消息需要回执
+            testReceipt(msgs[i]);
+          }
           msgList.add(UIMsg(msgs[i]));
         }
       });
@@ -85,11 +91,30 @@ class ChatListDataState extends State<ChatList> {
           msgList[i].wkMsg.messageID = wkMsg.messageID;
           msgList[i].wkMsg.messageSeq = wkMsg.messageSeq;
           msgList[i].wkMsg.status = wkMsg.status;
+          msgList[i].wkMsg.wkMsgExtra = wkMsg.wkMsgExtra;
           break;
         }
       }
       setState(() {});
     });
+  }
+
+  // 模拟同步消息扩展后保存到db
+  testReceipt(WKMsg wkMsg) async {
+    if (wkMsg.viewed == 0) {
+      var maxVersion = await WKIM.shared.messageManager
+          .getMaxExtraVersionWithChannel(channelID, channelType);
+      var extra = WKMsgExtra();
+      extra.messageID = wkMsg.messageID;
+      extra.channelID = channelID;
+      extra.channelType = channelType;
+      extra.readed = 1;
+      extra.readedCount = 1;
+      extra.extraVersion = maxVersion + 1;
+      List<WKMsgExtra> list = [];
+      list.add(extra);
+      WKIM.shared.messageManager.saveRemoteExtraMsg(list);
+    }
   }
 
   getMsgList() {
@@ -274,10 +299,11 @@ class ChatListDataState extends State<ChatList> {
                   onPressed: () {
                     if (content != '') {
                       _textEditingController.text = '';
-
+                      Setting setting = Setting();
+                      setting.receipt = 1; //开启回执
                       WKTextContent text = WKTextContent(content);
-                      WKIM.shared.messageManager
-                          .sendMessage(text, WKChannel(channelID, channelType));
+                      WKIM.shared.messageManager.sendMessageWithSetting(
+                          text, WKChannel(channelID, channelType), setting);
                       // WKImageContent imageContent = WKImageContent(100, 200);
                       // imageContent.localPath = 'addskds';
                       // WKIM.shared.messageManager.sendMessage(

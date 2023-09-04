@@ -11,7 +11,11 @@ class UIMsg {
     if (wkMsg.messageContent == null) {
       return '';
     }
-    return wkMsg.messageContent!.displayText();
+    var readCount = 0;
+    if (wkMsg.wkMsgExtra != null) {
+      readCount = wkMsg.wkMsgExtra!.readedCount;
+    }
+    return "${wkMsg.messageContent!.displayText()} [是否需要回执：${wkMsg.setting.receipt}]，[已读数量：$readCount]";
   }
 
   String getShowTime() {

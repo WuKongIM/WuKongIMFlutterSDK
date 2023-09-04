@@ -343,10 +343,15 @@ class WKConnectionManager {
 
   sendMessage(WKMsg wkMsg) {
     SendPacket packet = SendPacket();
+    packet.setting = wkMsg.setting;
+    packet.header.noPersist = wkMsg.header.noPersist;
+    packet.header.showUnread = wkMsg.header.redDot;
+    packet.header.syncOnce = wkMsg.header.syncOnce;
     packet.channelID = wkMsg.channelID;
     packet.channelType = wkMsg.channelType;
     packet.clientSeq = wkMsg.clientSeq;
     packet.clientMsgNO = wkMsg.clientMsgNO;
+    packet.topic = wkMsg.topicID;
     packet.payload = wkMsg.content;
     _addSendingMsg(packet);
     _sendPacket(packet);
@@ -382,6 +387,7 @@ class WKConnectionManager {
     msg.header.redDot = recvMsg.header.showUnread;
     msg.header.noPersist = recvMsg.header.noPersist;
     msg.header.syncOnce = recvMsg.header.syncOnce;
+    msg.setting = recvMsg.setting;
     msg.channelType = recvMsg.channelType;
     msg.channelID = recvMsg.channelID;
     msg.content = recvMsg.payload;
@@ -389,8 +395,6 @@ class WKConnectionManager {
     msg.messageSeq = recvMsg.messageSeq;
     msg.timestamp = recvMsg.messageTime;
     msg.fromUID = recvMsg.fromUID;
-    msg.setting = recvMsg.setting;
-    msg.clientMsgNO = recvMsg.clientMsgNO;
     msg.status = WKSendMsgResult.sendSuccess;
     msg.topicID = recvMsg.topic;
     msg.orderSeq = await WKIM.shared.messageManager

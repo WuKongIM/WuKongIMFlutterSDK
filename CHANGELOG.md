@@ -12,3 +12,6 @@
  * Optimize processing of incorrect data
 ### 1.0.6
  * Update sending messages without notification to refresh conversation messsage
+### 1.0.7
+ * Support message receipts
+ 

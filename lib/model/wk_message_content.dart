@@ -1,6 +1,7 @@
 class WKMessageContent {
   var contentType = 0;
   String content = "";
+  String topicId = "";
   Map<String, dynamic> encodeJson() {
     return {};
   }

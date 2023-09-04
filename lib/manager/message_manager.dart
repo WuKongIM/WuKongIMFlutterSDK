@@ -7,6 +7,7 @@ import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/db/message.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/model/wk_media_message_content.dart';
+import 'package:wukongimfluttersdk/proto/proto.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 
 import '../entity/channel.dart';
@@ -23,7 +24,8 @@ class WKMessageManager {
 
   final Map<int, WKMessageContent Function(dynamic data)> _msgContentList =
       HashMap<int, WKMessageContent Function(dynamic data)>();
-  Function(WKMsg wkMsg, Function(WKMsg wkMsg))? _uploadAttachmentBack;
+  Function(WKMsg wkMsg, Function(bool isSuccess, WKMsg wkMsg))?
+      _uploadAttachmentBack;
   Function(WKMsg liMMsg)? _msgInsertedBack;
   HashMap<String, Function(List<WKMsg>)>? _newMsgBack;
   HashMap<String, Function(WKMsg)>? _refreshMsgBack;
@@ -103,6 +105,52 @@ class WKMessageManager {
       return tempOrderSeq + 1;
     }
     return messageSeq * wkOrderSeqFactor;
+  }
+
+  Future<int> updateViewedAt(int viewedAt, String clientMsgNO) async {
+    dynamic json = <String, Object>{};
+    json['viewed'] = 1;
+    json['viewed_at'] = viewedAt;
+    return MessaggeDB.shared
+        .updateMsgWithFieldAndClientMsgNo(json, clientMsgNO);
+  }
+
+  Future<int> getMaxExtraVersionWithChannel(
+      String channelID, int channelType) async {
+    return MessaggeDB.shared
+        .queryMaxExtraVersionWithChannel(channelID, channelType);
+  }
+
+  saveRemoteExtraMsg(List<WKMsgExtra> list) async {
+    MessaggeDB.shared.insertOrUpdateMsgExtras(list);
+    List<String> msgIds = [];
+    for (var extra in list) {
+      msgIds.add(extra.messageID);
+    }
+    var msgList = await MessaggeDB.shared.queryWithMessageIds(msgIds);
+    for (var msg in msgList) {
+      for (var extra in list) {
+        msg.wkMsgExtra ??= WKMsgExtra();
+        if (msg.messageID == extra.messageID) {
+          msg.wkMsgExtra!.readed = extra.readed;
+          msg.wkMsgExtra!.readedCount = extra.readedCount;
+          msg.wkMsgExtra!.unreadCount = extra.unreadCount;
+          msg.wkMsgExtra!.revoke = extra.revoke;
+          msg.wkMsgExtra!.revoker = extra.revoker;
+          msg.wkMsgExtra!.isMutualDeleted = extra.isMutualDeleted;
+          msg.wkMsgExtra!.editedAt = extra.editedAt;
+          msg.wkMsgExtra!.contentEdit = extra.contentEdit;
+          msg.wkMsgExtra!.extraVersion = extra.extraVersion;
+          if (extra.contentEdit != '') {
+            dynamic contentJson = jsonDecode(extra.contentEdit);
+            msg.wkMsgExtra!.messageContent = WKIM.shared.messageManager
+                .getMessageModel(WkMessageContentType.text, contentJson);
+          }
+          break;
+        }
+      }
+      setRefreshMsg(msg);
+    }
   }
 
   void setSyncChannelMsgListener(
@@ -317,13 +365,30 @@ class WKMessageManager {
     _msgInsertedBack = insertListener;
   }
 
-  addOnUploadAttachmentListener(Function(WKMsg, Function(WKMsg)) back) {
+  addOnUploadAttachmentListener(Function(WKMsg, Function(bool, WKMsg)) back) {
     _uploadAttachmentBack = back;
   }
 
   sendMessage(WKMessageContent messageContent, WKChannel channel) async {
+    var header = MessageHeader();
+    header.redDot = true;
+    sendMessageWithSettingAndHeader(messageContent, channel, Setting(), header);
+  }
+
+  sendMessageWithSetting(
+      WKMessageContent messageContent, WKChannel channel, Setting setting) {
+    var header = MessageHeader();
+    header.redDot = true;
+    sendMessageWithSettingAndHeader(messageContent, channel, setting, header);
+  }
+
+  sendMessageWithSettingAndHeader(WKMessageContent messageContent,
+      WKChannel channel, Setting setting, MessageHeader header) async {
     WKMsg wkMsg = WKMsg();
+    wkMsg.setting = setting;
+    wkMsg.header = header;
     wkMsg.messageContent = messageContent;
+    wkMsg.topicID = messageContent.topicId;
     wkMsg.channelID = channel.channelID;
     wkMsg.channelType = channel.channelType;
     wkMsg.fromUID = WKIM.shared.options.uid!;
@@ -347,7 +412,12 @@ class WKMessageManager {
     if (wkMsg.messageContent is WKMediaMessageContent) {
       // 附件消息
       if (_uploadAttachmentBack != null) {
-        _uploadAttachmentBack!(wkMsg, (uploadedMsg) {
+        _uploadAttachmentBack!(wkMsg, (isSuccess, uploadedMsg) {
+          if (!isSuccess) {
+            wkMsg.status = WKSendMsgResult.sendFail;
+            updateMsgStatusFail(wkMsg.clientSeq);
+            return;
+          }
           // 重新编码消息正文
           Map<String, dynamic> json = uploadedMsg.messageContent!.encodeJson();
           json['type'] = uploadedMsg.contentType;

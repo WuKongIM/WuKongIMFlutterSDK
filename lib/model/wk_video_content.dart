@@ -22,7 +22,8 @@ class WKVideoContent extends WKMediaMessageContent {
       'size': size,
       'width': width,
       'height': height,
-      'second': second
+      'second': second,
+      'url': url
     };
   }
 
@@ -35,6 +36,7 @@ class WKVideoContent extends WKMediaMessageContent {
     width = readInt(json, 'width');
     height = readInt(json, 'height');
     second = readInt(json, 'second');
+    url = readString(json, 'url');
     return this;
   }
 
