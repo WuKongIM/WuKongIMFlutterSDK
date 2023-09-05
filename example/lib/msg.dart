@@ -15,7 +15,8 @@ class UIMsg {
     if (wkMsg.wkMsgExtra != null) {
       readCount = wkMsg.wkMsgExtra!.readedCount;
     }
-    return "${wkMsg.messageContent!.displayText()} [是否需要回执：${wkMsg.setting.receipt}]，[已读数量：$readCount]";
+    return wkMsg.messageContent!.displayText();
+    // return "${wkMsg.messageContent!.displayText()} [是否需要回执：${wkMsg.setting.receipt}]，[已读数量：$readCount]";
   }
 
   String getShowTime() {

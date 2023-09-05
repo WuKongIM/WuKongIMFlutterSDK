@@ -58,8 +58,8 @@ class ChatListDataState extends State<ChatList> {
   @override
   void initState() {
     super.initState();
-    getMsgList();
     initListener();
+    getMsgList(50000, 0, true);
   }
 
   initListener() {
@@ -117,16 +117,48 @@ class ChatListDataState extends State<ChatList> {
     }
   }
 
-  getMsgList() {
-    WKIM.shared.messageManager.getOrSyncHistoryMessages(
-        channelID, channelType, 0, true, 0, 100, 0, (list) {
+  getPrevious() {
+    var oldOrderSeq = 0;
+    for (var msg in msgList) {
+      if (oldOrderSeq == 0 || oldOrderSeq > msg.wkMsg.orderSeq) {
+        oldOrderSeq = msg.wkMsg.orderSeq;
+      }
+    }
+    getMsgList(oldOrderSeq, 0, false);
+  }
+
+  getLast() {
+    var oldOrderSeq = 0;
+    for (var msg in msgList) {
+      if (oldOrderSeq == 0 || oldOrderSeq < msg.wkMsg.orderSeq) {
+        oldOrderSeq = msg.wkMsg.orderSeq;
+      }
+    }
+    getMsgList(oldOrderSeq, 1, false);
+  }
+
+  getMsgList(int oldestOrderSeq, int pullMode, bool isReset) {
+    WKIM.shared.messageManager.getOrSyncHistoryMessages(channelID, channelType,
+        oldestOrderSeq, oldestOrderSeq == 0, pullMode, 20, 0, (list) {
+      List<UIMsg> uiList = [];
       for (int i = 0; i < list.length; i++) {
-        msgList.add(UIMsg(list[i]));
+        print(list[i].orderSeq);
+        if (pullMode == 0 && !isReset) {
+          uiList.add(UIMsg(list[i]));
+          // msgList.insert(0, UIMsg(list[i]));
+        } else {
+          msgList.add(UIMsg(list[i]));
+        }
+      }
+      if (uiList.isNotEmpty) {
+        msgList.insertAll(0, uiList);
       }
       setState(() {});
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-      });
+      if (isReset) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        });
+      }
     }, () {
       print('消息同步中');
     });
@@ -294,6 +326,22 @@ class ChatListDataState extends State<ChatList> {
                       controller: _textEditingController,
                       decoration: const InputDecoration(hintText: '请输入内容'),
                       autofocus: true),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    getPrevious();
+                  },
+                  color: Colors.brown,
+                  child:
+                      const Text("上一页", style: TextStyle(color: Colors.white)),
+                ),
+                MaterialButton(
+                  onPressed: () {
+                    getLast();
+                  },
+                  color: Colors.brown,
+                  child:
+                      const Text("下一页", style: TextStyle(color: Colors.white)),
                 ),
                 MaterialButton(
                   onPressed: () {

@@ -39,6 +39,7 @@ class WKMsg {
   WKMessageContent? messageContent;
 
   WKMsg() {
+    clientSeq = 0;
     clientMsgNO = WKIM.shared.messageManager.generateClientMsgNo();
     timestamp = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
   }

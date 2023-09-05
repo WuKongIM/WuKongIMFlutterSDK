@@ -434,7 +434,7 @@ class MessaggeDB {
   Future<int> getDeletedCount(int minMessageSeq, int maxMessageSeq,
       String channelID, int channelType) async {
     String sql =
-        "select count(*) num from ${WKDBConst.tableMessage} where channel_id=$channelID and channel_type=$channelType and message_seq>$minMessageSeq and message_seq<$maxMessageSeq and is_deleted=1";
+        "select count(*) num from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and message_seq>$minMessageSeq and message_seq<$maxMessageSeq and is_deleted=1";
     int num = 0;
     List<Map<String, Object?>> list =
         await WKDBHelper.shared.getDB().rawQuery(sql);

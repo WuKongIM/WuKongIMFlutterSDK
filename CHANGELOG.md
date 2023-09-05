@@ -16,3 +16,5 @@
  * Support message receipts
  ### 1.0.8
  * Modify Query History Message
+ ### 1.0.9
+ * Optimize Query History Message
