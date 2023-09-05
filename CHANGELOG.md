@@ -14,4 +14,5 @@
  * Update sending messages without notification to refresh conversation messsage
 ### 1.0.7
  * Support message receipts
- 
+ ### 1.0.8
+ * Modify Query History Message

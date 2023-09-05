@@ -56,7 +56,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
       setState(() {});
     });
     WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
-        (msg, isEnd) {
+        (msg, isEnd) async {
       bool isAdd = true;
       for (var i = 0; i < msgList.length; i++) {
         if (msgList[i].msg.channelID == msg.channelID &&

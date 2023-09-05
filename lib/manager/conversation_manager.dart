@@ -124,9 +124,11 @@ class WKConversationManager {
     List<WKMsg> msgList = [];
     List<WKMsgReaction> msgReactionList = [];
     List<WKMsgExtra> msgExtraList = [];
+    List<WKUIConversationMsg> uiMsgList = [];
     if (syncChat.conversations != null && syncChat.conversations!.isNotEmpty) {
       for (int i = 0, size = syncChat.conversations!.length; i < size; i++) {
         WKConversationMsg conversationMsg = WKConversationMsg();
+
         int channelType = syncChat.conversations![i].channelType;
         String channelID = syncChat.conversations![i].channelID;
         if (channelType == WKChannelType.communityTopic) {
@@ -142,6 +144,8 @@ class WKConversationManager {
         conversationMsg.lastMsgTimestamp = syncChat.conversations![i].timestamp;
         conversationMsg.unreadCount = syncChat.conversations![i].unread;
         conversationMsg.version = syncChat.conversations![i].version;
+        WKUIConversationMsg uiMsg =
+            ConversationDB.shared.getUIMsg(conversationMsg);
         //聊天消息对象
         if (syncChat.conversations![i].recents != null &&
             syncChat.conversations![i].recents!.isNotEmpty) {
@@ -153,6 +157,8 @@ class WKConversationManager {
             //判断会话列表的fromUID
             if (conversationMsg.lastClientMsgNO == msg.clientMsgNO) {
               conversationMsg.isDeleted = msg.isDeleted;
+              uiMsg.isDeleted = conversationMsg.isDeleted;
+              uiMsg.setWkMsg(msg);
             }
             if (wkSyncRecent.messageExtra != null) {
               WKMsgExtra extra = WKIM.shared.messageManager
@@ -164,23 +170,23 @@ class WKConversationManager {
           }
         }
         conversationMsgList.add(conversationMsg);
+        uiMsgList.add(uiMsg);
       }
     }
     if (msgExtraList.isNotEmpty) {
       MessaggeDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
 
-    List<WKUIConversationMsg> uiMsgList = [];
     if (conversationMsgList.isNotEmpty || msgList.isNotEmpty) {
       if (msgList.isNotEmpty) {
         MessaggeDB.shared.insertMsgList(msgList);
       }
       if (conversationMsgList.isNotEmpty) {
-        for (int i = 0, size = conversationMsgList.length; i < size; i++) {
-          WKUIConversationMsg uiMsg =
-              ConversationDB.shared.getUIMsg(conversationMsgList[i]);
-          uiMsgList.add(uiMsg);
-        }
+        // for (int i = 0, size = conversationMsgList.length; i < size; i++) {
+        //   WKUIConversationMsg uiMsg =
+        //       ConversationDB.shared.getUIMsg(conversationMsgList[i]);
+        //   uiMsgList.add(uiMsg);
+        // }
 
         // 保存
         ConversationDB.shared.insertMsgList(conversationMsgList);
