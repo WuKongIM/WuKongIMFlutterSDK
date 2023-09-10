@@ -499,7 +499,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.9"
+    version: "1.1.0"
   x25519:
     dependency: transitive
     description:

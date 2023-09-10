@@ -154,6 +154,8 @@ class ConversationDB {
             insertList.add(getMap(msg, true));
           }
         }
+      } else {
+        insertList.add(getMap(msg, true));
       }
     }
     if (insertList.isNotEmpty || updateList.isNotEmpty) {
