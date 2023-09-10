@@ -16,7 +16,7 @@ class WKCMDManager {
     WKCMD wkcmd = WKCMD();
     wkcmd.cmd = cmd;
     wkcmd.param = param;
-    if (_cmdback != null) {}
+    pushCMD(wkcmd);
   }
 
   pushCMD(WKCMD wkcmd) {

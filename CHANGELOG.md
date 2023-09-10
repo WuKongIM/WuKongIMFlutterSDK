@@ -18,5 +18,7 @@
  * Modify Query History Message
  ### 1.0.9
  * Optimize Query History Message
- ### 1.0.9
+ ### 1.1.0
  * Update query conversation all record
+ ### 1.1.1
+ * Update online cmd messages
