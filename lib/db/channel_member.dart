@@ -22,7 +22,7 @@ class ChannelMemberDB {
       sb.write("'");
     }
     String sql =
-        "select * from ${WKDBConst.tableChannelMember} where channel_id=$channelID and channel_type=$channelType and member_uid in (${sb.toString()})";
+        "select * from ${WKDBConst.tableChannelMember} where channel_id='$channelID' and channel_type=$channelType and member_uid in (${sb.toString()})";
     List<WKChannelMember> list = [];
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB().rawQuery(sql);

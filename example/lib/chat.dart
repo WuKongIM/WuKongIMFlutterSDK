@@ -301,6 +301,24 @@ class ChatListDataState extends State<ChatList> {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        actions: [
+          MaterialButton(
+              child: const Text(
+                '断开',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {
+                WKIM.shared.connectionManager.disconnect(false);
+              }),
+          MaterialButton(
+              child: const Text(
+                '重连',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () {
+                WKIM.shared.connectionManager.connect();
+              })
+        ],
       ),
       body: Container(
         padding:

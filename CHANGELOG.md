@@ -22,3 +22,5 @@
  * Update query conversation all record
  ### 1.1.1
  * Update online cmd messages
+ ### 1.1.2
+ * Optimize connections

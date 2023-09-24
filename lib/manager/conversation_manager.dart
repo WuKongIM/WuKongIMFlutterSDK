@@ -177,32 +177,23 @@ class WKConversationManager {
       MessaggeDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
 
-    if (conversationMsgList.isNotEmpty || msgList.isNotEmpty) {
-      if (msgList.isNotEmpty) {
-        MessaggeDB.shared.insertMsgList(msgList);
-      }
-      if (conversationMsgList.isNotEmpty) {
-        // for (int i = 0, size = conversationMsgList.length; i < size; i++) {
-        //   WKUIConversationMsg uiMsg =
-        //       ConversationDB.shared.getUIMsg(conversationMsgList[i]);
-        //   uiMsgList.add(uiMsg);
-        // }
-
-        // 保存
-        ConversationDB.shared.insertMsgList(conversationMsgList);
-        if (msgReactionList.isNotEmpty) {
-          MessaggeDB.shared.insertOrUpdateReactionList(msgReactionList);
-        }
-        if (msgList.isNotEmpty && msgList.length < 20) {
-          msgList.sort((a, b) => a.messageSeq.compareTo(b.messageSeq));
-          WKIM.shared.messageManager.pushNewMsg(msgList);
-        }
-        if (uiMsgList.isNotEmpty) {
-          for (int i = 0, size = uiMsgList.length; i < size; i++) {
-            WKIM.shared.conversationManager
-                .setRefreshMsg(uiMsgList[i], i == uiMsgList.length - 1);
-          }
-        }
+    if (msgList.isNotEmpty) {
+      MessaggeDB.shared.insertMsgList(msgList);
+    }
+    if (conversationMsgList.isNotEmpty) {
+      ConversationDB.shared.insertMsgList(conversationMsgList);
+    }
+    if (msgReactionList.isNotEmpty) {
+      MessaggeDB.shared.insertOrUpdateReactionList(msgReactionList);
+    }
+    if (msgList.isNotEmpty && msgList.length < 20) {
+      msgList.sort((a, b) => a.messageSeq.compareTo(b.messageSeq));
+      WKIM.shared.messageManager.pushNewMsg(msgList);
+    }
+    if (uiMsgList.isNotEmpty) {
+      for (int i = 0, size = uiMsgList.length; i < size; i++) {
+        WKIM.shared.conversationManager
+            .setRefreshMsg(uiMsgList[i], i == uiMsgList.length - 1);
       }
     }
     if (syncChat.cmds != null && syncChat.cmds!.isNotEmpty) {

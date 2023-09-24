@@ -48,7 +48,7 @@ class WKConnectionManager {
   static final WKConnectionManager _instance =
       WKConnectionManager._privateConstructor();
   static WKConnectionManager get shared => _instance;
-
+  bool _isLogout = false;
   bool isReconnection = false;
   final int reconnMilliseconds = 1500;
   Timer? heartTimer;
@@ -83,7 +83,14 @@ class WKConnectionManager {
       Logs.info("没有配置addr！");
       return;
     }
-
+    if (WKIM.shared.options.uid == "" ||
+        WKIM.shared.options.uid == null ||
+        WKIM.shared.options.token == "" ||
+        WKIM.shared.options.token == null) {
+      Logs.error("没有初始化uid或token");
+      return;
+    }
+    _isLogout = false;
     if (WKIM.shared.options.getAddr != null) {
       WKIM.shared.options.getAddr!((String addr) {
         _socketConnect(addr);
@@ -94,14 +101,15 @@ class WKConnectionManager {
   }
 
   disconnect(bool isLogout) {
+    _isLogout = true;
     if (_socket != null) {
       _socket!.close();
     }
-    if (isLogout) {
-      WKIM.shared.options.uid = '';
-      WKIM.shared.options.token = '';
-      WKIM.shared.messageManager.updateSendingMsgFail();
-    }
+    // if (isLogout) {
+    WKIM.shared.options.uid = '';
+    WKIM.shared.options.token = '';
+    WKIM.shared.messageManager.updateSendingMsgFail();
+    // }
     _closeAll();
   }
 
@@ -133,6 +141,9 @@ class WKConnectionManager {
       _cutDatas(data);
       // _decodePacket(data);
     }, () {
+      if (_isLogout) {
+        return;
+      }
       isReconnection = true;
       Logs.error('发送消息失败');
       Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
@@ -269,8 +280,6 @@ class WKConnectionManager {
     _stopHeartTimer();
     _socket!.close();
     WKDBHelper.shared.close();
-    WKIM.shared.options.uid = '';
-    WKIM.shared.options.token = '';
   }
 
   _sendReceAckPacket(String messageID, int messageSeq) {
@@ -300,7 +309,7 @@ class WKConnectionManager {
 
   _startCheckNetworkTimer() {
     _stopCheckNetworkTimer();
-    heartTimer = Timer.periodic(checkNetworkSecond, (timer) {
+    checkNetworkTimer = Timer.periodic(checkNetworkSecond, (timer) {
       Future<ConnectivityResult> connectivityResult =
           (Connectivity().checkConnectivity());
       connectivityResult.then((value) {
