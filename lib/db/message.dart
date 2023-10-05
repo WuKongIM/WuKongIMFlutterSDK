@@ -11,10 +11,10 @@ import '../entity/channel_member.dart';
 import 'channel_member.dart';
 import 'wk_db_helper.dart';
 
-class MessaggeDB {
-  MessaggeDB._privateConstructor();
-  static final MessaggeDB _instance = MessaggeDB._privateConstructor();
-  static MessaggeDB get shared => _instance;
+class MessageDB {
+  MessageDB._privateConstructor();
+  static final MessageDB _instance = MessageDB._privateConstructor();
+  static MessageDB get shared => _instance;
   final String extraCols =
       "IFNULL(${WKDBConst.tableMessageExtra}.readed,0) as readed,IFNULL(${WKDBConst.tableMessageExtra}.readed_count,0) as readed_count,IFNULL(${WKDBConst.tableMessageExtra}.unread_count,0) as unread_count,IFNULL(${WKDBConst.tableMessageExtra}.revoke,0) as revoke,IFNULL(${WKDBConst.tableMessageExtra}.revoker,'') as revoker,IFNULL(${WKDBConst.tableMessageExtra}.extra_version,0) as extra_version,IFNULL(${WKDBConst.tableMessageExtra}.is_mutual_deleted,0) as is_mutual_deleted,IFNULL(${WKDBConst.tableMessageExtra}.need_upload,0) as need_upload,IFNULL(${WKDBConst.tableMessageExtra}.content_edit,'') as content_edit,IFNULL(${WKDBConst.tableMessageExtra}.edited_at,0) as edited_at";
   final String messageCols =
@@ -712,6 +712,25 @@ class MessaggeDB {
     WKDBHelper.shared
         .getDB()
         .update(WKDBConst.tableMessage, map, where: 'status=0');
+  }
+
+  Future<WKMsg?> queryMaxOrderSeqMsgWithChannel(
+      String channelID, int channelType) async {
+    WKMsg? wkMsg;
+    String sql =
+        "select * from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and is_deleted=0 and type<>0 and type<>99 order by order_seq desc limit 1";
+    List<Map<String, Object?>> list =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (list.isNotEmpty) {
+      dynamic data = list[0];
+      if (data != null) {
+        wkMsg = WKDBConst.serializeWKMsg(data);
+      }
+    }
+    if (wkMsg != null) {
+      wkMsg.reactionList = await queryReactions(wkMsg.messageID);
+    }
+    return wkMsg;
   }
 
   dynamic getMap(WKMsg msg) {

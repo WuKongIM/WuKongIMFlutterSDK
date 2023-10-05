@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
+import 'package:wukongimfluttersdk/db/conversation.dart';
 import 'package:wukongimfluttersdk/db/message.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/model/wk_media_message_content.dart';
@@ -29,6 +30,8 @@ class WKMessageManager {
   Function(WKMsg liMMsg)? _msgInsertedBack;
   HashMap<String, Function(List<WKMsg>)>? _newMsgBack;
   HashMap<String, Function(WKMsg)>? _refreshMsgBack;
+  HashMap<String, Function(String)>? _deleteMsgBack;
+
   Function(
       String channelID,
       int channelType,
@@ -86,11 +89,11 @@ class WKMessageManager {
   }
 
   Future<WKMsg?> getWithClientMsgNo(String clientMsgNo) {
-    return MessaggeDB.shared.queryWithClientMsgNo(clientMsgNo);
+    return MessageDB.shared.queryWithClientMsgNo(clientMsgNo);
   }
 
   Future<int> saveMsg(WKMsg msg) async {
-    return await MessaggeDB.shared.insert(msg);
+    return await MessageDB.shared.insert(msg);
   }
 
   String generateClientMsgNo() {
@@ -101,7 +104,7 @@ class WKMessageManager {
       int messageSeq, String channelID, int channelType) async {
     if (messageSeq == 0) {
       int tempOrderSeq =
-          await MessaggeDB.shared.queryMaxOrderSeq(channelID, channelType);
+          await MessageDB.shared.queryMaxOrderSeq(channelID, channelType);
       return tempOrderSeq + 1;
     }
     return messageSeq * wkOrderSeqFactor;
@@ -111,23 +114,22 @@ class WKMessageManager {
     dynamic json = <String, Object>{};
     json['viewed'] = 1;
     json['viewed_at'] = viewedAt;
-    return MessaggeDB.shared
-        .updateMsgWithFieldAndClientMsgNo(json, clientMsgNO);
+    return MessageDB.shared.updateMsgWithFieldAndClientMsgNo(json, clientMsgNO);
   }
 
   Future<int> getMaxExtraVersionWithChannel(
       String channelID, int channelType) async {
-    return MessaggeDB.shared
+    return MessageDB.shared
         .queryMaxExtraVersionWithChannel(channelID, channelType);
   }
 
   saveRemoteExtraMsg(List<WKMsgExtra> list) async {
-    MessaggeDB.shared.insertOrUpdateMsgExtras(list);
+    MessageDB.shared.insertOrUpdateMsgExtras(list);
     List<String> msgIds = [];
     for (var extra in list) {
       msgIds.add(extra.messageID);
     }
-    var msgList = await MessaggeDB.shared.queryWithMessageIds(msgIds);
+    var msgList = await MessageDB.shared.queryWithMessageIds(msgIds);
     for (var msg in msgList) {
       for (var extra in list) {
         msg.wkMsgExtra ??= WKMsgExtra();
@@ -187,10 +189,10 @@ class WKMessageManager {
       }
     }
     if (msgExtraList.isNotEmpty) {
-      MessaggeDB.shared.insertOrUpdateMsgExtras(msgExtraList);
+      MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
     if (msgList.isNotEmpty) {
-      MessaggeDB.shared.insertMsgList(msgList);
+      MessageDB.shared.insertMsgList(msgList);
     }
   }
 
@@ -250,7 +252,7 @@ class WKMessageManager {
         contain = true;
         pullMode = 0;
       } else {
-        int minOrderSeq = await MessaggeDB.shared
+        int minOrderSeq = await MessageDB.shared
             .getOrderSeq(channelId, channelType, aroundMsgOrderSeq, 3);
         if (minOrderSeq == 0) {
           oldestOrderSeq = aroundMsgOrderSeq;
@@ -265,7 +267,7 @@ class WKMessageManager {
             }
           } else {
             // todo 这里只会查询3条数据  oldestOrderSeq = minOrderSeq
-            int startOrderSeq = await MessaggeDB.shared
+            int startOrderSeq = await MessageDB.shared
                 .getOrderSeq(channelId, channelType, aroundMsgOrderSeq, limit);
             if (startOrderSeq == 0) {
               oldestOrderSeq = aroundMsgOrderSeq;
@@ -278,7 +280,7 @@ class WKMessageManager {
         contain = true;
       }
     }
-    MessaggeDB.shared.getOrSyncHistoryMessages(
+    MessageDB.shared.getOrSyncHistoryMessages(
         channelId,
         channelType,
         oldestOrderSeq,
@@ -297,7 +299,7 @@ class WKMessageManager {
   }
 
   Future<int> getMaxMessageSeq(String channelID, int channelType) {
-    return MessaggeDB.shared.getMaxMessageSeq(channelID, channelType);
+    return MessageDB.shared.getMaxMessageSeq(channelID, channelType);
   }
 
   pushNewMsg(List<WKMsg> list) {
@@ -318,6 +320,27 @@ class WKMessageManager {
   removeNewMsgListener(String key) {
     if (_newMsgBack != null) {
       _newMsgBack!.remove(key);
+    }
+  }
+
+  addOnDeleteMsgListener(String key, Function(String) back) {
+    _deleteMsgBack ??= HashMap();
+    if (key != '') {
+      _deleteMsgBack![key] = back;
+    }
+  }
+
+  removeDeleteMsgListener(String key) {
+    if (_deleteMsgBack != null) {
+      _deleteMsgBack!.remove(key);
+    }
+  }
+
+  _setDeleteMsg(String clientMsgNo) {
+    if (_deleteMsgBack != null) {
+      _deleteMsgBack!.forEach((key, back) {
+        back(clientMsgNo);
+      });
     }
   }
 
@@ -393,7 +416,7 @@ class WKMessageManager {
     wkMsg.channelType = channel.channelType;
     wkMsg.fromUID = WKIM.shared.options.uid!;
     wkMsg.contentType = messageContent.contentType;
-    int tempOrderSeq = await MessaggeDB.shared
+    int tempOrderSeq = await MessageDB.shared
         .queryMaxOrderSeq(wkMsg.channelID, wkMsg.channelType);
     wkMsg.orderSeq = tempOrderSeq + 1;
     dynamic json = wkMsg.messageContent!.encodeJson();
@@ -445,7 +468,7 @@ class WKMessageManager {
 
   updateSendResult(
       String messageID, int clientSeq, int messageSeq, int reasonCode) async {
-    WKMsg? wkMsg = await MessaggeDB.shared.queryWithClientSeq(clientSeq);
+    WKMsg? wkMsg = await MessageDB.shared.queryWithClientSeq(clientSeq);
     if (wkMsg != null) {
       wkMsg.messageID = messageID;
       wkMsg.messageSeq = messageSeq;
@@ -457,7 +480,7 @@ class WKMessageManager {
       int orderSeq = await WKIM.shared.messageManager
           .getMessageOrderSeq(messageSeq, wkMsg.channelID, wkMsg.channelType);
       map['order_seq'] = orderSeq;
-      MessaggeDB.shared.updateMsgWithField(map, clientSeq);
+      MessageDB.shared.updateMsgWithField(map, clientSeq);
       setRefreshMsg(wkMsg);
     }
   }
@@ -465,9 +488,9 @@ class WKMessageManager {
   updateMsgStatusFail(int clientMsgSeq) async {
     var map = <String, Object>{};
     map['status'] = WKSendMsgResult.sendFail;
-    int row = await MessaggeDB.shared.updateMsgWithField(map, clientMsgSeq);
+    int row = await MessageDB.shared.updateMsgWithField(map, clientMsgSeq);
     if (row > 0) {
-      MessaggeDB.shared.queryWithClientSeq(clientMsgSeq).then((wkMsg) {
+      MessageDB.shared.queryWithClientSeq(clientMsgSeq).then((wkMsg) {
         if (wkMsg != null) {
           setRefreshMsg(wkMsg);
         }
@@ -477,14 +500,14 @@ class WKMessageManager {
 
   updateContent(String clientMsgNO, WKMessageContent messageContent,
       bool isRefreshUI) async {
-    WKMsg? wkMsg = await MessaggeDB.shared.queryWithClientMsgNo(clientMsgNO);
+    WKMsg? wkMsg = await MessageDB.shared.queryWithClientMsgNo(clientMsgNO);
     if (wkMsg != null) {
       var map = <String, Object>{};
       dynamic json = messageContent.encodeJson();
       json['type'] = wkMsg.contentType;
 
       map['content'] = jsonEncode(json);
-      int result = await MessaggeDB.shared
+      int result = await MessageDB.shared
           .updateMsgWithFieldAndClientMsgNo(map, clientMsgNO);
       if (isRefreshUI && result > 0) {
         setRefreshMsg(wkMsg);
@@ -493,6 +516,33 @@ class WKMessageManager {
   }
 
   updateSendingMsgFail() {
-    MessaggeDB.shared.updateSendingMsgFail();
+    MessageDB.shared.updateSendingMsgFail();
+  }
+
+  deleteWithClientMsgNo(String clientMsgNo) async {
+    var map = <String, Object>{};
+    map['is_deleted'] = 1;
+
+    var result = await MessageDB.shared
+        .updateMsgWithFieldAndClientMsgNo(map, clientMsgNo);
+    if (result > 0) {
+      _setDeleteMsg(clientMsgNo);
+      var wkMsg = await getWithClientMsgNo(clientMsgNo);
+      if (wkMsg != null) {
+        var coverMsg = await ConversationDB.shared
+            .queryMsgByMsgChannelId(wkMsg.channelID, wkMsg.channelType);
+        if (coverMsg != null && coverMsg.lastClientMsgNO == clientMsgNo) {
+          var tempMsg = await MessageDB.shared.queryMaxOrderSeqMsgWithChannel(
+              wkMsg.channelID, wkMsg.channelType);
+          if (tempMsg != null) {
+            var uiMsg =
+                await WKIM.shared.conversationManager.saveWithLiMMsg(tempMsg);
+            if (uiMsg != null) {
+              WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
+            }
+          }
+        }
+      }
+    }
   }
 }

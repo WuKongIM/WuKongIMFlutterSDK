@@ -24,3 +24,5 @@
  * Update online cmd messages
  ### 1.1.2
  * Optimize connections
+ ### 1.1.3
+ * Add some methods

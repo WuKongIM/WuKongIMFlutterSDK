@@ -55,6 +55,43 @@ class WKConversationManager {
     return uiMsg;
   }
 
+  Future<int> getExtraMaxVersion() async {
+    return ConversationDB.shared.queryExtraMaxVersion();
+  }
+
+  Future<WKUIConversationMsg?> getWithChannel(
+      String channelID, int channelType) async {
+    var msg = await ConversationDB.shared
+        .queryMsgByMsgChannelId(channelID, channelType);
+    if (msg != null) {
+      return ConversationDB.shared.getUIMsg(msg);
+    }
+    return null;
+  }
+
+  clearAll() {
+    ConversationDB.shared.clearAll();
+  }
+
+  updateRedDot(String channelID, int channelType, int redDot) async {
+    var map = <String, Object>{};
+    map['unread_count'] = redDot;
+    var result = await ConversationDB.shared
+        .updateWithField(map, channelID, channelType);
+    if (result > 0) {
+      _refreshMsg(channelID, channelType);
+    }
+  }
+
+  _refreshMsg(String channelID, int channelType) async {
+    var msg = await ConversationDB.shared
+        .queryMsgByMsgChannelId(channelID, channelType);
+    if (msg != null) {
+      var uiMsg = ConversationDB.shared.getUIMsg(msg);
+      setRefreshMsg(uiMsg, true);
+    }
+  }
+
   addOnDeleteMsgListener(String key, Function(String, int) back) {
     _deleteMsgMap ??= HashMap();
     _deleteMsgMap![key] = back;
@@ -174,17 +211,17 @@ class WKConversationManager {
       }
     }
     if (msgExtraList.isNotEmpty) {
-      MessaggeDB.shared.insertOrUpdateMsgExtras(msgExtraList);
+      MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
 
     if (msgList.isNotEmpty) {
-      MessaggeDB.shared.insertMsgList(msgList);
+      MessageDB.shared.insertMsgList(msgList);
     }
     if (conversationMsgList.isNotEmpty) {
       ConversationDB.shared.insertMsgList(conversationMsgList);
     }
     if (msgReactionList.isNotEmpty) {
-      MessaggeDB.shared.insertOrUpdateReactionList(msgReactionList);
+      MessageDB.shared.insertOrUpdateReactionList(msgReactionList);
     }
     if (msgList.isNotEmpty && msgList.length < 20) {
       msgList.sort((a, b) => a.messageSeq.compareTo(b.messageSeq));

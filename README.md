@@ -9,7 +9,7 @@
 #### 安装
 ```
 dependencies:
-  wukongimfluttersdk: ^1.1.2
+  wukongimfluttersdk: ^1.1.3
 ```
 #### 引入
 ```dart

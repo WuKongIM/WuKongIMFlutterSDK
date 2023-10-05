@@ -141,20 +141,18 @@ class ConversationDB {
     List<Map<String, dynamic>> updateList = [];
 
     for (WKConversationMsg msg in list) {
+      bool isAdd = true;
       if (existList.isNotEmpty) {
         for (var i = 0; i < existList.length; i++) {
-          bool isAdd = true;
           if (existList[i].channelID == msg.channelID &&
               existList[i].channelType == msg.channelType) {
             updateList.add(getMap(msg, true));
             isAdd = false;
             break;
           }
-          if (isAdd) {
-            insertList.add(getMap(msg, true));
-          }
         }
-      } else {
+      }
+      if (isAdd) {
         insertList.add(getMap(msg, true));
       }
     }
@@ -174,6 +172,31 @@ class ConversationDB {
         }
       });
     }
+  }
+
+  clearAll() {
+    WKDBHelper.shared.getDB().delete(WKDBConst.tableConversation);
+  }
+
+  Future<int> queryExtraMaxVersion() async {
+    int maxVersion = 0;
+    String sql =
+        "select max(version) version from ${WKDBConst.tableConversationExtra}";
+
+    List<Map<String, Object?>> list =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (list.isNotEmpty) {
+      dynamic data = list[0];
+      maxVersion = WKDBConst.readInt(data, 'version');
+    }
+    return maxVersion;
+  }
+
+  Future<int> updateWithField(
+      dynamic map, String channelID, int channelType) async {
+    return await WKDBHelper.shared.getDB().update(
+        WKDBConst.tableConversation, map,
+        where: "channel_id=$channelID and channel_type=$channelType");
   }
 
   WKUIConversationMsg getUIMsg(WKConversationMsg conversationMsg) {
