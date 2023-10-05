@@ -27,7 +27,7 @@ class WKConversationManager {
   Future<bool> deleteMsg(String channelID, int channelType) async {
     bool result = await ConversationDB.shared.delete(channelID, channelType);
     if (result) {
-      setDeleteMsg(channelID, channelType);
+      _setDeleteMsg(channelID, channelType);
     }
 
     return result;
@@ -103,7 +103,7 @@ class WKConversationManager {
     }
   }
 
-  setDeleteMsg(String channelID, int channelType) {
+  _setDeleteMsg(String channelID, int channelType) {
     if (_deleteMsgMap != null) {
       _deleteMsgMap!.forEach((key, back) {
         back(channelID, channelType);

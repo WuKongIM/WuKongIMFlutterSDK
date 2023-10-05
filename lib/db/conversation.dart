@@ -196,7 +196,7 @@ class ConversationDB {
       dynamic map, String channelID, int channelType) async {
     return await WKDBHelper.shared.getDB().update(
         WKDBConst.tableConversation, map,
-        where: "channel_id=$channelID and channel_type=$channelType");
+        where: "channel_id='$channelID' and channel_type=$channelType");
   }
 
   WKUIConversationMsg getUIMsg(WKConversationMsg conversationMsg) {

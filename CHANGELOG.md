@@ -26,3 +26,5 @@
  * Optimize connections
  ### 1.1.3
  * Add some methods
+ ### 1.1.4
+ * update set reddot method
