@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:connectivity/connectivity.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
@@ -289,13 +291,14 @@ class WKConnectionManager {
     _sendPacket(ackPacket);
   }
 
-  _sendConnectPacket() {
+  _sendConnectPacket() async {
+    var deviceID = await _getDeviceID();
     var connectPacket = ConnectPacket(
         uid: WKIM.shared.options.uid!,
         token: WKIM.shared.options.token!,
         version: WKIM.shared.options.protoVersion,
         clientKey: base64Encode(CryptoUtils.dhPublicKey!),
-        deviceID: "flutter",
+        deviceID: deviceID,
         clientTimestamp: DateTime.now().millisecondsSinceEpoch);
     _sendPacket(connectPacket);
   }
@@ -511,6 +514,18 @@ class WKConnectionManager {
       _removeSendingMsg();
     }
   }
+}
+
+Future<String> _getDeviceID() async {
+  SharedPreferences preferences = await SharedPreferences.getInstance();
+  String wkUid = WKIM.shared.options.uid!;
+  String key = "${wkUid}_device_id";
+  var deviceID = preferences.getString(key);
+  if (deviceID == null || deviceID == "") {
+    deviceID = "${const Uuid().v4().toString().replaceAll("-", "")}5";
+    preferences.setString(key, deviceID);
+  }
+  return deviceID;
 }
 
 class SendingMsg {

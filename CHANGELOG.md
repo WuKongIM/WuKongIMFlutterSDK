@@ -28,3 +28,5 @@
  * Add some methods
  ### 1.1.4
  * update set reddot method
+ ### 1.1.5
+ * update connnection device id with uid
