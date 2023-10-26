@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:wukongimfluttersdk/db/channel.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
+import 'package:wukongimfluttersdk/db/reaction.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
@@ -66,7 +67,8 @@ class MessageDB {
       wkMsg = WKDBConst.serializeWKMsg(list[0]);
     }
     if (wkMsg != null) {
-      wkMsg.reactionList = await queryReactions(wkMsg.messageID);
+      wkMsg.reactionList =
+          await ReactionDB.shared.queryWithMessageId(wkMsg.messageID);
     }
     return wkMsg;
   }
@@ -82,7 +84,8 @@ class MessageDB {
       wkMsg = WKDBConst.serializeWKMsg(list[0]);
     }
     if (wkMsg != null) {
-      wkMsg.reactionList = await queryReactions(wkMsg.messageID);
+      wkMsg.reactionList =
+          await ReactionDB.shared.queryWithMessageId(wkMsg.messageID);
     }
     return wkMsg;
   }
@@ -106,20 +109,6 @@ class MessageDB {
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeWKMsg(data));
-      }
-    }
-    return list;
-  }
-
-  Future<List<WKMsgReaction>> queryReactions(String messageID) async {
-    String sql =
-        "select * from  ${WKDBConst.tableMessageReaction} where message_id='$messageID' and is_deleted=0 ORDER BY created_at desc";
-    List<WKMsgReaction> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
-    if (results.isNotEmpty) {
-      for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeMsgReation(data));
       }
     }
     return list;
@@ -231,7 +220,8 @@ class MessageDB {
       }
     }
     //扩展消息
-    List<WKMsgReaction> list = await queryMsgReactionWithMessageIds(messageIds);
+    List<WKMsgReaction> list =
+        await ReactionDB.shared.queryWithMessageIds(messageIds);
     if (list.isNotEmpty) {
       for (int i = 0, size = msgList.length; i < size; i++) {
         for (int j = 0, len = list.length; j < len; j++) {
@@ -640,72 +630,6 @@ class MessageDB {
     return list;
   }
 
-  Future<List<WKMsgReaction>> queryMsgReactionWithMessageIds(
-      List<String> messageIds) async {
-    StringBuffer stringBuffer = StringBuffer();
-    for (int i = 0, size = messageIds.length; i < size; i++) {
-      if (stringBuffer.length > 0) {
-        stringBuffer.write(",");
-      }
-      stringBuffer.write(messageIds[i]);
-    }
-    String sql =
-        "select * from ${WKDBConst.tableMessageReaction} where message_id in ($stringBuffer) and is_deleted=0 ORDER BY created_at desc";
-    List<WKMsgReaction> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
-    if (results.isNotEmpty) {
-      for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeMsgReation(data));
-      }
-    }
-    return list;
-  }
-
-  insertOrUpdateReactionList(List<WKMsgReaction> list) {
-    if (list.isEmpty) return;
-    for (int i = 0, size = list.length; i < size; i++) {
-      insertOrUpdateReaction(list[i]);
-    }
-  }
-
-  insertOrUpdateReaction(WKMsgReaction reaction) async {
-    bool isExist = await isExistReaction(reaction.uid, reaction.messageID);
-    if (isExist) {
-      updateReaction(reaction);
-    } else {
-      insertReaction(reaction);
-    }
-  }
-
-  updateReaction(WKMsgReaction reaction) {
-    var map = <String, Object>{};
-    map['is_deleted'] = reaction.isDeleted;
-    map['seq'] = reaction.seq;
-    map['emoji'] = reaction.emoji;
-    WKDBHelper.shared.getDB().update(WKDBConst.tableMessageReaction, map,
-        where: "message_id='${reaction.messageID}' and uid='${reaction.uid}'");
-  }
-
-  insertReaction(WKMsgReaction reaction) {
-    WKDBHelper.shared
-        .getDB()
-        .insert(WKDBConst.tableMessageReaction, getReactionMap(reaction));
-  }
-
-  Future<bool> isExistReaction(String uid, String messageID) async {
-    bool isExist = false;
-    String sql =
-        "select * from ${WKDBConst.tableMessageReaction} where message_id='$messageID' and uid='$uid' ";
-
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
-    if (list.isNotEmpty) {
-      isExist = true;
-    }
-    return isExist;
-  }
-
   updateSendingMsgFail() {
     var map = <String, Object>{};
     map['status'] = WKSendMsgResult.sendFail;
@@ -728,7 +652,8 @@ class MessageDB {
       }
     }
     if (wkMsg != null) {
-      wkMsg.reactionList = await queryReactions(wkMsg.messageID);
+      wkMsg.reactionList =
+          await ReactionDB.shared.queryWithMessageId(wkMsg.messageID);
     }
     return wkMsg;
   }
@@ -781,19 +706,5 @@ class MessageDB {
     map['need_upload'] = extra.needUpload;
     map['message_id'] = extra.messageID;
     return map;
-  }
-
-  dynamic getReactionMap(WKMsgReaction reaction) {
-    var map = <String, Object>{};
-    map['channel_id'] = reaction.channelID;
-    map['channel_id'] = reaction.channelID;
-    map['channel_type'] = reaction.channelType;
-    map['message_id'] = reaction.messageID;
-    map['uid'] = reaction.uid;
-    map['name'] = reaction.name;
-    map['is_deleted'] = reaction.isDeleted;
-    map['seq'] = reaction.seq;
-    map['emoji'] = reaction.emoji;
-    map['created_at'] = reaction.createdAt;
   }
 }

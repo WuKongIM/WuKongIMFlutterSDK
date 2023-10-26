@@ -108,9 +108,6 @@ class WKConnectionManager {
       _socket!.close();
     }
     // if (isLogout) {
-    WKIM.shared.options.uid = '';
-    WKIM.shared.options.token = '';
-    WKIM.shared.messageManager.updateSendingMsgFail();
     // }
     _closeAll();
   }
@@ -278,6 +275,9 @@ class WKConnectionManager {
   }
 
   _closeAll() {
+    WKIM.shared.options.uid = '';
+    WKIM.shared.options.token = '';
+    WKIM.shared.messageManager.updateSendingMsgFail();
     _stopCheckNetworkTimer();
     _stopHeartTimer();
     _socket!.close();

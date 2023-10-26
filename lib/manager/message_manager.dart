@@ -6,6 +6,7 @@ import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/db/conversation.dart';
 import 'package:wukongimfluttersdk/db/message.dart';
+import 'package:wukongimfluttersdk/db/reaction.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/model/wk_media_message_content.dart';
 import 'package:wukongimfluttersdk/proto/proto.dart';
@@ -177,15 +178,17 @@ class WKMessageManager {
   _saveSyncChannelMSGs(List<WKSyncMsg> list) {
     List<WKMsg> msgList = [];
     List<WKMsgExtra> msgExtraList = [];
+    List<WKMsgReaction> msgReactionList = [];
     for (int j = 0, len = list.length; j < len; j++) {
       WKMsg wkMsg = list[j].getWKMsg();
       msgList.add(wkMsg);
       if (list[j].messageExtra != null) {
-        if (list[j].messageExtra != null) {
-          WKMsgExtra extra = wkSyncExtraMsg2WKMsgExtra(
-              wkMsg.channelID, wkMsg.channelType, list[j].messageExtra!);
-          msgExtraList.add(extra);
-        }
+        WKMsgExtra extra = wkSyncExtraMsg2WKMsgExtra(
+            wkMsg.channelID, wkMsg.channelType, list[j].messageExtra!);
+        msgExtraList.add(extra);
+      }
+      if (wkMsg.reactionList != null && wkMsg.reactionList!.isNotEmpty) {
+        msgReactionList.addAll(wkMsg.reactionList!);
       }
     }
     if (msgExtraList.isNotEmpty) {
@@ -193,6 +196,9 @@ class WKMessageManager {
     }
     if (msgList.isNotEmpty) {
       MessageDB.shared.insertMsgList(msgList);
+    }
+    if (msgReactionList.isNotEmpty) {
+      ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
     }
   }
 
@@ -216,6 +222,46 @@ class WKMessageManager {
 
     extra.editedAt = extraMsg.editedAt;
     return extra;
+  }
+
+  saveMessageReactions(List<WKSyncMsgReaction> list) async {
+    if (list.isEmpty) return;
+    List<WKMsgReaction> reactionList = [];
+    List<String> msgIds = [];
+    for (int i = 0, size = list.length; i < size; i++) {
+      WKMsgReaction reaction = WKMsgReaction();
+      reaction.messageID = list[i].messageID;
+      reaction.channelID = list[i].channelID;
+      reaction.channelType = list[i].channelType;
+      reaction.uid = list[i].uid;
+      reaction.name = list[i].name;
+      reaction.seq = list[i].seq;
+      reaction.emoji = list[i].emoji;
+      reaction.isDeleted = list[i].isDeleted;
+      reaction.createdAt = list[i].createdAt;
+      msgIds.add(reaction.messageID);
+      reactionList.add(reaction);
+    }
+    ReactionDB.shared.insertOrUpdateReactionList(reactionList);
+    List<WKMsg> msgList = await MessageDB.shared.queryWithMessageIds(msgIds);
+    getMsgReactionsAndRefreshMsg(msgIds, msgList);
+  }
+
+  getMsgReactionsAndRefreshMsg(
+      List<String> messageIds, List<WKMsg> updatedMsgList) async {
+    List<WKMsgReaction> reactionList =
+        await ReactionDB.shared.queryWithMessageIds(messageIds);
+    for (int i = 0, size = updatedMsgList.length; i < size; i++) {
+      for (int j = 0, len = reactionList.length; j < len; j++) {
+        if (updatedMsgList[i].messageID == reactionList[j].messageID) {
+          if (updatedMsgList[i].reactionList == null) {
+            updatedMsgList[i].reactionList = [];
+          }
+          updatedMsgList[i].reactionList!.add(reactionList[j]);
+        }
+      }
+      setRefreshMsg(updatedMsgList[i]);
+    }
   }
 
   /*

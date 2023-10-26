@@ -94,7 +94,6 @@ class WKDBConst {
     reaction.createdAt = readString(data, 'created_at');
     reaction.seq = readInt(data, 'seq');
     reaction.emoji = readString(data, 'emoji');
-    reaction.isDeleted = readInt(data, 'is_deleted');
     return reaction;
   }
 

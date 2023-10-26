@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:wukongimfluttersdk/db/message.dart';
+import 'package:wukongimfluttersdk/db/reaction.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
@@ -221,7 +222,7 @@ class WKConversationManager {
       ConversationDB.shared.insertMsgList(conversationMsgList);
     }
     if (msgReactionList.isNotEmpty) {
-      MessageDB.shared.insertOrUpdateReactionList(msgReactionList);
+      ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
     }
     if (msgList.isNotEmpty && msgList.length < 20) {
       msgList.sort((a, b) => a.messageSeq.compareTo(b.messageSeq));
