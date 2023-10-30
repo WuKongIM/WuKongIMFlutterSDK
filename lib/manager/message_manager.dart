@@ -565,6 +565,19 @@ class WKMessageManager {
     MessageDB.shared.updateSendingMsgFail();
   }
 
+  updateLocalExtraWithClientMsgNo(String clientMsgNO, dynamic data) async {
+    WKMsg? wkMsg = await MessageDB.shared.queryWithClientMsgNo(clientMsgNO);
+    if (wkMsg != null) {
+      var map = <String, Object>{};
+      map['extra'] = jsonEncode(data);
+      int result = await MessageDB.shared
+          .updateMsgWithFieldAndClientMsgNo(map, clientMsgNO);
+      if (result > 0) {
+        setRefreshMsg(wkMsg);
+      }
+    }
+  }
+
   deleteWithClientMsgNo(String clientMsgNo) async {
     var map = <String, Object>{};
     map['is_deleted'] = 1;
