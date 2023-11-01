@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 
@@ -29,6 +30,7 @@ class WKMessageManager {
   Function(WKMsg wkMsg, Function(bool isSuccess, WKMsg wkMsg))?
       _uploadAttachmentBack;
   Function(WKMsg liMMsg)? _msgInsertedBack;
+  Function(WKMsgExtra)? _iUploadMsgExtraListener;
   HashMap<String, Function(List<WKMsg>)>? _newMsgBack;
   HashMap<String, Function(WKMsg)>? _refreshMsgBack;
   HashMap<String, Function(String)>? _deleteMsgBack;
@@ -58,6 +60,24 @@ class WKMessageManager {
       }
     }
     content ??= WKUnknownContent();
+    // 回复
+    var replyJson = WKDBConst.readString(json, 'reply');
+    if (replyJson != '') {
+      var reply = WKReply().decode(jsonDecode(replyJson));
+      content.reply = reply;
+    }
+    var entities = WKDBConst.readString(json, 'entities');
+    var jsonArray = jsonDecode(entities);
+    List<WKMsgEntity> list = [];
+    for (var entityJson in jsonArray) {
+      WKMsgEntity entity = WKMsgEntity();
+      entity.type = WKDBConst.readString(entityJson, 'type');
+      entity.offset = WKDBConst.readInt(entityJson, 'offset');
+      entity.length = WKDBConst.readInt(entityJson, 'length');
+      entity.value = WKDBConst.readString(entityJson, 'value');
+      list.add(entity);
+    }
+    content.entities = list;
     return content;
   }
 
@@ -390,6 +410,44 @@ class WKMessageManager {
     }
   }
 
+  _setUploadMsgExtra(WKMsgExtra extra) {
+    if (_iUploadMsgExtraListener != null) {
+      _iUploadMsgExtraListener!(extra);
+    }
+    Future.delayed(const Duration(seconds: 5), () {
+      _startCheckTimer();
+    });
+  }
+
+  Timer? checkMsgNeedUploadTimer;
+  _startCheckTimer() {
+    _stopCheckMsgNeedUploadTimer();
+    checkMsgNeedUploadTimer =
+        Timer.periodic(const Duration(seconds: 5), (timer) async {
+      var list = await MessageDB.shared.queryMsgExtraWithNeedUpload(1);
+      if (list.isNotEmpty) {
+        for (var extra in list) {
+          if (_iUploadMsgExtraListener != null) {
+            _iUploadMsgExtraListener!(extra);
+          }
+        }
+      } else {
+        _stopCheckMsgNeedUploadTimer();
+      }
+    });
+  }
+
+  _stopCheckMsgNeedUploadTimer() {
+    if (checkMsgNeedUploadTimer != null) {
+      checkMsgNeedUploadTimer!.cancel();
+      checkMsgNeedUploadTimer = null;
+    }
+  }
+
+  addOnUploadMsgExtra(Function(WKMsgExtra) back) {
+    _iUploadMsgExtraListener = back;
+  }
+
   addOnRefreshMsgListener(String key, Function(WKMsg) back) {
     _refreshMsgBack ??= HashMap();
     if (key != '') {
@@ -465,9 +523,8 @@ class WKMessageManager {
     int tempOrderSeq = await MessageDB.shared
         .queryMaxOrderSeq(wkMsg.channelID, wkMsg.channelType);
     wkMsg.orderSeq = tempOrderSeq + 1;
-    dynamic json = wkMsg.messageContent!.encodeJson();
-    json['type'] = wkMsg.contentType;
-    wkMsg.content = jsonEncode(json);
+
+    wkMsg.content = _getSendPayload(wkMsg);
     int row = await saveMsg(wkMsg);
     wkMsg.clientSeq = row;
     WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
@@ -510,6 +567,29 @@ class WKMessageManager {
     } else {
       WKIM.shared.connectionManager.sendMessage(wkMsg);
     }
+  }
+
+  String _getSendPayload(WKMsg wkMsg) {
+    dynamic json = wkMsg.messageContent!.encodeJson();
+    json['type'] = wkMsg.contentType;
+    if (wkMsg.messageContent!.reply != null) {
+      json['reply'] = wkMsg.messageContent!.reply!.encode();
+    }
+
+    if (wkMsg.messageContent!.entities != null &&
+        wkMsg.messageContent!.entities!.isNotEmpty) {
+      var jsonArray = [];
+      for (WKMsgEntity entity in wkMsg.messageContent!.entities!) {
+        var jo = <String, dynamic>{};
+        jo['offset'] = entity.offset;
+        jo['length'] = entity.length;
+        jo['type'] = entity.type;
+        jo['value'] = entity.value;
+        jsonArray.add(jo);
+      }
+      json['entities'] = jsonArray;
+    }
+    return jsonEncode(json);
   }
 
   updateSendResult(
@@ -575,6 +655,29 @@ class WKMessageManager {
       if (result > 0) {
         setRefreshMsg(wkMsg);
       }
+    }
+  }
+
+  updateMsgEdit(String messageID, String channelID, int channelType,
+      String content) async {
+    var msgExtra = await MessageDB.shared.queryMsgExtraWithMsgID(messageID);
+    msgExtra ??= WKMsgExtra();
+    msgExtra.messageID = messageID;
+    msgExtra.channelID = channelID;
+    msgExtra.channelType = channelType;
+    msgExtra.editedAt =
+        (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
+    msgExtra.contentEdit = content;
+    msgExtra.needUpload = 1;
+    List<WKMsgExtra> list = [];
+    list.add(msgExtra);
+    List<String> messageIds = [];
+    messageIds.add(messageID);
+    var result = await MessageDB.shared.insertOrUpdateMsgExtras(list);
+    if (result) {
+      var wkMsgs = await MessageDB.shared.queryWithMessageIds(messageIds);
+      getMsgReactionsAndRefreshMsg(messageIds, wkMsgs);
+      _setUploadMsgExtra(msgExtra);
     }
   }
 

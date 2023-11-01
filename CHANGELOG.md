@@ -30,3 +30,5 @@
  * update set reddot method
  ### 1.1.5
  * update connnection device id with uid
+ ### 1.1.6
+ * New features such as message likes and replies added

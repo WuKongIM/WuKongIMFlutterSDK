@@ -182,7 +182,7 @@ class MessageDB {
       }
     }
     List<String> messageIds = [];
-    // List<String> replyMsgIds = [];
+    List<String> replyMsgIds = [];
     List<String> fromUIDs = [];
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB().rawQuery(sql);
@@ -197,9 +197,11 @@ class MessageDB {
           messageIds.add(wkMsg.messageID);
         }
 
-        // if (wkMsg.messageContent != null && wkMsg.messageContent.reply != null && !TextUtils.isEmpty(wkMsg.messageContent.reply.message_id)) {
-        //             replyMsgIds.add(wkMsg.messageContent.reply.message_id);
-        //         }
+        if (wkMsg.messageContent != null &&
+            wkMsg.messageContent!.reply != null &&
+            wkMsg.messageContent!.reply!.messageId != '') {
+          replyMsgIds.add(wkMsg.messageContent!.reply!.messageId);
+        }
         if (wkMsg.fromUID != '') {
           bool isAdd = true;
           for (int i = 0; i < fromUIDs.length; i++) {
@@ -263,6 +265,36 @@ class MessageDB {
       }
     }
     // 查询编辑内容
+    if (replyMsgIds.isNotEmpty) {
+      List<WKMsgExtra> msgExtraList =
+          await queryMsgExtrasWithMsgIds(replyMsgIds);
+      if (msgExtraList.isNotEmpty) {
+        for (WKMsgExtra extra in msgExtraList) {
+          for (int i = 0, size = msgList.length; i < size; i++) {
+            if (msgList[i].messageContent != null &&
+                msgList[i].messageContent!.reply != null &&
+                extra.messageID ==
+                    msgList[i].messageContent!.reply!.messageId) {
+              msgList[i].messageContent!.reply!.revoke = extra.revoke;
+            }
+            if (extra.contentEdit != '' &&
+                msgList[i].messageContent != null &&
+                msgList[i].messageContent!.reply != null &&
+                msgList[i].messageContent!.reply!.messageId != '' &&
+                extra.messageID ==
+                    msgList[i].messageContent!.reply!.messageId) {
+              msgList[i].messageContent!.reply!.editAt = extra.editedAt;
+              msgList[i].messageContent!.reply!.contentEdit = extra.contentEdit;
+              var json = jsonEncode(extra.contentEdit);
+              var type = WKDBConst.readInt(json, 'type');
+              msgList[i].messageContent!.reply!.contentEditMsgModel =
+                  WKIM.shared.messageManager.getMessageModel(type, json);
+              break;
+            }
+          }
+        }
+      }
+    }
     return msgList;
   }
 
@@ -603,6 +635,33 @@ class MessageDB {
       extraVersion = WKDBConst.readInt(data, 'extra_version');
     }
     return extraVersion;
+  }
+
+  Future<List<WKMsgExtra>> queryMsgExtraWithNeedUpload(int needUpload) async {
+    String sql =
+        "select * from ${WKDBConst.tableMessageExtra}  where needUpload=$needUpload";
+    List<WKMsgExtra> list = [];
+    List<Map<String, Object?>> results =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (results.isNotEmpty) {
+      for (Map<String, Object?> data in results) {
+        list.add(WKDBConst.serializeMsgExtra(data));
+      }
+    }
+
+    return list;
+  }
+
+  Future<WKMsgExtra?> queryMsgExtraWithMsgID(String messageID) async {
+    WKMsgExtra? msgExtra;
+    String sql =
+        "select * from ${WKDBConst.tableMessageExtra} where message_id='$messageID'";
+    List<Map<String, Object?>> list =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (list.isNotEmpty) {
+      msgExtra = WKDBConst.serializeMsgExtra(list[0]);
+    }
+    return msgExtra;
   }
 
   Future<List<WKMsgExtra>> queryMsgExtrasWithMsgIds(List<String> msgIds) async {

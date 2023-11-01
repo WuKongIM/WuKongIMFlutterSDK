@@ -220,6 +220,65 @@ class WKSyncExtraMsg {
   int editedAt = 0;
 }
 
+class WKReply {
+  // 被回复的消息根ID，多级回复时的第一次回复的消息ID
+  String rootMid = '';
+  // 被回复的消息ID
+  String messageId = '';
+  // 被回复的MessageSeq
+  int messageSeq = 0;
+  // 被回复者uid
+  String fromUID = '';
+  // 被回复者名称
+  String fromName = '';
+  // 被回复的消息体
+  WKMessageContent? payload;
+  // 被回复消息编辑后的内容
+  String contentEdit = '';
+  // 被回复消息编辑后的消息实体
+  WKMessageContent? contentEditMsgModel;
+  // 编辑时间
+  int editAt = 0;
+  int revoke = 0;
+
+  dynamic encode() {
+    var json = <String, dynamic>{};
+    json['root_mid'] = rootMid;
+    json['message_id'] = messageId;
+    json['message_seq'] = messageSeq;
+    json['from_uid'] = fromUID;
+    json['from_name'] = fromName;
+    if (payload != null) {
+      var contentJson = payload!.encodeJson();
+      contentJson['type'] = payload!.contentType;
+      json['payload'] = contentJson;
+    }
+    return json;
+  }
+
+  WKReply decode(dynamic data) {
+    rootMid = WKDBConst.readString(data, 'root_mid');
+    messageId = WKDBConst.readString(data, 'message_id');
+    messageSeq = WKDBConst.readInt(data, 'message_seq');
+    fromUID = WKDBConst.readString(data, 'from_uid');
+    fromName = WKDBConst.readString(data, 'from_name');
+    String contentJson = WKDBConst.readString(data, 'payload');
+    if (contentJson != '') {
+      var json = jsonDecode(contentJson);
+      var type = json['type'];
+      payload = WKIM.shared.messageManager.getMessageModel(type, json);
+    }
+    return this;
+  }
+}
+
+class WKMsgEntity {
+  int offset = 0;
+  int length = 0;
+  String type = '';
+  String value = '';
+}
+
 class WKSyncChannelMsg {
   int startMessageSeq = 0;
   int endMessageSeq = 0;
