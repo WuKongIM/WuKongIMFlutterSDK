@@ -67,17 +67,19 @@ class WKMessageManager {
       content.reply = reply;
     }
     var entities = WKDBConst.readString(json, 'entities');
-    var jsonArray = jsonDecode(entities);
-    List<WKMsgEntity> list = [];
-    for (var entityJson in jsonArray) {
-      WKMsgEntity entity = WKMsgEntity();
-      entity.type = WKDBConst.readString(entityJson, 'type');
-      entity.offset = WKDBConst.readInt(entityJson, 'offset');
-      entity.length = WKDBConst.readInt(entityJson, 'length');
-      entity.value = WKDBConst.readString(entityJson, 'value');
-      list.add(entity);
+    if (entities != '') {
+      var jsonArray = jsonDecode(entities);
+      List<WKMsgEntity> list = [];
+      for (var entityJson in jsonArray) {
+        WKMsgEntity entity = WKMsgEntity();
+        entity.type = WKDBConst.readString(entityJson, 'type');
+        entity.offset = WKDBConst.readInt(entityJson, 'offset');
+        entity.length = WKDBConst.readInt(entityJson, 'length');
+        entity.value = WKDBConst.readString(entityJson, 'value');
+        list.add(entity);
+      }
+      content.entities = list;
     }
-    content.entities = list;
     return content;
   }
 

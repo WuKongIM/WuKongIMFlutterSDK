@@ -32,3 +32,5 @@
  * update connnection device id with uid
  ### 1.1.6
  * New features such as message likes and replies added
+ ### 1.1.7
+ * Modifying message parsing errors with reminder itemss
