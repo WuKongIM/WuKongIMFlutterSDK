@@ -44,8 +44,9 @@ class ReactionDB {
     StringBuffer sb = StringBuffer();
     for (int i = 0, size = messageIds.length; i < size; i++) {
       if (i != 0) {
-        sb.write("'");
+        sb.write(",");
       }
+      sb.write("'");
       sb.write(messageIds[i]);
       sb.write("'");
     }
