@@ -28,6 +28,7 @@ class _WKSocket {
 
   void send(Uint8List data) {
     try {
+      print('发消息');
       _socket.add(data);
       _socket.flush();
     } catch (e) {
@@ -284,7 +285,7 @@ class WKConnectionManager {
     WKDBHelper.shared.close();
   }
 
-  _sendReceAckPacket(String messageID, int messageSeq) {
+  _sendReceAckPacket(BigInt messageID, int messageSeq) {
     RecvAckPacket ackPacket = RecvAckPacket();
     ackPacket.messageID = messageID;
     ackPacket.messageSeq = messageSeq;
@@ -300,6 +301,7 @@ class WKConnectionManager {
         clientKey: base64Encode(CryptoUtils.dhPublicKey!),
         deviceID: deviceID,
         clientTimestamp: DateTime.now().millisecondsSinceEpoch);
+    connectPacket.deviceFlag = WKIM.shared.deviceFlagApp;
     _sendPacket(connectPacket);
   }
 
@@ -403,10 +405,11 @@ class WKConnectionManager {
     msg.channelType = recvMsg.channelType;
     msg.channelID = recvMsg.channelID;
     msg.content = recvMsg.payload;
-    msg.messageID = recvMsg.messageID;
+    msg.messageID = recvMsg.messageID.toString();
     msg.messageSeq = recvMsg.messageSeq;
     msg.timestamp = recvMsg.messageTime;
     msg.fromUID = recvMsg.fromUID;
+    msg.clientMsgNO = recvMsg.clientMsgNO;
     msg.status = WKSendMsgResult.sendSuccess;
     msg.topicID = recvMsg.topic;
     msg.orderSeq = await WKIM.shared.messageManager
@@ -522,10 +525,10 @@ Future<String> _getDeviceID() async {
   String key = "${wkUid}_device_id";
   var deviceID = preferences.getString(key);
   if (deviceID == null || deviceID == "") {
-    deviceID = "${const Uuid().v4().toString().replaceAll("-", "")}5";
+    deviceID = const Uuid().v4().toString().replaceAll("-", "");
     preferences.setString(key, deviceID);
   }
-  return deviceID;
+  return "${deviceID}F";
 }
 
 class SendingMsg {

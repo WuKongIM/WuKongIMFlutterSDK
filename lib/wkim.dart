@@ -18,7 +18,7 @@ import 'model/wk_card_content.dart';
 
 class WKIM {
   WKIM._privateConstructor();
-
+  int deviceFlagApp = 0;
   static final WKIM _instance = WKIM._privateConstructor();
 
   static WKIM get shared => _instance;
@@ -62,6 +62,10 @@ class WKIM {
         (dynamic data) {
       return WKVideoContent().decodeJson(data);
     });
+  }
+
+  void setDeviceFlag(int deviceFlag) {
+    deviceFlagApp = deviceFlag;
   }
 
   WKConnectionManager connectionManager = WKConnectionManager.shared;

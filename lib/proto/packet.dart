@@ -2,8 +2,6 @@ import 'package:wukongimfluttersdk/common/crypto_utils.dart';
 
 import 'proto.dart';
 
-const deviceFlagApp = 0;
-
 class PacketHeader {
   PacketType packetType = PacketType.reserved; // 数据包类型
   bool showUnread = false; // 是否显示未读红点
@@ -28,8 +26,8 @@ class ConnectPacket extends Packet {
       {this.version = 0,
       this.clientKey = "",
       this.deviceID = "",
-      this.deviceFlag = deviceFlagApp,
       this.clientTimestamp = 0,
+      this.deviceFlag = 0,
       this.uid = "",
       this.token = ""}) {
     header.packetType = PacketType.connect;
@@ -100,10 +98,9 @@ class SendAckPacket extends Packet {
 }
 
 class RecvAckPacket extends Packet {
-  String messageID;
+  BigInt messageID = BigInt.from(0);
   int messageSeq;
   RecvAckPacket({
-    this.messageID = "",
     this.messageSeq = 0,
   }) {
     header.packetType = PacketType.recvack;
@@ -120,7 +117,7 @@ class RecvPacket extends Packet {
   String streamNo = "";
   int streamSeq = 0;
   int streamFlag = 0;
-  String messageID = "";
+  BigInt messageID = BigInt.from(0);
   int messageSeq = 0;
   int messageTime = 0;
   String topic = "";

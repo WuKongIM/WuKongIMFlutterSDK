@@ -36,3 +36,5 @@
  * Modifying message parsing errors with reminder itemss
  ### 1.1.8
  * Update message reactions
+ ### 1.1.9
+ * Modify message reply to ack issue and Add protocol device flag field 

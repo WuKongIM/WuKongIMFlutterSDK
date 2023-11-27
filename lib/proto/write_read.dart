@@ -94,12 +94,12 @@ class WriteData {
     data.add((v) & 0xff);
   }
 
-  writeUint64(BigInt v) {
-    var low = v.toUnsigned(32);
-    var hight = v - low;
-
-    writeUint32(hight.toInt());
-    writeUint32(low.toInt());
+  var d32 = BigInt.from(4294967296);
+  writeUint64(BigInt b) {
+    var b1 = (b ~/ d32).toInt();
+    var b2 = (b % d32).toInt();
+    writeUint32(b1);
+    writeUint32(b2);
   }
 
   writeBytes(List<int> bytes) {

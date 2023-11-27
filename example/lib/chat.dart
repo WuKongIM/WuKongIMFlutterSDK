@@ -78,7 +78,9 @@ class ChatListDataState extends State<ChatList> {
             // 消息需要回执
             testReceipt(msgs[i]);
           }
-          msgList.add(UIMsg(msgs[i]));
+          if (msgs[i].isDeleted == 0) {
+            msgList.add(UIMsg(msgs[i]));
+          }
         }
       });
       Future.delayed(const Duration(milliseconds: 500), () {

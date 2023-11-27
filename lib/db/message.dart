@@ -21,14 +21,26 @@ class MessageDB {
   final String messageCols =
       "${WKDBConst.tableMessage}.client_seq,${WKDBConst.tableMessage}.message_id,${WKDBConst.tableMessage}.message_seq,${WKDBConst.tableMessage}.channel_id,${WKDBConst.tableMessage}.channel_type,${WKDBConst.tableMessage}.timestamp,${WKDBConst.tableMessage}.topic_id,${WKDBConst.tableMessage}.from_uid,${WKDBConst.tableMessage}.type,${WKDBConst.tableMessage}.content,${WKDBConst.tableMessage}.status,${WKDBConst.tableMessage}.voice_status,${WKDBConst.tableMessage}.created_at,${WKDBConst.tableMessage}.updated_at,${WKDBConst.tableMessage}.searchable_word,${WKDBConst.tableMessage}.client_msg_no,${WKDBConst.tableMessage}.setting,${WKDBConst.tableMessage}.order_seq,${WKDBConst.tableMessage}.extra,${WKDBConst.tableMessage}.is_deleted,${WKDBConst.tableMessage}.flame,${WKDBConst.tableMessage}.flame_second,${WKDBConst.tableMessage}.viewed,${WKDBConst.tableMessage}.viewed_at";
 
+  Future<bool> isExist(String clientMsgNo) async {
+    bool isExist = false;
+    String sql =
+        "select * from ${WKDBConst.tableMessage} where client_msg_no='$clientMsgNo'";
+    List<Map<String, Object?>> list =
+        await WKDBHelper.shared.getDB().rawQuery(sql);
+    if (list.isNotEmpty) {
+      isExist = true;
+    }
+    return isExist;
+  }
+
   Future<int> insert(WKMsg msg) async {
     if (msg.clientSeq != 0) {
       updateMsg(msg);
       return msg.clientSeq;
     }
     if (msg.clientMsgNO != '') {
-      WKMsg? temp = await queryWithClientMsgNo(msg.clientMsgNO);
-      if (temp != null && temp.clientSeq != 0) {
+      bool exist = await isExist(msg.clientMsgNO);
+      if (exist) {
         msg.isDeleted = 1;
         msg.clientMsgNO = WKIM.shared.messageManager.generateClientMsgNo();
       }

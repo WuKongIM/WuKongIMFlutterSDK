@@ -171,7 +171,8 @@ Uint8List encodeSend(SendPacket packet) {
 
 Uint8List encodeRecvAck(RecvAckPacket packet) {
   WriteData write = WriteData();
-  write.writeUint64(BigInt.parse(packet.messageID));
+  print("发送ack ${packet.messageID}");
+  write.writeUint64(packet.messageID);
   write.writeUint32(packet.messageSeq);
   return write.toUint8List();
 }
@@ -200,7 +201,7 @@ RecvPacket decodeRecv(PacketHeader header, ReadData reader) {
     recv.streamSeq = reader.readUint32().toInt();
     recv.streamFlag = reader.readByte();
   }
-  recv.messageID = reader.readUint64().toString();
+  recv.messageID = reader.readUint64();
   recv.messageSeq = reader.readUint32().toInt();
   recv.messageTime = reader.readUint32().toInt();
   if (recv.setting.topic == 1) {
