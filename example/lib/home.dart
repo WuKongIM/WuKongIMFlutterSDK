@@ -1,4 +1,5 @@
 import 'package:example/const.dart';
+import 'package:example/msg.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
@@ -42,6 +43,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
 
   var _connectionStatusStr = '';
   _initListener() {
+    // 监听连接状态事件
     WKIM.shared.connectionManager.addOnConnectionStatus('home',
         (status, reason) {
       if (status == WKConnectStatus.connecting) {
@@ -55,6 +57,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
       }
       setState(() {});
     });
+    // 监听更新消息事件
     WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
         (msg, isEnd) async {
       bool isAdd = true;
@@ -72,6 +75,17 @@ class ListViewShowDataState extends State<ListViewShowData> {
       }
       if (isEnd) {
         setState(() {});
+      }
+    });
+    // 监听刷新channel资料事件
+    WKIM.shared.channelManager.addOnRefreshListener("cover_chat", (channel) {
+      for (var i = 0; i < msgList.length; i++) {
+        if (msgList[i].msg.channelID == channel.channelID &&
+            msgList[i].msg.channelType == channel.channelType) {
+          msgList[i].msg.setWkChannel(channel);
+          setState(() {});
+          break;
+        }
       }
     });
   }
@@ -101,6 +115,35 @@ class ListViewShowDataState extends State<ListViewShowData> {
     return uiConversation.lastContent;
   }
 
+  String getChannelAvatarURL(UIConversation uiConversation) {
+    if (uiConversation.channelAvatar == '') {
+      uiConversation.msg.getWkChannel().then((channel) {
+        if (channel != null) {
+          uiConversation.channelAvatar = channel.avatar;
+        }
+      });
+    }
+    return uiConversation.channelAvatar;
+  }
+
+  String getChannelName(UIConversation uiConversation) {
+    if (uiConversation.channelName == '') {
+      uiConversation.msg.getWkChannel().then((channel) {
+        if (channel != null) {
+          if (channel.channelRemark == '') {
+            uiConversation.channelName = channel.channelName;
+          } else {
+            uiConversation.channelName = channel.channelRemark;
+          }
+        } else {
+          WKIM.shared.channelManager.fetchChannelInfo(
+              uiConversation.msg.channelID, uiConversation.msg.channelType);
+        }
+      });
+    }
+    return uiConversation.channelName;
+  }
+
   Widget _buildRow(UIConversation uiMsg) {
     return Container(
         margin: const EdgeInsets.all(10),
@@ -115,12 +158,11 @@ class ListViewShowDataState extends State<ListViewShowData> {
               alignment: Alignment.center,
               height: 50,
               margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Text(
-                CommonUtils.getAvatar(uiMsg.msg.channelID),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
+              child: Image.network(
+                getChannelAvatarURL(uiMsg),
+                height: 200,
+                width: 200,
+                fit: BoxFit.cover,
               ),
             ),
             Expanded(
@@ -131,7 +173,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
                   Row(
                     children: <Widget>[
                       Text(
-                        uiMsg.msg.channelID,
+                        getChannelName(uiMsg),
                         style:
                             const TextStyle(color: Colors.black, fontSize: 18),
                         maxLines: 1,

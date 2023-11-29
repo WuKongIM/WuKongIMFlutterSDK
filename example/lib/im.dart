@@ -1,5 +1,8 @@
+import 'dart:ffi';
+
 import 'package:example/const.dart';
 import 'package:wukongimfluttersdk/common/options.dart';
+import 'package:wukongimfluttersdk/entity/channel.dart';
 import 'package:wukongimfluttersdk/model/wk_image_content.dart';
 import 'package:wukongimfluttersdk/model/wk_video_content.dart';
 import 'package:wukongimfluttersdk/model/wk_voice_content.dart';
@@ -23,6 +26,15 @@ class IMUtils {
   }
 
   static initListener() {
+    var imgs = [
+      "https://lmg.jj20.com/up/allimg/tx29/06052048151752929.png",
+      "https://pic.imeitou.com/uploads/allimg/2021061715/aqg1wx3nsds.jpg",
+      "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
+      "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
+      "https://lmg.jj20.com/up/allimg/tx28/430423183653303.jpg",
+      "https://lmg.jj20.com/up/allimg/tx23/520420024834916.jpg"
+    ];
+
     WKIM.shared.messageManager.addOnSyncChannelMsgListener((channelID,
         channelType, startMessageSeq, endMessageSeq, limit, pullMode, back) {
       print('回掉接口');
@@ -30,7 +42,27 @@ class IMUtils {
       HttpUtils.syncChannelMsg(channelID, channelType, startMessageSeq,
           endMessageSeq, limit, pullMode, (p0) => back(p0));
     });
-
+    // 获取channel资料
+    WKIM.shared.channelManager
+        .addOnGetChannelListener((channelId, channelType, back) {
+      if (channelType == WKChannelType.personal) {
+        // 获取个人资料
+        // 这里直接返回了。实际情况可通过API请求后返回
+        var channel = WKChannel(channelId, channelType);
+        channel.channelName = "单聊${channel.channelID.hashCode}";
+        var index = channel.channelID.hashCode % imgs.length;
+        channel.avatar = imgs[index];
+        back(channel);
+      } else if (channelType == WKChannelType.group) {
+        // 获取群资料
+        var channel = WKChannel(channelId, channelType);
+        channel.channelName = "群聊${channel.channelID.hashCode}";
+        var index = channel.channelID.hashCode % imgs.length;
+        channel.avatar = imgs[index];
+        back(channel);
+        back(channel);
+      }
+    });
     WKIM.shared.conversationManager
         .addOnSyncConversationListener((lastSsgSeqs, msgCount, version, back) {
       HttpUtils.syncConversation(lastSsgSeqs, msgCount, version, back);
