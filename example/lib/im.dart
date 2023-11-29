@@ -37,7 +37,6 @@ class IMUtils {
 
     WKIM.shared.messageManager.addOnSyncChannelMsgListener((channelID,
         channelType, startMessageSeq, endMessageSeq, limit, pullMode, back) {
-      print('回掉接口');
       // 同步某个频道的消息
       HttpUtils.syncChannelMsg(channelID, channelType, startMessageSeq,
           endMessageSeq, limit, pullMode, (p0) => back(p0));
@@ -60,9 +59,9 @@ class IMUtils {
         var index = channel.channelID.hashCode % imgs.length;
         channel.avatar = imgs[index];
         back(channel);
-        back(channel);
       }
     });
+    // 监听同步最近会话
     WKIM.shared.conversationManager
         .addOnSyncConversationListener((lastSsgSeqs, msgCount, version, back) {
       HttpUtils.syncConversation(lastSsgSeqs, msgCount, version, back);
