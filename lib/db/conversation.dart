@@ -117,7 +117,7 @@ class ConversationDB {
       sb.write("'");
     }
     String sql =
-        "select * from '${WKDBConst.tableConversation}' where channel_id in(${sb.toString()})";
+        "select * from '${WKDBConst.tableConversation}' where channel_id in (${sb.toString()})";
     List<WKConversationMsg> list = [];
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB().rawQuery(sql);

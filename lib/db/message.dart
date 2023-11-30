@@ -488,7 +488,7 @@ class MessageDB {
           "select message_seq from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and  order_seq>$oldestOrderSeq and message_seq<>0 order by message_seq desc limit 1";
     } else {
       sql =
-          "select message_seq from ${WKDBConst.tableMessage} where channel_id=$channelID and channel_type=$channelType and  order_seq<$oldestOrderSeq and message_seq<>0 order by message_seq asc limit 1";
+          "select message_seq from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and  order_seq<$oldestOrderSeq and message_seq<>0 order by message_seq asc limit 1";
     }
 
     List<Map<String, Object?>> list =
