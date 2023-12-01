@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/db/conversation.dart';
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
@@ -32,12 +33,12 @@ class ReminderDB {
 
   Future<List<WKReminder>> queryWithChannel(
       String channelID, int channelType, int done) async {
-    String sql =
-        "select * from ${WKDBConst.tableReminders} where channel_id='$channelID' and channel_type=$channelType and done=$done order by message_seq desc";
     List<WKReminder> list = [];
-
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableReminders,
+        where: "channel_id=? and channel_type=? and done=?",
+        whereArgs: [channelID, channelType, done],
+        orderBy: "message_seq desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeReminder(data));
@@ -84,7 +85,8 @@ class ReminderDB {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (addList.isNotEmpty) {
           for (Map<String, dynamic> value in addList) {
-            txn.insert(WKDBConst.tableReminders, value);
+            txn.insert(WKDBConst.tableReminders, value,
+                conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
         if (updateList.isNotEmpty) {
@@ -119,16 +121,17 @@ class ReminderDB {
     StringBuffer sb = StringBuffer();
     for (int i = 0, size = channelIds.length; i < size; i++) {
       if (i != 0) {
-        sb.write("'");
+        sb.write(",");
       }
+      sb.write("'");
       sb.write(channelIds[i]);
       sb.write("'");
     }
-    String sql =
-        "select * from ${WKDBConst.tableReminders} where channel_id in (${sb.toString()})";
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableReminders,
+        where: "channel_id in (?)",
+        whereArgs: [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeReminder(data));
@@ -145,11 +148,11 @@ class ReminderDB {
       }
       sb.write(ids[i]);
     }
-    String sql =
-        "select * from ${WKDBConst.tableReminders} where reminder_id in (${sb.toString()})";
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableReminders,
+        where: "reminder_id in (?)",
+        whereArgs: [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeReminder(data));

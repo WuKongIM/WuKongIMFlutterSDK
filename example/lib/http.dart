@@ -40,7 +40,7 @@ class HttpUtils {
           lastSsgSeqs, //   客户端所有频道会话的最后一条消息序列号拼接出来的同步串 格式： channelID:channelType:last_msg_seq|channelID:channelType:last_msg_seq  （此字段非必填，如果不填就获取全量数据，填写了获取增量数据，看你自己的需求。）
       "msg_count": 10 // 每个会话获取最大的消息数量，一般为app点进去第一屏的数据
     });
-    print(response.data);
+    // print(response.data);
     WKSyncConversation conversation = WKSyncConversation();
     conversation.conversations = [];
     if (response.statusCode == HttpStatus.ok) {

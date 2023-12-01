@@ -131,6 +131,9 @@ class RecvPacket extends Packet {
 class DisconnectPacket extends Packet {
   int reasonCode = 0;
   String reason = "";
+  DisconnectPacket() {
+    header.packetType = PacketType.disconnect;
+  }
 }
 
 class PingPacket extends Packet {

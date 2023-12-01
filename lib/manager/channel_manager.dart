@@ -16,9 +16,8 @@ class WKChannelManager {
 
   fetchChannelInfo(String channelID, int channelType) {
     if (_getChannelInfoBack != null) {
-      _getChannelInfoBack!(channelID, channelType, (liMChannel) {
-        addOrUpdateChannel(liMChannel);
-        ChannelDB.shared.saveOrUpdate(liMChannel);
+      _getChannelInfoBack!(channelID, channelType, (wkChannel) {
+        addOrUpdateChannel(wkChannel);
       });
     }
   }

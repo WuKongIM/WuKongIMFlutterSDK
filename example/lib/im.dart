@@ -32,7 +32,14 @@ class IMUtils {
       "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
       "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
       "https://lmg.jj20.com/up/allimg/tx28/430423183653303.jpg",
-      "https://lmg.jj20.com/up/allimg/tx23/520420024834916.jpg"
+      "https://lmg.jj20.com/up/allimg/tx23/520420024834916.jpg",
+      "https://himg.bdimg.com/sys/portraitn/item/public.1.a535a65d.tJe8MgWmP8zJ456B73Kzfg",
+      "https://images.liqucn.com/img/h23/h07/img_localize_cb7b78b88d5b33e2ce8921221bf3deae_400x400.png",
+      "https://img1.baidu.com/it/u=3916753633,2634890492&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=400",
+      "https://img0.baidu.com/it/u=4210586523,443489101&fm=253&fmt=auto&app=138&f=JPEG?w=304&h=304",
+      "https://img2.baidu.com/it/u=2559320899,1546883787&fm=253&fmt=auto&app=138&f=JPEG?w=441&h=499",
+      "https://img0.baidu.com/it/u=2952429745,3806929819&fm=253&fmt=auto&app=138&f=JPEG?w=380&h=380",
+      "https://img2.baidu.com/it/u=3783923022,668713258&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
     ];
 
     WKIM.shared.messageManager.addOnSyncChannelMsgListener((channelID,
@@ -44,6 +51,7 @@ class IMUtils {
     // 获取channel资料
     WKIM.shared.channelManager
         .addOnGetChannelListener((channelId, channelType, back) {
+      print('获取channel资料');
       if (channelType == WKChannelType.personal) {
         // 获取个人资料
         // 这里直接返回了。实际情况可通过API请求后返回

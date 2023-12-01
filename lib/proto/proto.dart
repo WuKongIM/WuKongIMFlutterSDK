@@ -171,7 +171,6 @@ Uint8List encodeSend(SendPacket packet) {
 
 Uint8List encodeRecvAck(RecvAckPacket packet) {
   WriteData write = WriteData();
-  print("发送ack ${packet.messageID}");
   write.writeUint64(packet.messageID);
   write.writeUint32(packet.messageSeq);
   return write.toUint8List();

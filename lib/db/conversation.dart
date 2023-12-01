@@ -1,7 +1,9 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
+import 'package:wukongimfluttersdk/entity/channel.dart';
 
 import '../entity/conversation.dart';
 import 'wk_db_helper.dart';
@@ -24,7 +26,10 @@ class ConversationDB {
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         WKConversationMsg msg = WKDBConst.serializeCoversation(data);
-        list.add(getUIMsg(msg));
+        WKChannel wkChannel = WKDBConst.serializeChannel(data);
+        WKUIConversationMsg uiMsg = getUIMsg(msg);
+        uiMsg.setWkChannel(wkChannel);
+        list.add(uiMsg);
       }
     }
     return list;
@@ -35,7 +40,8 @@ class ConversationDB {
     data['is_deleted'] = 1;
     int row = await WKDBHelper.shared.getDB().update(
         WKDBConst.tableConversation, data,
-        where: "channel_id='$channelID' and channel_type=$channelType");
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelID, channelType]);
     return row > 0;
   }
 
@@ -46,9 +52,9 @@ class ConversationDB {
         conversationMsg.channelID, conversationMsg.channelType);
 
     if (lastMsg == null || lastMsg.channelID.isEmpty) {
-      row = await WKDBHelper.shared
-          .getDB()
-          .insert(WKDBConst.tableConversation, getMap(conversationMsg, false));
+      row = await WKDBHelper.shared.getDB().insert(
+          WKDBConst.tableConversation, getMap(conversationMsg, false),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
       conversationMsg.unreadCount =
           lastMsg.unreadCount + conversationMsg.unreadCount;
@@ -66,11 +72,11 @@ class ConversationDB {
   Future<WKConversationMsg?> queryMsgByMsgChannelId(
       String channelId, int channelType) async {
     WKConversationMsg? msg;
-    String sql =
-        "select * from ${WKDBConst.tableConversation} where channel_id='$channelId' and channel_type=$channelType";
 
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableConversation,
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelId, channelType]);
     if (list.isNotEmpty) {
       msg = WKDBConst.serializeCoversation(list[0]);
     }
@@ -116,11 +122,11 @@ class ConversationDB {
       sb.write(channelIds[i]);
       sb.write("'");
     }
-    String sql =
-        "select * from '${WKDBConst.tableConversation}' where channel_id in (${sb.toString()})";
     List<WKConversationMsg> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableConversation,
+        where: "channel_id in (?)",
+        whereArgs: [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeCoversation(data));
@@ -160,14 +166,15 @@ class ConversationDB {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (insertList.isNotEmpty) {
           for (int i = 0; i < insertList.length; i++) {
-            txn.insert(WKDBConst.tableConversation, insertList[i]);
+            txn.insert(WKDBConst.tableConversation, insertList[i],
+                conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
         if (updateList.isNotEmpty) {
           for (Map<String, dynamic> value in updateList) {
             txn.update(WKDBConst.tableConversation, value,
-                where:
-                    "channel_id='${value['channel_id']}' and channel_type=${value['channel_type']}");
+                where: "channel_id=? and channel_type=?",
+                whereArgs: [value['channel_id'], value['channel_type']]);
           }
         }
       });
@@ -196,7 +203,8 @@ class ConversationDB {
       dynamic map, String channelID, int channelType) async {
     return await WKDBHelper.shared.getDB().update(
         WKDBConst.tableConversation, map,
-        where: "channel_id='$channelID' and channel_type=$channelType");
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelID, channelType]);
   }
 
   WKUIConversationMsg getUIMsg(WKConversationMsg conversationMsg) {
