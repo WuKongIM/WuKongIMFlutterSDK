@@ -250,6 +250,7 @@ class WKConnectionManager {
   _decodePacket(Uint8List data) {
     var packet = WKIM.shared.options.proto.decode(data);
     Logs.debug('解码出包->$packet');
+    Logs.debug('解码出包类型->${packet.header.packetType}');
     if (packet.header.packetType == PacketType.connack) {
       var connackPacket = packet as ConnackPacket;
       if (connackPacket.reasonCode == 1) {
@@ -293,6 +294,7 @@ class WKConnectionManager {
   }
 
   _closeAll() {
+    _isLogout = true;
     WKIM.shared.options.uid = '';
     WKIM.shared.options.token = '';
     WKIM.shared.messageManager.updateSendingMsgFail();

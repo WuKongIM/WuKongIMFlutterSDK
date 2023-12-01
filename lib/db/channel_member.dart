@@ -1,3 +1,5 @@
+import 'package:sqflite/sqflite.dart';
+
 import '../entity/channel_member.dart';
 import 'const.dart';
 import 'wk_db_helper.dart';
@@ -21,11 +23,11 @@ class ChannelMemberDB {
       sb.write(uidList[i]);
       sb.write("'");
     }
-    String sql =
-        "select * from ${WKDBConst.tableChannelMember} where channel_id='$channelID' and channel_type=$channelType and member_uid in (${sb.toString()})";
     List<WKChannelMember> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableChannelMember,
+        where: "channel_id=? and channel_type=? and member_uid in (?)",
+        whereArgs: [channelID, channelType, sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));
@@ -36,11 +38,11 @@ class ChannelMemberDB {
 
   Future<int> getMaxVersion(String channelID, int channelType) async {
     String sql =
-        "select max(version) version from ${WKDBConst.tableChannelMember} where channel_id ='$channelID' and channel_type=$channelType limit 0, 1";
+        "select max(version) version from ${WKDBConst.tableChannelMember} where channel_id =? and channel_type=? limit 0, 1";
     int version = 0;
 
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (results.isNotEmpty) {
       dynamic data = results[0];
       version = WKDBConst.readInt(data, 'version');
@@ -51,10 +53,11 @@ class ChannelMemberDB {
   Future<WKChannelMember?> queryWithUID(
       String channelId, int channelType, String memberUID) async {
     String sql =
-        "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} left join ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid = ${WKDBConst.tableChannel}.channel_id AND ${WKDBConst.tableChannel}.channel_type=1 where (${WKDBConst.tableChannelMember}.channel_id='$channelId' and ${WKDBConst.tableChannelMember}.channel_type=$channelType and ${WKDBConst.tableChannelMember}.member_uid='$memberUID')";
+        "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} left join ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid = ${WKDBConst.tableChannel}.channel_id AND ${WKDBConst.tableChannel}.channel_type=1 where (${WKDBConst.tableChannelMember}.channel_id=? and ${WKDBConst.tableChannelMember}.channel_type=? and ${WKDBConst.tableChannelMember}.member_uid=?)";
     WKChannelMember? channelMember;
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared
+        .getDB()
+        .rawQuery(sql, [channelId, channelType, memberUID]);
     if (list.isNotEmpty) {
       channelMember = WKDBConst.serializeChannelMember(list[0]);
     }
@@ -64,10 +67,10 @@ class ChannelMemberDB {
   Future<List<WKChannelMember>?> queryWithChannel(
       String channelId, int channelType) async {
     String sql =
-        "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} LEFT JOIN ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid=${WKDBConst.tableChannel}.channel_id and ${WKDBConst.tableChannel}.channel_type=1 where ${WKDBConst.tableChannelMember}.channel_id='$channelId' and ${WKDBConst.tableChannelMember}.channel_type=$channelType and ${WKDBConst.tableChannelMember}.is_deleted=0 and ${WKDBConst.tableChannelMember}.status=1 order by ${WKDBConst.tableChannelMember}.role=1 desc,${WKDBConst.tableChannelMember}.role=2 desc,${WKDBConst.tableChannelMember}.created_at asc";
+        "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} LEFT JOIN ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid=${WKDBConst.tableChannel}.channel_id and ${WKDBConst.tableChannel}.channel_type=1 where ${WKDBConst.tableChannelMember}.channel_id=? and ${WKDBConst.tableChannelMember}.channel_type=? and ${WKDBConst.tableChannelMember}.is_deleted=0 and ${WKDBConst.tableChannelMember}.status=1 order by ${WKDBConst.tableChannelMember}.role=1 desc,${WKDBConst.tableChannelMember}.role=2 desc,${WKDBConst.tableChannelMember}.created_at asc";
     List<WKChannelMember> list = [];
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelId, channelType]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));
@@ -88,11 +91,11 @@ class ChannelMemberDB {
       sb.write("'");
     }
 
-    String sql =
-        "select * from ${WKDBConst.tableChannelMember} where channel_id ='$channelID' and channel_type=$channelType and member_uid in (${sb.toString()})";
     List<WKChannelMember> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableChannelMember,
+        where: "channel_id=? and channel_type=? and member_uid in (?) ",
+        whereArgs: [channelID, channelType, sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));
@@ -122,15 +125,20 @@ class ChannelMemberDB {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (Map<String, dynamic> value in insertCVList) {
-            txn.insert(WKDBConst.tableChannelMember, value);
+            txn.insert(WKDBConst.tableChannelMember, value,
+                conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
 
         if (updateCVList.isNotEmpty) {
           for (Map<String, dynamic> value in updateCVList) {
             txn.update(WKDBConst.tableChannelMember, value,
-                where:
-                    "channel_id='${value['channel_id']}' and channel_type=${value['channel_type']} and member_uid='${value['member_uid']}'");
+                where: "channel_id=? and channel_type=? and member_uid=?",
+                whereArgs: [
+                  value['channel_id'],
+                  value['channel_type'],
+                  value['member_uid']
+                ]);
           }
         }
       });

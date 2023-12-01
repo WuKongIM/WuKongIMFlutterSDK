@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 
+import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
 
@@ -12,11 +13,11 @@ class ChannelDB {
   static ChannelDB get shared => _instance;
 
   Future<WKChannel?> query(String channelID, int channelType) async {
-    String sql =
-        "select * from ${WKDBConst.tableChannel} where channel_id='$channelID' and channel_type=$channelType";
     WKChannel? channel;
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableChannel,
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelID, channelType]);
     if (list.isNotEmpty) {
       channel = WKDBConst.serializeChannel(list[0]);
     }
@@ -44,8 +45,8 @@ class ChannelDB {
         if (updateList.isNotEmpty) {
           for (Map<String, dynamic> value in updateList) {
             txn.update(WKDBConst.tableChannel, value,
-                where:
-                    "channel_id='${value['channel_id']}' and channel_type=${value['channel_type']}");
+                where: "channel_id=? and channel_type=?",
+                whereArgs: [value['channel_id'], value['channel_type']]);
           }
         }
       });
@@ -62,26 +63,27 @@ class ChannelDB {
   }
 
   insert(WKChannel channel) {
-    WKDBHelper.shared.getDB().insert(WKDBConst.tableChannel, getMap(channel));
+    WKDBHelper.shared.getDB().insert(WKDBConst.tableChannel, getMap(channel),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   update(WKChannel channel) {
     WKDBHelper.shared.getDB().update(WKDBConst.tableChannel, getMap(channel),
-        where:
-            "channel_id='${channel.channelID}' and channel_type=${channel.channelType}");
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channel.channelID, channel.channelType]);
   }
 
   Future<bool> isExist(String channelID, int channelType) async {
     bool isExit = false;
-    String sql =
-        "select * from ${WKDBConst.tableChannel} where channel_id='$channelID' and channel_type=$channelType";
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableChannel,
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {
         String channelID = WKDBConst.readString(data, 'channel_id');
-        if (channelID != '' && channelID.isNotEmpty) {
+        if (channelID != '') {
           isExit = true;
         }
       }
@@ -104,11 +106,11 @@ class ChannelDB {
       sb.write("'");
     }
     String channelIds = sb.toString();
-    String sql =
-        "select * from ${WKDBConst.tableChannel} where channel_id in ($channelIds) and channel_type=$channelType";
     List<WKChannel> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableChannel,
+        where: "channel_id in (?) and channel_type=?",
+        whereArgs: [channelIds, channelType]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannel(data));

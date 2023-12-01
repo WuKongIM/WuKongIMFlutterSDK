@@ -49,11 +49,13 @@ class ListViewShowDataState extends State<ListViewShowData> {
       if (status == WKConnectStatus.connecting) {
         _connectionStatusStr = '连接中...';
       } else if (status == WKConnectStatus.success) {
-        _connectionStatusStr = '最近会话';
+        _connectionStatusStr = '最近会话【连接成功】';
       } else if (status == WKConnectStatus.noNetwork) {
         _connectionStatusStr = '网络异常';
       } else if (status == WKConnectStatus.syncMsg) {
         _connectionStatusStr = '同步消息中...';
+      } else if (status == WKConnectStatus.kicked) {
+        _connectionStatusStr = '未连接，在其他设备登录';
       }
       setState(() {});
     });
@@ -163,6 +165,10 @@ class ListViewShowDataState extends State<ListViewShowData> {
                 height: 200,
                 width: 200,
                 fit: BoxFit.cover,
+                errorBuilder: (BuildContext context, Object exception,
+                    StackTrace? stackTrace) {
+                  return Image.asset('assets/ic_default_avatar.png');
+                },
               ),
             ),
             Expanded(

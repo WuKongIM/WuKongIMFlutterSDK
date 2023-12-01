@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/channel.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/db/reaction.dart';
@@ -23,10 +24,10 @@ class MessageDB {
 
   Future<bool> isExist(String clientMsgNo) async {
     bool isExist = false;
-    String sql =
-        "select * from ${WKDBConst.tableMessage} where client_msg_no='$clientMsgNo'";
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessage,
+        where: "client_msg_no=?",
+        whereArgs: [clientMsgNo]);
     if (list.isNotEmpty) {
       isExist = true;
     }
@@ -45,36 +46,35 @@ class MessageDB {
         msg.clientMsgNO = WKIM.shared.messageManager.generateClientMsgNo();
       }
     }
-    return await WKDBHelper.shared
-        .getDB()
-        .insert(WKDBConst.tableMessage, getMap(msg));
+    return await WKDBHelper.shared.getDB().insert(
+        WKDBConst.tableMessage, getMap(msg),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<int> updateMsg(WKMsg msg) async {
     return await WKDBHelper.shared.getDB().update(
         WKDBConst.tableMessage, getMap(msg),
-        where: "client_seq=${msg.clientSeq}");
+        where: "client_seq=?", whereArgs: [msg.clientSeq]);
   }
 
   Future<int> updateMsgWithField(dynamic map, int clientSeq) async {
-    return await WKDBHelper.shared
-        .getDB()
-        .update(WKDBConst.tableMessage, map, where: "client_seq=$clientSeq");
+    return await WKDBHelper.shared.getDB().update(WKDBConst.tableMessage, map,
+        where: "client_seq=?", whereArgs: [clientSeq]);
   }
 
   Future<int> updateMsgWithFieldAndClientMsgNo(
       dynamic map, String clientMsgNO) async {
     return await WKDBHelper.shared.getDB().update(WKDBConst.tableMessage, map,
-        where: "client_msg_no='$clientMsgNO'");
+        where: "client_msg_no=?", whereArgs: [clientMsgNO]);
   }
 
   Future<WKMsg?> queryWithClientMsgNo(String clientMsgNo) async {
     WKMsg? wkMsg;
     String sql =
-        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.client_msg_no='$clientMsgNo'";
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.client_msg_no=?";
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [clientMsgNo]);
     if (list.isNotEmpty) {
       wkMsg = WKDBConst.serializeWKMsg(list[0]);
     }
@@ -88,10 +88,10 @@ class MessageDB {
   Future<WKMsg?> queryWithClientSeq(int clientSeq) async {
     WKMsg? wkMsg;
     String sql =
-        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.client_seq=$clientSeq";
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.client_seq=?";
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [clientSeq]);
     if (list.isNotEmpty) {
       wkMsg = WKDBConst.serializeWKMsg(list[0]);
     }
@@ -114,10 +114,10 @@ class MessageDB {
     }
 
     String sql =
-        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (${sb.toString()})";
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (?)";
     List<WKMsg> list = [];
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeWKMsg(data));
@@ -129,9 +129,9 @@ class MessageDB {
   Future<int> queryMaxOrderSeq(String channelID, int channelType) async {
     int maxOrderSeq = 0;
     String sql =
-        "select max(order_seq) order_seq from ${WKDBConst.tableMessage} where channel_id ='$channelID' and channel_type=$channelType and type<>99 and type<>0 and is_deleted=0";
+        "select max(order_seq) order_seq from ${WKDBConst.tableMessage} where channel_id =? and channel_type=? and type<>99 and type<>0 and is_deleted=0";
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       maxOrderSeq = WKDBConst.readInt(data, 'order_seq');
@@ -141,10 +141,10 @@ class MessageDB {
 
   Future<int> getMaxMessageSeq(String channelID, int channelType) async {
     String sql =
-        "SELECT max(message_seq) message_seq FROM ${WKDBConst.tableMessage} WHERE channel_id='$channelID' AND channel_type=$channelType";
+        "SELECT max(message_seq) message_seq FROM ${WKDBConst.tableMessage} WHERE channel_id=? AND channel_type=?";
     int messageSeq = 0;
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       messageSeq = WKDBConst.readInt(data, 'message_seq');
@@ -156,9 +156,10 @@ class MessageDB {
       String channelID, int channelType, int maxOrderSeq, int limit) async {
     int minOrderSeq = 0;
     String sql =
-        "select order_seq from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type='$channelType' and type<>99 and order_seq <= $maxOrderSeq order by order_seq desc limit $limit";
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        "select order_seq from ${WKDBConst.tableMessage} where channel_id=? and channel_type=? and type<>99 and order_seq <=? order by order_seq desc limit ?";
+    List<Map<String, Object?>> list = await WKDBHelper.shared
+        .getDB()
+        .rawQuery(sql, [channelID, channelType, maxOrderSeq, limit]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       minOrderSeq = WKDBConst.readInt(data, 'order_seq');
@@ -170,34 +171,41 @@ class MessageDB {
       int oldestOrderSeq, bool contain, int pullMode, int limit) async {
     List<WKMsg> msgList = [];
     String sql;
-
+    var args = [];
     if (oldestOrderSeq <= 0) {
       sql =
-          "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id='$channelId' and ${WKDBConst.tableMessage}.channel_type=$channelType and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,$limit";
+          "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,?";
+      args.add(channelId);
+      args.add(channelType);
+      args.add(limit);
     } else {
       if (pullMode == 0) {
         if (contain) {
           sql =
-              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id='$channelId' and ${WKDBConst.tableMessage}.channel_type=$channelType and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq<=$oldestOrderSeq) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,$limit";
+              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq<=?) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,?";
         } else {
           sql =
-              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id='$channelId' and ${WKDBConst.tableMessage}.channel_type=$channelType and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq<$oldestOrderSeq) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,$limit";
+              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq<?) where is_deleted=0 and is_mutual_deleted=0 order by order_seq desc limit 0,?";
         }
       } else {
         if (contain) {
           sql =
-              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id='$channelId' and ${WKDBConst.tableMessage}.channel_type=$channelType and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq>=$oldestOrderSeq) where is_deleted=0 and is_mutual_deleted=0 order by order_seq asc limit 0,$limit";
+              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq>=?) where is_deleted=0 and is_mutual_deleted=0 order by order_seq asc limit 0,?";
         } else {
           sql =
-              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id='$channelId' and ${WKDBConst.tableMessage}.channel_type=$channelType and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq>$oldestOrderSeq) where is_deleted=0 and is_mutual_deleted=0 order by order_seq asc limit 0,$limit";
+              "SELECT * FROM (SELECT $messageCols,$extraCols FROM ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 AND ${WKDBConst.tableMessage}.order_seq>?) where is_deleted=0 and is_mutual_deleted=0 order by order_seq asc limit 0,?";
         }
       }
+      args.add(channelId);
+      args.add(channelType);
+      args.add(oldestOrderSeq);
+      args.add(limit);
     }
     List<String> messageIds = [];
     List<String> replyMsgIds = [];
     List<String> fromUIDs = [];
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, args);
 
     if (results.isNotEmpty) {
       WKChannel? wkChannel =
@@ -468,10 +476,11 @@ class MessageDB {
   Future<int> getDeletedCount(int minMessageSeq, int maxMessageSeq,
       String channelID, int channelType) async {
     String sql =
-        "select count(*) num from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and message_seq>$minMessageSeq and message_seq<$maxMessageSeq and is_deleted=1";
+        "select count(*) num from ${WKDBConst.tableMessage} where channel_id=? and channel_type=? and message_seq>? and message_seq<? and is_deleted=1";
     int num = 0;
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared
+        .getDB()
+        .rawQuery(sql, [channelID, channelType, minMessageSeq, maxMessageSeq]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       num = WKDBConst.readInt(data, 'num');
@@ -485,14 +494,15 @@ class MessageDB {
     int messageSeq = 0;
     if (pullMode == 1) {
       sql =
-          "select message_seq from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and  order_seq>$oldestOrderSeq and message_seq<>0 order by message_seq desc limit 1";
+          "select message_seq from ${WKDBConst.tableMessage} where channel_id=? and channel_type=? and  order_seq>? and message_seq<>0 order by message_seq desc limit 1";
     } else {
       sql =
-          "select message_seq from ${WKDBConst.tableMessage} where channel_id=$channelID and channel_type=$channelType and  order_seq<$oldestOrderSeq and message_seq<>0 order by message_seq asc limit 1";
+          "select message_seq from ${WKDBConst.tableMessage} where channel_id=? and channel_type=? and  order_seq<? and message_seq<>0 order by message_seq asc limit 1";
     }
 
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared
+        .getDB()
+        .rawQuery(sql, [channelID, channelType, oldestOrderSeq]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       messageSeq = WKDBConst.readInt(data, 'message_seq');
@@ -563,7 +573,8 @@ class MessageDB {
     if (cvList.isNotEmpty) {
       WKDBHelper.shared.getDB().transaction((txn) async {
         for (int i = 0; i < cvList.length; i++) {
-          txn.insert(WKDBConst.tableMessage, cvList[i]);
+          txn.insert(WKDBConst.tableMessage, cvList[i],
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       });
     }
@@ -572,8 +583,7 @@ class MessageDB {
   Future<List<WKMsg>> queryWithClientMsgNos(List<String> clientMsgNos) async {
     List<WKMsg> msgs = [];
     StringBuffer sb = StringBuffer();
-    sb.write(
-        "select * from ${WKDBConst.tableMessage} where client_msg_no in (");
+
     for (int i = 0, size = clientMsgNos.length; i < size; i++) {
       if (i != 0) {
         sb.write(",");
@@ -582,10 +592,11 @@ class MessageDB {
       sb.write(clientMsgNos[i]);
       sb.write("'");
     }
-    sb.write(")");
 
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sb.toString());
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessage,
+        where: "client_msg_no in (?)",
+        whereArgs: [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         msgs.add(WKDBConst.serializeWKMsg(data));
@@ -621,12 +632,14 @@ class MessageDB {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (int i = 0; i < insertCVList.length; i++) {
-            txn.insert(WKDBConst.tableMessageExtra, insertCVList[0]);
+            txn.insert(WKDBConst.tableMessageExtra, insertCVList[0],
+                conflictAlgorithm: ConflictAlgorithm.replace);
           }
           if (updateCVList.isNotEmpty) {
             for (int i = 0; i < updateCVList.length; i++) {
               txn.update(WKDBConst.tableMessageExtra, updateCVList[0],
-                  where: "message_id='${updateCVList[i]['message_id']}'");
+                  where: "message_id=?",
+                  whereArgs: [updateCVList[i]['message_id']]);
             }
           }
         }
@@ -639,9 +652,9 @@ class MessageDB {
       String channelID, int channelType) async {
     int extraVersion = 0;
     String sql =
-        "select max(extra_version) extra_version from ${WKDBConst.tableMessageExtra} where channel_id ='$channelID' and channel_type=$channelType";
+        "select max(extra_version) extra_version from ${WKDBConst.tableMessageExtra} where channel_id =? and channel_type=?";
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       extraVersion = WKDBConst.readInt(data, 'extra_version');
@@ -651,10 +664,10 @@ class MessageDB {
 
   Future<List<WKMsgExtra>> queryMsgExtraWithNeedUpload(int needUpload) async {
     String sql =
-        "select * from ${WKDBConst.tableMessageExtra}  where needUpload=$needUpload";
+        "select * from ${WKDBConst.tableMessageExtra}  where need_upload=?";
     List<WKMsgExtra> list = [];
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [needUpload]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeMsgExtra(data));
@@ -666,10 +679,10 @@ class MessageDB {
 
   Future<WKMsgExtra?> queryMsgExtraWithMsgID(String messageID) async {
     WKMsgExtra? msgExtra;
-    String sql =
-        "select * from ${WKDBConst.tableMessageExtra} where message_id='$messageID'";
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessageExtra,
+        where: "message_id=?",
+        whereArgs: [messageID]);
     if (list.isNotEmpty) {
       msgExtra = WKDBConst.serializeMsgExtra(list[0]);
     }
@@ -678,8 +691,6 @@ class MessageDB {
 
   Future<List<WKMsgExtra>> queryMsgExtrasWithMsgIds(List<String> msgIds) async {
     StringBuffer sb = StringBuffer();
-    sb.write(
-        "select * from ${WKDBConst.tableMessageExtra} where message_id in (");
     for (int i = 0, size = msgIds.length; i < size; i++) {
       if (i != 0) {
         sb.write(",");
@@ -688,10 +699,11 @@ class MessageDB {
       sb.write(msgIds[i]);
       sb.write("'");
     }
-    sb.write(")");
     List<WKMsgExtra> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sb.toString());
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessageExtra,
+        where: "message_id in (?)",
+        whereArgs: [sb.toString()]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeMsgExtra(data));
@@ -713,9 +725,9 @@ class MessageDB {
       String channelID, int channelType) async {
     WKMsg? wkMsg;
     String sql =
-        "select * from ${WKDBConst.tableMessage} where channel_id='$channelID' and channel_type=$channelType and is_deleted=0 and type<>0 and type<>99 order by order_seq desc limit 1";
+        "select * from ${WKDBConst.tableMessage} where channel_id=? and channel_type=? and is_deleted=0 and type<>0 and type<>99 order by order_seq desc limit 1";
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {

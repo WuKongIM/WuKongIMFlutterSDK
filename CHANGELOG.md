@@ -38,3 +38,7 @@
  * Update message reactions
  ### 1.1.9
  * Modify message reply to ack issue and Add protocol device flag field 
+ ### 1.2.0
+ * Modify query channel message error issue 
+ ### 1.2.1
+ * Update channel info refresh listener and optimize data insertion issues

@@ -1,3 +1,4 @@
+import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 
 import 'const.dart';
@@ -10,11 +11,11 @@ class ReactionDB {
 
   Future<int> queryMaxSeqWithChannel(String channelID, int channelType) async {
     String sql =
-        "select max(seq) seq from ${WKDBConst.tableMessageReaction} where channel_id='$channelID' and channel_type=$channelType limit 0, 1";
+        "select max(seq) seq from ${WKDBConst.tableMessageReaction} where channel_id=? and channel_type=? limit 0, 1";
     int version = 0;
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {
@@ -25,12 +26,12 @@ class ReactionDB {
   }
 
   Future<List<WKMsgReaction>> queryWithMessageId(String messageId) async {
-    String sql =
-        "select * from ${WKDBConst.tableMessageReaction} where message_id='$messageId' and is_deleted=0 ORDER BY created_at desc";
     List<WKMsgReaction> list = [];
-
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessageReaction,
+        where: "message_id=? and is_deleted=0",
+        whereArgs: [messageId],
+        orderBy: "created_at desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeMsgReation(data));
@@ -51,11 +52,12 @@ class ReactionDB {
       sb.write("'");
     }
 
-    String sql =
-        "select * from ${WKDBConst.tableMessageReaction} where message_id in (${sb.toString()}) and is_deleted=0 ORDER BY created_at desc";
     List<WKMsgReaction> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessageReaction,
+        where: "message_id in (?) and is_deleted=0",
+        whereArgs: [sb.toString()],
+        orderBy: "created_at desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeMsgReation(data));
@@ -86,22 +88,22 @@ class ReactionDB {
     map['seq'] = reaction.seq;
     map['emoji'] = reaction.emoji;
     WKDBHelper.shared.getDB().update(WKDBConst.tableMessageReaction, map,
-        where: "message_id='${reaction.messageID}' and uid='${reaction.uid}'");
+        where: "message_id=? and uid=?",
+        whereArgs: [reaction.messageID, reaction.uid]);
   }
 
   insertReaction(WKMsgReaction reaction) {
-    WKDBHelper.shared
-        .getDB()
-        .insert(WKDBConst.tableMessageReaction, getReactionMap(reaction));
+    WKDBHelper.shared.getDB().insert(
+        WKDBConst.tableMessageReaction, getReactionMap(reaction),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<bool> isExistReaction(String uid, String messageID) async {
     bool isExist = false;
-    String sql =
-        "select * from ${WKDBConst.tableMessageReaction} where message_id='$messageID' and uid='$uid' ";
-
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+        WKDBConst.tableMessageReaction,
+        where: "message_id=? and uid=?",
+        whereArgs: [messageID, uid]);
     if (list.isNotEmpty) {
       isExist = true;
     }

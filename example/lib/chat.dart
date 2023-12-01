@@ -59,7 +59,7 @@ class ChatListDataState extends State<ChatList> {
   void initState() {
     super.initState();
     initListener();
-    getMsgList(50000, 0, true);
+    getMsgList(0, 0, true);
   }
 
   initListener() {
