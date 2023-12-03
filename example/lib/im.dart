@@ -17,9 +17,10 @@ class IMUtils {
       String ip = await HttpUtils.getIP();
       complete(ip);
     };
-
-    WKIM.shared.connectionManager.connect();
-    initListener();
+    if (result) {
+      WKIM.shared.connectionManager.connect();
+      initListener();
+    }
     return result;
   }
 

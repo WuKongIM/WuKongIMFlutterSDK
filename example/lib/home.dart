@@ -57,7 +57,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
       } else if (status == WKConnectStatus.kicked) {
         _connectionStatusStr = '未连接，在其他设备登录';
       }
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     // 监听更新消息事件
     WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
