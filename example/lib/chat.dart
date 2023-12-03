@@ -236,23 +236,23 @@ class ChatListDataState extends State<ChatList> {
         padding: const EdgeInsets.only(left: 0, top: 5, right: 0, bottom: 5),
         child: Row(
           children: [
-            Container(
-              decoration: const BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Color.fromARGB(255, 215, 80, 1)),
-              width: 50,
-              alignment: Alignment.center,
-              height: 50,
-              margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Text(
-                CommonUtils.getAvatar(uiMsg.wkMsg.fromUID),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
+            // Container(
+            //   decoration: const BoxDecoration(
+            //       shape: BoxShape.rectangle,
+            //       borderRadius: BorderRadius.all(Radius.circular(20)),
+            //       color: Color.fromARGB(255, 215, 80, 1)),
+            //   width: 50,
+            //   alignment: Alignment.center,
+            //   height: 50,
+            //   margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+            //   child: Text(
+            //     CommonUtils.getAvatar(uiMsg.wkMsg.fromUID),
+            //     style: const TextStyle(
+            //         color: Colors.white,
+            //         fontSize: 20,
+            //         fontWeight: FontWeight.bold),
+            //   ),
+            // ),
             Expanded(
               child: Container(
                 alignment: Alignment.centerLeft,

@@ -37,7 +37,7 @@ class _InputDialogState extends State<InputDialog> {
           children: [
             TextField(
                 controller: _textEditingController,
-                maxLength: 12,
+                maxLength: 120,
                 onChanged: (v) {
                   channelID = v;
                 },

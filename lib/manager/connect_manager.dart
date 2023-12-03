@@ -20,29 +20,44 @@ import '../proto/proto.dart';
 import '../type/const.dart';
 
 class _WKSocket {
-  final Socket _socket;
-  _WKSocket.newSocket(this._socket);
+  Socket? _socket; // 将 _socket 声明为可空类型
+  bool _isListening = false;
+  static _WKSocket? _instance;
+
+  _WKSocket._internal(this._socket);
+
+  factory _WKSocket.newSocket(Socket socket) {
+    _instance ??= _WKSocket._internal(socket);
+    return _instance!;
+  }
+
   void close() {
-    _socket.close();
+    _socket?.close();
+    _isListening = false;
+    _socket = null; // 现在可以将 _socket 设置为 null
+    _instance = null;
   }
 
   void send(Uint8List data) {
     try {
-      print('发消息');
-      _socket.add(data);
-      _socket.flush();
+      _socket?.add(data); // 使用安全调用操作符
+      _socket?.flush();
     } catch (e) {
-      Logs.debug('发送消息错误');
+      Logs.debug('发送消息错误$e');
     }
   }
 
   void listen(void Function(Uint8List data) onData, void Function() error) {
-    _socket.listen(onData, onError: (err) {
-      Logs.debug('socket断开了${err.toString()}');
-    }, onDone: () {
-      Logs.debug('socketonDone');
-      error();
-    });
+    if (!_isListening && _socket != null) {
+      _socket!.listen(onData, onError: (err) {
+        Logs.debug('socket断开了${err.toString()}');
+      }, onDone: () {
+        Logs.debug('socketonDone');
+        error();
+        close(); // 关闭和重置 Socket 连接
+      });
+      _isListening = true;
+    }
   }
 }
 
@@ -145,7 +160,7 @@ class WKConnectionManager {
         return;
       }
       isReconnection = true;
-      Logs.error('发送消息失败');
+      Logs.error('发送消息失败$_isLogout');
       Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
         connect();
       });
@@ -155,7 +170,9 @@ class WKConnectionManager {
   }
 
   _connectFail(error) {
+    // _socket?.close();
     Logs.error('连接失败：${error.toString()}');
+    print(error);
     Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
       connect();
     });

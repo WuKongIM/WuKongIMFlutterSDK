@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:example/const.dart';
 import 'package:wukongimfluttersdk/common/options.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
