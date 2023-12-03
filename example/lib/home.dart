@@ -1,5 +1,4 @@
 import 'package:example/const.dart';
-import 'package:example/msg.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
