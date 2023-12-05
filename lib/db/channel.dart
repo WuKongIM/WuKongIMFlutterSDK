@@ -96,21 +96,15 @@ class ChannelDB {
     if (channelIDs.isEmpty) {
       return [];
     }
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = channelIDs.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(channelIDs[i]);
-      sb.write("'");
-    }
-    String channelIds = sb.toString();
+    List<Object> args = [];
+    args.addAll(channelIDs);
+    args.add(channelType);
     List<WKChannel> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableChannel,
-        where: "channel_id in (?) and channel_type=?",
-        whereArgs: [channelIds, channelType]);
+        where:
+            "channel_id in (${WKDBConst.getPlaceholders(channelIDs.length)}) and channel_type=?",
+        whereArgs: args);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannel(data));

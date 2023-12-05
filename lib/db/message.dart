@@ -103,21 +103,11 @@ class MessageDB {
   }
 
   Future<List<WKMsg>> queryWithMessageIds(List<String> messageIds) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = messageIds.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(messageIds[i]);
-      sb.write("'");
-    }
-
     String sql =
-        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (?)";
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (${WKDBConst.getPlaceholders(messageIds.length)}})";
     List<WKMsg> list = [];
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql, [sb.toString()]);
+        await WKDBHelper.shared.getDB().rawQuery(sql, messageIds);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeWKMsg(data));
@@ -582,21 +572,11 @@ class MessageDB {
 
   Future<List<WKMsg>> queryWithClientMsgNos(List<String> clientMsgNos) async {
     List<WKMsg> msgs = [];
-    StringBuffer sb = StringBuffer();
-
-    for (int i = 0, size = clientMsgNos.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(clientMsgNos[i]);
-      sb.write("'");
-    }
-
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableMessage,
-        where: "client_msg_no in (?)",
-        whereArgs: [sb.toString()]);
+        where:
+            "client_msg_no in (${WKDBConst.getPlaceholders(clientMsgNos.length)})",
+        whereArgs: clientMsgNos);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         msgs.add(WKDBConst.serializeWKMsg(data));
@@ -690,20 +670,11 @@ class MessageDB {
   }
 
   Future<List<WKMsgExtra>> queryMsgExtrasWithMsgIds(List<String> msgIds) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = msgIds.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(msgIds[i]);
-      sb.write("'");
-    }
     List<WKMsgExtra> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableMessageExtra,
-        where: "message_id in (?)",
-        whereArgs: [sb.toString()]);
+        where: "message_id in (${WKDBConst.getPlaceholders(msgIds.length)})",
+        whereArgs: msgIds);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeMsgExtra(data));

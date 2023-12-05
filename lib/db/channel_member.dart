@@ -14,20 +14,16 @@ class ChannelMemberDB {
 
   Future<List<WKChannelMember>> queryMemberWithUIDs(
       String channelID, int channelType, List<String> uidList) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = uidList.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(uidList[i]);
-      sb.write("'");
-    }
+    List<Object> args = [];
+    args.add(channelID);
+    args.add(channelType);
+    args.addAll(uidList);
     List<WKChannelMember> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableChannelMember,
-        where: "channel_id=? and channel_type=? and member_uid in (?)",
-        whereArgs: [channelID, channelType, sb.toString()]);
+        where:
+            "channel_id=? and channel_type=? and member_uid in (${WKDBConst.getPlaceholders(uidList.length)})",
+        whereArgs: args);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));
@@ -81,21 +77,17 @@ class ChannelMemberDB {
 
   Future<List<WKChannelMember>> queryWithUIDs(
       String channelID, int channelType, List<String> uidList) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = uidList.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(uidList[i]);
-      sb.write("'");
-    }
+    List<Object> args = [];
+    args.add(channelID);
+    args.add(channelType);
+    args.addAll(uidList);
 
     List<WKChannelMember> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableChannelMember,
-        where: "channel_id=? and channel_type=? and member_uid in (?) ",
-        whereArgs: [channelID, channelType, sb.toString()]);
+        where:
+            "channel_id=? and channel_type=? and member_uid in (${WKDBConst.getPlaceholders(uidList.length)}) ",
+        whereArgs: args);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));

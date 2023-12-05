@@ -113,20 +113,12 @@ class ConversationDB {
 
   Future<List<WKConversationMsg>> queryWithChannelIds(
       List<String> channelIds) async {
-    StringBuffer sb = StringBuffer();
-    for (var i = 0; i < channelIds.length; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(channelIds[i]);
-      sb.write("'");
-    }
     List<WKConversationMsg> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableConversation,
-        where: "channel_id in (?)",
-        whereArgs: [sb.toString()]);
+        where:
+            "channel_id in (${WKDBConst.getPlaceholders(channelIds.length)})",
+        whereArgs: channelIds);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeCoversation(data));

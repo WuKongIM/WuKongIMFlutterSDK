@@ -44,3 +44,5 @@
  * Update channel info refresh listener and optimize data insertion issues
  ### 1.2.2
  * Modifying the issue of reconnecting disconnected objects without destroying them
+ ### 1.2.3
+ * Optimize message queries

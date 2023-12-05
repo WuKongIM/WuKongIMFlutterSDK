@@ -118,20 +118,12 @@ class ReminderDB {
   }
 
   Future<List<WKReminder>> queryWithChannelIds(List<String> channelIds) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = channelIds.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(channelIds[i]);
-      sb.write("'");
-    }
     List<WKReminder> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableReminders,
-        where: "channel_id in (?)",
-        whereArgs: [sb.toString()]);
+        where:
+            "channel_id in (${WKDBConst.getPlaceholders(channelIds.length)})",
+        whereArgs: channelIds);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeReminder(data));
@@ -141,18 +133,11 @@ class ReminderDB {
   }
 
   Future<List<WKReminder>> queryWithIds(List<int> ids) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = ids.length; i < size; i++) {
-      if (sb.length != 0) {
-        sb.write(',');
-      }
-      sb.write(ids[i]);
-    }
     List<WKReminder> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableReminders,
-        where: "reminder_id in (?)",
-        whereArgs: [sb.toString()]);
+        where: "reminder_id in (${WKDBConst.getPlaceholders(ids.length)})",
+        whereArgs: ids);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeReminder(data));

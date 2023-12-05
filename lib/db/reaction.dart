@@ -42,21 +42,12 @@ class ReactionDB {
 
   Future<List<WKMsgReaction>> queryWithMessageIds(
       List<String> messageIds) async {
-    StringBuffer sb = StringBuffer();
-    for (int i = 0, size = messageIds.length; i < size; i++) {
-      if (i != 0) {
-        sb.write(",");
-      }
-      sb.write("'");
-      sb.write(messageIds[i]);
-      sb.write("'");
-    }
-
     List<WKMsgReaction> list = [];
     List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
         WKDBConst.tableMessageReaction,
-        where: "message_id in (?) and is_deleted=0",
-        whereArgs: [sb.toString()],
+        where:
+            "message_id in (${WKDBConst.getPlaceholders(messageIds.length)}) and is_deleted=0",
+        whereArgs: messageIds,
         orderBy: "created_at desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {

@@ -245,4 +245,15 @@ class WKDBConst {
     }
     return result.toString();
   }
+
+  static String getPlaceholders(int count) {
+    StringBuffer placeholders = StringBuffer();
+    for (int i = 0; i < count; i++) {
+      if (i != 0) {
+        placeholders.write(", ");
+      }
+      placeholders.write("?");
+    }
+    return placeholders.toString();
+  }
 }
