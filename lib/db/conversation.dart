@@ -60,8 +60,8 @@ class ConversationDB {
           lastMsg.unreadCount + conversationMsg.unreadCount;
       row = await WKDBHelper.shared.getDB().update(
           WKDBConst.tableConversation, getMap(conversationMsg, false),
-          where:
-              "channel_id='${conversationMsg.channelID}' and channel_type=${conversationMsg.channelType}");
+          where: "channel_id=? and channel_type=?",
+          whereArgs: [conversationMsg.channelID, conversationMsg.channelType]);
     }
     if (row > 0) {
       return getUIMsg(conversationMsg);
