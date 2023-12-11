@@ -63,11 +63,11 @@ class LoginDemoState extends State<LoginDemo> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.only(top: 60.0),
+            Padding(
+              padding: const EdgeInsets.only(top: 60.0),
               child: Center(
                 child: Column(
-                  children: [
+                  children: const [
                     Text(
                       '悟空IM登录',
                       style:
