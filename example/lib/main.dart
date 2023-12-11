@@ -4,11 +4,28 @@ import 'package:example/const.dart';
 import 'package:example/http.dart';
 import 'package:example/im.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:wukongimfluttersdk/wkim.dart';
 
 import 'home.dart';
 
 void main() {
   runApp(const MyApp());
+  SystemChannels.lifecycle.setMessageHandler((msg) async {
+    // msg是个字符串，是下面的值
+    // AppLifecycleState.resumed
+    // AppLifecycleState.inactive
+    // AppLifecycleState.paused
+    // AppLifecycleState.detached
+    if (msg == "AppLifecycleState.paused") {
+      print("应用在后台");
+      WKIM.shared.connectionManager.disconnect(false);
+    } else if (msg == "AppLifecycleState.resumed") {
+      print("应用在前台");
+      WKIM.shared.connectionManager.connect();
+    }
+    return msg;
+  });
 }
 
 class MyApp extends StatelessWidget {

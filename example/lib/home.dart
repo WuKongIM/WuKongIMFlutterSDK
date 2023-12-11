@@ -76,7 +76,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
       if (isAdd) {
         msgList.add(UIConversation(msg));
       }
-      if (isEnd) {
+      if (isEnd && mounted) {
         setState(() {});
       }
     });

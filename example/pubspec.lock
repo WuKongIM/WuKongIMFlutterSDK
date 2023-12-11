@@ -507,7 +507,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.2.1"
+    version: "1.2.3"
   x25519:
     dependency: transitive
     description:

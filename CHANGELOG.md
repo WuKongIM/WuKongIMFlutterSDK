@@ -46,3 +46,5 @@
  * Modifying the issue of reconnecting disconnected objects without destroying them
  ### 1.2.3
  * Optimize message queries
+### 1.2.4
+ * Optimize connection

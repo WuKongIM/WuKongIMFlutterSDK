@@ -23,7 +23,6 @@ class _WKSocket {
   Socket? _socket; // 将 _socket 声明为可空类型
   bool _isListening = false;
   static _WKSocket? _instance;
-
   _WKSocket._internal(this._socket);
 
   factory _WKSocket.newSocket(Socket socket) {
@@ -32,16 +31,21 @@ class _WKSocket {
   }
 
   void close() {
-    _socket?.close();
     _isListening = false;
-    _socket = null; // 现在可以将 _socket 设置为 null
     _instance = null;
+    try {
+      _socket?.destroy();
+    } finally {
+      _socket = null; // 现在可以将 _socket 设置为 null
+    }
   }
 
   void send(Uint8List data) {
     try {
-      _socket?.add(data); // 使用安全调用操作符
-      _socket?.flush();
+      if (_socket?.remotePort != null) {
+        _socket?.add(data); // 使用安全调用操作符
+        _socket?.flush();
+      }
     } catch (e) {
       Logs.debug('发送消息错误$e');
     }
@@ -52,9 +56,8 @@ class _WKSocket {
       _socket!.listen(onData, onError: (err) {
         Logs.debug('socket断开了${err.toString()}');
       }, onDone: () {
-        Logs.debug('socketonDone');
-        error();
         close(); // 关闭和重置 Socket 连接
+        error();
       });
       _isListening = true;
     }
@@ -123,8 +126,13 @@ class WKConnectionManager {
     if (_socket != null) {
       _socket!.close();
     }
-    // if (isLogout) {
-    // }
+    if (isLogout) {
+      // _isLogout = true;
+      WKIM.shared.options.uid = '';
+      WKIM.shared.options.token = '';
+      WKIM.shared.messageManager.updateSendingMsgFail();
+      WKDBHelper.shared.close();
+    }
     _closeAll();
   }
 
@@ -157,10 +165,10 @@ class WKConnectionManager {
       // _decodePacket(data);
     }, () {
       if (_isLogout) {
+        Logs.debug("登出了");
         return;
       }
-      isReconnection = true;
-      Logs.error('发送消息失败$_isLogout');
+      //  isReconnection = true;
       Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
         connect();
       });
@@ -171,8 +179,6 @@ class WKConnectionManager {
 
   _connectFail(error) {
     // _socket?.close();
-    Logs.error('连接失败：${error.toString()}');
-    print(error);
     Future.delayed(Duration(milliseconds: reconnMilliseconds), () {
       connect();
     });
@@ -250,7 +256,6 @@ class WKConnectionManager {
   _decodePacket(Uint8List data) {
     var packet = WKIM.shared.options.proto.decode(data);
     Logs.debug('解码出包->$packet');
-    Logs.debug('解码出包类型->${packet.header.packetType}');
     if (packet.header.packetType == PacketType.connack) {
       var connackPacket = packet as ConnackPacket;
       if (connackPacket.reasonCode == 1) {
@@ -283,8 +288,6 @@ class WKConnectionManager {
       if (_sendingMsgMap.containsKey(sendack.clientSeq)) {
         _sendingMsgMap[sendack.clientSeq]!.isCanResend = false;
       }
-      Logs.debug(
-          '发送消息ack 发送状态：${sendack.reasonCode},消息编号:${sendack.clientSeq}');
     } else if (packet.header.packetType == PacketType.disconnect) {
       _closeAll();
       setConnectionStatus(WKConnectStatus.kicked, 'ReasonConnectKick');
@@ -294,14 +297,17 @@ class WKConnectionManager {
   }
 
   _closeAll() {
-    _isLogout = true;
-    WKIM.shared.options.uid = '';
-    WKIM.shared.options.token = '';
-    WKIM.shared.messageManager.updateSendingMsgFail();
+    // _isLogout = true;
+    // WKIM.shared.options.uid = '';
+    // WKIM.shared.options.token = '';
+    // WKIM.shared.messageManager.updateSendingMsgFail();
     _stopCheckNetworkTimer();
     _stopHeartTimer();
-    _socket!.close();
-    WKDBHelper.shared.close();
+    if (_socket != null) {
+      _socket!.close();
+    }
+
+    // WKDBHelper.shared.close();
   }
 
   _sendReceAckPacket(BigInt messageID, int messageSeq) {

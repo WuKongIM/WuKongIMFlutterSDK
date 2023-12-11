@@ -32,6 +32,7 @@ class HttpUtils {
 
   static syncConversation(String lastSsgSeqs, int msgCount, int version,
       Function(WKSyncConversation) back) async {
+    print("同步最近会话的参数${version}");
     final dio = Dio();
     final response = await dio.post('$apiURL/conversation/sync', data: {
       "uid": UserInfo.uid, // 当前登录用户uid
