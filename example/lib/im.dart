@@ -7,6 +7,7 @@ import 'package:wukongimfluttersdk/model/wk_voice_content.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
+import 'custom_message.dart';
 import 'http.dart';
 
 class IMUtils {
@@ -21,6 +22,9 @@ class IMUtils {
       WKIM.shared.connectionManager.connect();
       initListener();
     }
+    // 注册自定义消息
+    WKIM.shared.messageManager
+        .registerMsgContent(12, (data) => CustomMsg("").decodeJson(data));
     return result;
   }
 

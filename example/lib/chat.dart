@@ -7,6 +7,7 @@ import 'package:wukongimfluttersdk/proto/proto.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
+import 'custom_message.dart';
 import 'msg.dart';
 
 class ChatPage extends StatelessWidget {
@@ -365,9 +366,12 @@ class ChatListDataState extends State<ChatList> {
                       _textEditingController.text = '';
                       Setting setting = Setting();
                       setting.receipt = 1; //开启回执
-                      WKTextContent text = WKTextContent(content);
+                      // WKTextContent text = WKTextContent(content);
+                      CustomMsg customMsg = CustomMsg(content);
                       WKIM.shared.messageManager.sendMessageWithSetting(
-                          text, WKChannel(channelID, channelType), setting);
+                          customMsg,
+                          WKChannel(channelID, channelType),
+                          setting);
                       // WKImageContent imageContent = WKImageContent(100, 200);
                       // imageContent.localPath = 'addskds';
                       // WKIM.shared.messageManager.sendMessage(
