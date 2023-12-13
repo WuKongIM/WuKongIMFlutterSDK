@@ -459,9 +459,11 @@ class WKConnectionManager {
       Logs.debug(
           '消息不能存库:is_deleted=${msg.isDeleted},no_persist=${msg.header.noPersist},content_type:${msg.contentType}');
     }
-    List<WKMsg> list = [];
-    list.add(msg);
-    WKIM.shared.messageManager.pushNewMsg(list);
+    if (msg.contentType != WkMessageContentType.insideMsg) {
+      List<WKMsg> list = [];
+      list.add(msg);
+      WKIM.shared.messageManager.pushNewMsg(list);
+    }
   }
 
   int _isDeletedMsg(dynamic jsonObject) {
