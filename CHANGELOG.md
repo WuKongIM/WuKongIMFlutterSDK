@@ -48,3 +48,5 @@
  * Optimize message queries
 ### 1.2.4
  * Optimize connection
+ ### 1.2.5
+ * Modifying the issue of disconnected sockets not being destroyed

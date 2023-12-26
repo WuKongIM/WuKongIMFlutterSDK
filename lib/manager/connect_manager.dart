@@ -289,7 +289,8 @@ class WKConnectionManager {
         _sendingMsgMap[sendack.clientSeq]!.isCanResend = false;
       }
     } else if (packet.header.packetType == PacketType.disconnect) {
-      _closeAll();
+      disconnect(true);
+      // _closeAll();
       setConnectionStatus(WKConnectStatus.kicked, 'ReasonConnectKick');
     } else if (packet.header.packetType == PacketType.pong) {
       Logs.info('pong...');
