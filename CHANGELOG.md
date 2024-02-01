@@ -50,3 +50,5 @@
  * Optimize connection
  ### 1.2.5
  * Modifying the issue of disconnected sockets not being destroyed
+ ### 1.2.6
+ * update query message extra data

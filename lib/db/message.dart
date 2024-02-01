@@ -104,7 +104,7 @@ class MessageDB {
 
   Future<List<WKMsg>> queryWithMessageIds(List<String> messageIds) async {
     String sql =
-        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (${WKDBConst.getPlaceholders(messageIds.length)}})";
+        "select $messageCols,$extraCols from ${WKDBConst.tableMessage} LEFT JOIN ${WKDBConst.tableMessageExtra} ON ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id WHERE ${WKDBConst.tableMessage}.message_id in (${WKDBConst.getPlaceholders(messageIds.length)})";
     List<WKMsg> list = [];
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB().rawQuery(sql, messageIds);
