@@ -194,7 +194,10 @@ class WKDBConst {
       member.memberName = channelName;
     }
     member.remark = readString(data, 'channel_remark');
-    member.memberAvatar = readString(data, 'avatar');
+    String channelAvatar = readString(data, 'avatar');
+    if (channelAvatar != '') {
+      member.memberAvatar = channelAvatar;
+    }
     String avatarCache = readString(data, 'avatar_cache_key');
     if (avatarCache != '') {
       member.memberAvatarCacheKey = avatarCache;

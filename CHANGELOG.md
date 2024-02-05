@@ -52,3 +52,5 @@
  * Modifying the issue of disconnected sockets not being destroyed
  ### 1.2.6
  * update query message extra data
+ ### 1.2.7
+ * update query channel member avatar 
