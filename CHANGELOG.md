@@ -54,3 +54,5 @@
  * update query message extra data
  ### 1.2.7
  * update query channel member avatar 
+ ### 1.2.8
+ * Modify the editing message method parameters

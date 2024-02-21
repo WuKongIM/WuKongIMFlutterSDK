@@ -661,7 +661,7 @@ class WKMessageManager {
   }
 
   updateMsgEdit(String messageID, String channelID, int channelType,
-      String content) async {
+      Map<String, dynamic> content) async {
     var msgExtra = await MessageDB.shared.queryMsgExtraWithMsgID(messageID);
     msgExtra ??= WKMsgExtra();
     msgExtra.messageID = messageID;
@@ -669,7 +669,7 @@ class WKMessageManager {
     msgExtra.channelType = channelType;
     msgExtra.editedAt =
         (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
-    msgExtra.contentEdit = content;
+    msgExtra.contentEdit = jsonEncode(content);
     msgExtra.needUpload = 1;
     List<WKMsgExtra> list = [];
     list.add(msgExtra);
