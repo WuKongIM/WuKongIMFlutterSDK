@@ -58,3 +58,5 @@
  * Modify the editing message method parameters
  ### 1.2.9
  * Modification of sending messages containing replies or tag class message parsing errors
+ ### 1.3.0
+ * Modification of sending messages containing replies error

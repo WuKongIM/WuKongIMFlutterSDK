@@ -262,9 +262,10 @@ class WKReply {
     messageSeq = WKDBConst.readInt(data, 'message_seq');
     fromUID = WKDBConst.readString(data, 'from_uid');
     fromName = WKDBConst.readString(data, 'from_name');
-    String contentJson = WKDBConst.readString(data, 'payload');
-    if (contentJson != '') {
-      var json = jsonDecode(contentJson);
+    var json = data['payload'];
+    // String contentJson = WKDBConst.readString(data, 'payload');
+    if (json != null) {
+      // var json = jsonDecode(contentJson);
       var type = json['type'];
       payload = WKIM.shared.messageManager.getMessageModel(type, json);
     }

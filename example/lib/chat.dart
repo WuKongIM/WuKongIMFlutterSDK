@@ -374,6 +374,8 @@ class ChatListDataState extends State<ChatList> {
                       reply.rootMid = "111";
                       reply.fromUID = "11";
                       reply.fromName = "12";
+                      WKTextContent payloadText = WKTextContent("dds");
+                      reply.payload = payloadText;
                       text.reply = reply;
                       List<WKMsgEntity> list = [];
                       WKMsgEntity entity = WKMsgEntity();
