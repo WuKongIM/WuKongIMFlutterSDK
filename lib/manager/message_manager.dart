@@ -61,14 +61,15 @@ class WKMessageManager {
     }
     content ??= WKUnknownContent();
     // 回复
-    var replyJson = WKDBConst.readString(json, 'reply');
-    if (replyJson != '') {
-      var reply = WKReply().decode(jsonDecode(replyJson));
+    var replyJson = json['reply'];
+    if (replyJson != null) {
+      var reply = WKReply().decode(replyJson);
       content.reply = reply;
     }
-    var entities = WKDBConst.readString(json, 'entities');
-    if (entities != '') {
-      var jsonArray = jsonDecode(entities);
+    // var entities = WKDBConst.readString(json, 'entities');
+    var jsonArray = json['entities'];
+    if (jsonArray != null) {
+      // var jsonArray = jsonDecode(entities);
       List<WKMsgEntity> list = [];
       for (var entityJson in jsonArray) {
         WKMsgEntity entity = WKMsgEntity();

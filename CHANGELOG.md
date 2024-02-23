@@ -56,3 +56,5 @@
  * update query channel member avatar 
  ### 1.2.8
  * Modify the editing message method parameters
+ ### 1.2.9
+ * Modification of sending messages containing replies or tag class message parsing errors

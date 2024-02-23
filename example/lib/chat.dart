@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
@@ -366,12 +368,23 @@ class ChatListDataState extends State<ChatList> {
                       _textEditingController.text = '';
                       Setting setting = Setting();
                       setting.receipt = 1; //开启回执
-                      // WKTextContent text = WKTextContent(content);
-                      CustomMsg customMsg = CustomMsg(content);
+                      WKTextContent text = WKTextContent(content);
+                      WKReply reply = WKReply();
+                      reply.messageId = "11";
+                      reply.rootMid = "111";
+                      reply.fromUID = "11";
+                      reply.fromName = "12";
+                      text.reply = reply;
+                      List<WKMsgEntity> list = [];
+                      WKMsgEntity entity = WKMsgEntity();
+                      entity.offset = 0;
+                      entity.value = "1";
+                      entity.length = 1;
+                      list.add(entity);
+                      text.entities = list;
+                      // CustomMsg customMsg = CustomMsg(content);
                       WKIM.shared.messageManager.sendMessageWithSetting(
-                          customMsg,
-                          WKChannel(channelID, channelType),
-                          setting);
+                          text, WKChannel(channelID, channelType), setting);
                       // WKImageContent imageContent = WKImageContent(100, 200);
                       // imageContent.localPath = 'addskds';
                       // WKIM.shared.messageManager.sendMessage(
