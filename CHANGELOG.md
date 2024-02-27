@@ -60,3 +60,5 @@
  * Modification of sending messages containing replies or tag class message parsing errors
  ### 1.3.0
  * Modification of sending messages containing replies error
+ ### 1.3.1
+ * fix: synchronization channel message multiple synchronization issue

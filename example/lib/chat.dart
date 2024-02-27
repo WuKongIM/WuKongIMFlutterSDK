@@ -143,7 +143,6 @@ class ChatListDataState extends State<ChatList> {
         oldestOrderSeq, oldestOrderSeq == 0, pullMode, 20, 0, (list) {
       List<UIMsg> uiList = [];
       for (int i = 0; i < list.length; i++) {
-        print(list[i].orderSeq);
         if (pullMode == 0 && !isReset) {
           uiList.add(UIMsg(list[i]));
           // msgList.insert(0, UIMsg(list[i]));

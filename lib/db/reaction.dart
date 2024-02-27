@@ -57,31 +57,37 @@ class ReactionDB {
     return list;
   }
 
-  insertOrUpdateReactionList(List<WKMsgReaction> list) {
-    if (list.isEmpty) return;
+  Future<bool> insertOrUpdateReactionList(List<WKMsgReaction> list) async {
+    if (list.isEmpty) return true;
+    bool isSuccess = true;
     for (int i = 0, size = list.length; i < size; i++) {
-      insertOrUpdateReaction(list[i]);
+      // insertOrUpdateReaction(list[i]);
+      int row = await insertReaction(list[i]);
+      if (isSuccess) {
+        isSuccess = row > 0;
+      }
     }
+    return isSuccess;
   }
 
-  insertOrUpdateReaction(WKMsgReaction reaction) async {
-    bool isExist = await isExistReaction(reaction.uid, reaction.messageID);
-    if (isExist) {
-      updateReaction(reaction);
-    } else {
-      insertReaction(reaction);
-    }
-  }
+  // insertOrUpdateReaction(WKMsgReaction reaction) async {
+  //   bool isExist = await isExistReaction(reaction.uid, reaction.messageID);
+  //   if (isExist) {
+  //     updateReaction(reaction);
+  //   } else {
+  //     insertReaction(reaction);
+  //   }
+  // }
 
-  updateReaction(WKMsgReaction reaction) {
-    var map = <String, Object>{};
-    map['is_deleted'] = reaction.isDeleted;
-    map['seq'] = reaction.seq;
-    map['emoji'] = reaction.emoji;
-    WKDBHelper.shared.getDB().update(WKDBConst.tableMessageReaction, map,
-        where: "message_id=? and uid=?",
-        whereArgs: [reaction.messageID, reaction.uid]);
-  }
+  // updateReaction(WKMsgReaction reaction) {
+  //   var map = <String, Object>{};
+  //   map['is_deleted'] = reaction.isDeleted;
+  //   map['seq'] = reaction.seq;
+  //   map['emoji'] = reaction.emoji;
+  //   WKDBHelper.shared.getDB().update(WKDBConst.tableMessageReaction, map,
+  //       where: "message_id=? and uid=?",
+  //       whereArgs: [reaction.messageID, reaction.uid]);
+  // }
 
   insertReaction(WKMsgReaction reaction) {
     WKDBHelper.shared.getDB().insert(

@@ -186,19 +186,20 @@ class WKMessageManager {
       int endMessageSeq,
       int limit,
       int pullMode,
-      Function(WKSyncChannelMsg?) back) {
+      Function(WKSyncChannelMsg?) back) async {
     if (_syncChannelMsgBack != null) {
       _syncChannelMsgBack!(channelID, channelType, startMessageSeq,
-          endMessageSeq, limit, pullMode, (result) {
+          endMessageSeq, limit, pullMode, (result) async {
         if (result != null && result.messages != null) {
-          _saveSyncChannelMSGs(result.messages!);
+          _saveSyncChannelMSGs(result.messages!).then((value) => back(result));
+        } else {
+          back(result);
         }
-        back(result);
       });
     }
   }
 
-  _saveSyncChannelMSGs(List<WKSyncMsg> list) {
+  Future<bool> _saveSyncChannelMSGs(List<WKSyncMsg> list) async {
     List<WKMsg> msgList = [];
     List<WKMsgExtra> msgExtraList = [];
     List<WKMsgReaction> msgReactionList = [];
@@ -214,15 +215,18 @@ class WKMessageManager {
         msgReactionList.addAll(wkMsg.reactionList!);
       }
     }
+    bool isSuccess = true;
     if (msgExtraList.isNotEmpty) {
-      MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
+      isSuccess = await MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
     if (msgList.isNotEmpty) {
-      MessageDB.shared.insertMsgList(msgList);
+      isSuccess = await MessageDB.shared.insertMsgList(msgList);
     }
     if (msgReactionList.isNotEmpty) {
-      ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
+      isSuccess =
+          await ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
     }
+    return isSuccess;
   }
 
   WKMsgExtra wkSyncExtraMsg2WKMsgExtra(

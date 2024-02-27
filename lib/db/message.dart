@@ -196,7 +196,6 @@ class MessageDB {
     List<String> fromUIDs = [];
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB().rawQuery(sql, args);
-
     if (results.isNotEmpty) {
       WKChannel? wkChannel =
           await ChannelDB.shared.query(channelId, channelType);
@@ -321,6 +320,7 @@ class MessageDB {
     //获取原始数据
     List<WKMsg> list = await getMessages(
         channelId, channelType, oldestOrderSeq, contain, pullMode, limit);
+    print("查询总数量${list.length}");
     //业务判断数据
     List<WKMsg> tempList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -413,7 +413,6 @@ class MessageDB {
         }
       }
     }
-
     if (!isSyncMsg) {
       if (minMessageSeq == 1) {
         requestCount = 0;
@@ -422,20 +421,28 @@ class MessageDB {
       }
     }
     //计算最后一页后是否还存在消息
+    int syncLimit = limit;
     if (!isSyncMsg && tempList.length < limit) {
       if (pullMode == 0) {
         //如果下拉获取数据
         isSyncMsg = true;
-        startMsgSeq = oldestMsgSeq;
+        // startMsgSeq = oldestMsgSeq;
+        startMsgSeq = minMessageSeq; // 不满足查询数量同步时按查询到的最小seq开始同步
+        if (!contain) {
+          syncLimit = syncLimit + 1;
+        }
         endMsgSeq = 0;
       } else {
         //如果上拉获取数据
         isSyncMsg = true;
-        startMsgSeq = oldestMsgSeq;
+        // startMsgSeq = oldestMsgSeq;
+        startMsgSeq = maxMessageSeq; // 不满足查询数量同步时按查询到的最大seq开始同步
         endMsgSeq = 0;
+        if (!contain) {
+          syncLimit = syncLimit + 1;
+        }
       }
     }
-
     if (isSyncMsg &&
         (startMsgSeq != endMsgSeq || (startMsgSeq == 0 && endMsgSeq == 0)) &&
         requestCount < 5) {
@@ -445,7 +452,7 @@ class MessageDB {
       //同步消息
       requestCount++;
       WKIM.shared.messageManager.setSyncChannelMsgListener(
-          channelId, channelType, startMsgSeq, endMsgSeq, limit, pullMode,
+          channelId, channelType, startMsgSeq, endMsgSeq, syncLimit, pullMode,
           (syncChannelMsg) {
         if (syncChannelMsg != null &&
             syncChannelMsg.messages != null &&
@@ -500,11 +507,11 @@ class MessageDB {
     return messageSeq;
   }
 
-  insertMsgList(List<WKMsg> list) async {
-    if (list.isEmpty) return;
+  Future<bool> insertMsgList(List<WKMsg> list) async {
+    if (list.isEmpty) return true;
     if (list.length == 1) {
       insert(list[0]);
-      return;
+      return true;
     }
     List<WKMsg> saveList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -568,6 +575,7 @@ class MessageDB {
         }
       });
     }
+    return true;
   }
 
   Future<List<WKMsg>> queryWithClientMsgNos(List<String> clientMsgNos) async {

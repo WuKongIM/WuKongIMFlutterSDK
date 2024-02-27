@@ -32,7 +32,6 @@ class HttpUtils {
 
   static syncConversation(String lastSsgSeqs, int msgCount, int version,
       Function(WKSyncConversation) back) async {
-    print("同步最近会话的参数${version}");
     final dio = Dio();
     final response = await dio.post('$apiURL/conversation/sync', data: {
       "uid": UserInfo.uid, // 当前登录用户uid
@@ -81,7 +80,6 @@ class HttpUtils {
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
     final dio = Dio();
-    print('请求参数${startMsgSeq},$endMsgSeq');
     final response = await dio.post('$apiURL/channel/messagesync', data: {
       "login_uid": UserInfo.uid, // 当前登录用户uid
       "channel_id": channelID, //  频道ID
@@ -117,7 +115,6 @@ class HttpUtils {
     msg.messageSeq = json['message_seq'];
     msg.fromUID = json['from_uid'];
     msg.timestamp = json['timestamp'];
-    msg.channelID = json['channel_id'];
     //  msg.payload = json['payload'];
     String payload = json['payload'];
     try {
