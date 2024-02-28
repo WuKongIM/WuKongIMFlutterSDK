@@ -308,6 +308,7 @@ class MessageDB {
   }
 
   var requestCount = 0;
+  var isMore = 1;
   void getOrSyncHistoryMessages(
       String channelId,
       int channelType,
@@ -359,7 +360,9 @@ class MessageDB {
     } else {
       oldestMsgSeq = oldestOrderSeq ~/ 1000;
     }
-    if (oldestMsgSeq == 1) {
+    if (oldestMsgSeq == 1 || isMore == 0) {
+      isMore = 1;
+      requestCount = 0;
       iGetOrSyncHistoryMsgBack(list);
       return;
     }
@@ -460,15 +463,18 @@ class MessageDB {
         if (syncChannelMsg != null &&
             syncChannelMsg.messages != null &&
             syncChannelMsg.messages!.isNotEmpty) {
+          isMore = syncChannelMsg.more;
           getOrSyncHistoryMessages(channelId, channelType, oldestOrderSeq,
               contain, pullMode, limit, iGetOrSyncHistoryMsgBack, syncBack);
         } else {
           requestCount = 0;
+          isMore = 1;
           iGetOrSyncHistoryMsgBack(list);
         }
       });
     } else {
       requestCount = 0;
+      isMore = 1;
       iGetOrSyncHistoryMsgBack(list);
     }
   }

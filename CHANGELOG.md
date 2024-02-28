@@ -64,3 +64,5 @@
  * fix: synchronization channel message multiple synchronization issue
  ### 1.3.2
  * fix: Optimization of loading channel messages without the latest messages and multiple synchronization issues
+ ### 1.3.3
+ * fix: Optimization of loading channel messages without the latest messages and multiple synchronization issues
