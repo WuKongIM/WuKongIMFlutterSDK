@@ -62,3 +62,5 @@
  * Modification of sending messages containing replies error
  ### 1.3.1
  * fix: synchronization channel message multiple synchronization issue
+ ### 1.3.2
+ * fix: Optimization of loading channel messages without the latest messages and multiple synchronization issues

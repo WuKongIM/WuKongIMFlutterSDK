@@ -320,7 +320,6 @@ class MessageDB {
     //获取原始数据
     List<WKMsg> list = await getMessages(
         channelId, channelType, oldestOrderSeq, contain, pullMode, limit);
-    print("查询总数量${list.length}");
     //业务判断数据
     List<WKMsg> tempList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -359,6 +358,10 @@ class MessageDB {
           await getMsgSeq(channelId, channelType, oldestOrderSeq, pullMode);
     } else {
       oldestMsgSeq = oldestOrderSeq ~/ 1000;
+    }
+    if (oldestMsgSeq == 1) {
+      iGetOrSyncHistoryMsgBack(list);
+      return;
     }
     if (pullMode == 0) {
       //下拉获取消息

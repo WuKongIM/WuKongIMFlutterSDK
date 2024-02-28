@@ -15,7 +15,7 @@ description: wukong IM flutter sdk
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.3.1
+version: 1.3.2
 homepage: https://github.com/WuKongIM/WuKongIMFlutterSDK
 
 environment:
@@ -41,7 +41,7 @@ dependencies:
   encryptions: ^1.1.0+1
   hex: ^0.2.0
   crypto: ^3.0.3
-  uuid: ^3.0.7
+  uuid: ^4.3.3
   web_socket_channel: ^2.4.0
   dio: ^5.3.2
   encryptor: ^0.0.1
