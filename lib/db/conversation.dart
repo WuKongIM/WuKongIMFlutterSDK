@@ -191,6 +191,14 @@ class ConversationDB {
     return maxVersion;
   }
 
+  Future<int> clearAllRedDot() async {
+    var map = <String, Object>{};
+    map['unread_count'] = 0;
+    return await WKDBHelper.shared
+        .getDB()
+        .update(WKDBConst.tableConversation, map, where: "unread_count>0");
+  }
+
   Future<int> updateWithField(
       dynamic map, String channelID, int channelType) async {
     return await WKDBHelper.shared.getDB().update(

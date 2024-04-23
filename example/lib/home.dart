@@ -55,10 +55,19 @@ class ListViewShowDataState extends State<ListViewShowData> {
         _connectionStatusStr = '同步消息中...';
       } else if (status == WKConnectStatus.kicked) {
         _connectionStatusStr = '未连接，在其他设备登录';
+      } else if (status == WKConnectStatus.fail) {
+        _connectionStatusStr = '未连接';
       }
       if (mounted) {
         setState(() {});
       }
+    });
+    WKIM.shared.conversationManager
+        .addOnClearAllRedDotListener("chat_conversation", () {
+      for (var i = 0; i < msgList.length; i++) {
+        msgList[i].msg.unreadCount = 0;
+      }
+      setState(() {});
     });
     // 监听更新消息事件
     WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
@@ -256,6 +265,44 @@ class ListViewShowDataState extends State<ListViewShowData> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
+      persistentFooterButtons: [
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 240, 117, 2),
+          ),
+          onPressed: () {
+            WKIM.shared.conversationManager.clearAllRedDot();
+          },
+          child: const Text(
+            '清除所有未读',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+          ),
+          onPressed: () {
+            WKIM.shared.connectionManager.disconnect(false);
+          },
+          child: const Text(
+            '断开连接',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 31, 27, 239),
+          ),
+          onPressed: () {
+            WKIM.shared.connectionManager.connect();
+          },
+          child: const Text(
+            '重连',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 

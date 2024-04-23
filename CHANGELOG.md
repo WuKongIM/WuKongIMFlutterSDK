@@ -70,3 +70,5 @@
  * fix: Optimize connections
  ### 1.3.5
  * fix: Add clear channel messages method
+ ### 1.3.6
+ * fix: Add clear all channel red dots method

@@ -135,6 +135,8 @@ class WKConnectionManager {
       WKDBHelper.shared.close();
     }
     _closeAll();
+    WKIM.shared.connectionManager
+        .setConnectionStatus(WKConnectStatus.fail, "Actively disconnect");
   }
 
   _socketConnect(String addr) {

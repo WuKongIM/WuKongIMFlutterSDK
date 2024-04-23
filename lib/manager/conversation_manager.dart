@@ -17,6 +17,7 @@ class WKConversationManager {
 
   HashMap<String, Function(WKUIConversationMsg, bool)>? _refeshMsgMap;
   HashMap<String, Function(String, int)>? _deleteMsgMap;
+  HashMap<String, Function()>? _clearAllRedDotMap;
 
   Function(String lastSsgSeqs, int msgCount, int version,
       Function(WKSyncConversation))? _syncConersationBack;
@@ -74,6 +75,13 @@ class WKConversationManager {
     ConversationDB.shared.clearAll();
   }
 
+  clearAllRedDot() async {
+    int row = await ConversationDB.shared.clearAllRedDot();
+    if (row > 0) {
+      _setClearAllRedDot();
+    }
+  }
+
   updateRedDot(String channelID, int channelType, int redDot) async {
     var map = <String, Object>{};
     map['unread_count'] = redDot;
@@ -90,6 +98,25 @@ class WKConversationManager {
     if (msg != null) {
       var uiMsg = ConversationDB.shared.getUIMsg(msg);
       setRefreshMsg(uiMsg, true);
+    }
+  }
+
+  addOnClearAllRedDotListener(String key, Function() back) {
+    _clearAllRedDotMap ??= HashMap();
+    _clearAllRedDotMap![key] = back;
+  }
+
+  removeClearAllRedDotListener(String key) {
+    if (_clearAllRedDotMap != null) {
+      _clearAllRedDotMap!.remove(key);
+    }
+  }
+
+  _setClearAllRedDot() {
+    if (_clearAllRedDotMap != null) {
+      _clearAllRedDotMap!.forEach((key, back) {
+        back();
+      });
     }
   }
 
