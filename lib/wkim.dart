@@ -1,4 +1,5 @@
 import 'package:wukongimfluttersdk/common/crypto_utils.dart';
+import 'package:wukongimfluttersdk/common/mode.dart';
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
 import 'package:wukongimfluttersdk/manager/channel_manager.dart';
 import 'package:wukongimfluttersdk/manager/channel_member_manager.dart';
@@ -22,18 +23,21 @@ class WKIM {
   static final WKIM _instance = WKIM._privateConstructor();
 
   static WKIM get shared => _instance;
-
+  Model runMode = Model.app;
   Options options = Options();
 
   Future<bool> setup(Options opts) async {
     options = opts;
     CryptoUtils.init();
     _initNormalMsgContent();
-    bool result = await WKDBHelper.shared.init();
-    if (result) {
-      messageManager.updateSendingMsgFail();
+    if (isApp()) {
+      bool result = await WKDBHelper.shared.init();
+      if (result) {
+        messageManager.updateSendingMsgFail();
+      }
+      return result;
     }
-    return result;
+    return true;
   }
 
   _initNormalMsgContent() {
@@ -66,6 +70,10 @@ class WKIM {
 
   void setDeviceFlag(int deviceFlag) {
     deviceFlagApp = deviceFlag;
+  }
+
+  bool isApp() {
+    return runMode == Model.app;
   }
 
   WKConnectionManager connectionManager = WKConnectionManager.shared;

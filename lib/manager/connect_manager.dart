@@ -112,6 +112,7 @@ class WKConnectionManager {
       return;
     }
     _isLogout = false;
+    disconnect(_isLogout);
     if (WKIM.shared.options.getAddr != null) {
       WKIM.shared.options.getAddr!((String addr) {
         _socketConnect(addr);

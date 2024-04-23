@@ -1,0 +1,1 @@
+enum Model { app, web }
