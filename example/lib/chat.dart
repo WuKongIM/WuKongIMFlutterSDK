@@ -98,6 +98,14 @@ class ChatListDataState extends State<ChatList> {
       }
       setState(() {});
     });
+    // 清除聊天记录
+    WKIM.shared.messageManager.addOnClearChannelMsgListener("chat",
+        (channelId, channelType) {
+      if (channelID == channelId) {
+        msgList.clear();
+        setState(() {});
+      }
+    });
   }
 
   // 模拟同步消息扩展后保存到db
@@ -304,20 +312,13 @@ class ChatListDataState extends State<ChatList> {
         actions: [
           MaterialButton(
               child: const Text(
-                '断开',
-                style: TextStyle(color: Colors.white),
+                '清空记录',
+                style: TextStyle(color: Color.fromARGB(255, 4, 80, 194)),
               ),
               onPressed: () {
-                WKIM.shared.connectionManager.disconnect(false);
+                WKIM.shared.messageManager
+                    .clearWithChannel(channelID, channelType);
               }),
-          MaterialButton(
-              child: const Text(
-                '重连',
-                style: TextStyle(color: Colors.white),
-              ),
-              onPressed: () {
-                WKIM.shared.connectionManager.connect();
-              })
         ],
       ),
       body: Container(

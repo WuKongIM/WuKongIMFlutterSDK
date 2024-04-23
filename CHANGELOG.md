@@ -66,5 +66,7 @@
  * fix: Optimization of loading channel messages without the latest messages and multiple synchronization issues
  ### 1.3.3
  * fix: Optimization of loading channel messages without the latest messages and multiple synchronization issues
- ### 1.2.4
+ ### 1.3.4
  * fix: Optimize connections
+ ### 1.3.5
+ * fix: Add clear channel messages method

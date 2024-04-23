@@ -321,6 +321,12 @@ class MessageDB {
     //获取原始数据
     List<WKMsg> list = await getMessages(
         channelId, channelType, oldestOrderSeq, contain, pullMode, limit);
+    if (isMore == 0) {
+      iGetOrSyncHistoryMsgBack(list);
+      isMore = 1;
+      requestCount = 0;
+      return;
+    }
     //业务判断数据
     List<WKMsg> tempList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -727,6 +733,14 @@ class MessageDB {
           await ReactionDB.shared.queryWithMessageId(wkMsg.messageID);
     }
     return wkMsg;
+  }
+
+  Future<int> deleteWithChannel(String channelId, int channelType) async {
+    var map = <String, Object>{};
+    map['is_deleted'] = 1;
+    return await WKDBHelper.shared.getDB().update(WKDBConst.tableMessage, map,
+        where: "channel_id=? and channel_type=?",
+        whereArgs: [channelId, channelType]);
   }
 
   dynamic getMap(WKMsg msg) {

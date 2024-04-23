@@ -34,7 +34,7 @@ class WKMessageManager {
   HashMap<String, Function(List<WKMsg>)>? _newMsgBack;
   HashMap<String, Function(WKMsg)>? _refreshMsgBack;
   HashMap<String, Function(String)>? _deleteMsgBack;
-
+  HashMap<String, Function(String, int)>? _clearChannelMsgBack;
   Function(
       String channelID,
       int channelType,
@@ -396,6 +396,27 @@ class WKMessageManager {
     }
   }
 
+  addOnClearChannelMsgListener(String key, Function(String, int) back) {
+    _clearChannelMsgBack ??= HashMap();
+    if (key != '') {
+      _clearChannelMsgBack![key] = back;
+    }
+  }
+
+  removeClearChannelMsgListener(String key) {
+    if (_clearChannelMsgBack != null) {
+      _clearChannelMsgBack!.remove(key);
+    }
+  }
+
+  _setClearChannelMsg(String channelID, int channelType) {
+    if (_clearChannelMsgBack != null) {
+      _clearChannelMsgBack!.forEach((key, back) {
+        back(channelID, channelType);
+      });
+    }
+  }
+
   addOnDeleteMsgListener(String key, Function(String) back) {
     _deleteMsgBack ??= HashMap();
     if (key != '') {
@@ -685,6 +706,13 @@ class WKMessageManager {
       var wkMsgs = await MessageDB.shared.queryWithMessageIds(messageIds);
       getMsgReactionsAndRefreshMsg(messageIds, wkMsgs);
       _setUploadMsgExtra(msgExtra);
+    }
+  }
+
+  clearWithChannel(String channelId, int channelType) async {
+    int row = await MessageDB.shared.deleteWithChannel(channelId, channelType);
+    if (row > 0) {
+      _setClearChannelMsg(channelId, channelType);
     }
   }
 

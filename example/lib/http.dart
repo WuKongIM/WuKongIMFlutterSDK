@@ -80,7 +80,6 @@ class HttpUtils {
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
     final dio = Dio();
-    print('同不消息');
     final response = await dio.post('$apiURL/channel/messagesync', data: {
       "login_uid": UserInfo.uid, // 当前登录用户uid
       "channel_id": channelID, //  频道ID
