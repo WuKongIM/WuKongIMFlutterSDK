@@ -4,6 +4,7 @@ class UIConversation {
   String lastContent = '';
   String channelAvatar = '';
   String channelName = '';
+  int isMentionMe = 0;
   WKUIConversationMsg msg;
   UIConversation(this.msg);
 

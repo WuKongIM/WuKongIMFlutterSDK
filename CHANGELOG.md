@@ -72,3 +72,5 @@
  * fix: Add clear channel messages method
  ### 1.3.6
  * fix: Add clear all channel red dots method
+ ### 1.3.7
+ * fix: Add send message can reminder member method

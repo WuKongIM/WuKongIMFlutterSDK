@@ -6,6 +6,7 @@ class WKMessageContent {
   String topicId = "";
   WKReply? reply;
   List<WKMsgEntity>? entities;
+  WKMentionInfo? mentionInfo;
   Map<String, dynamic> encodeJson() {
     return {};
   }

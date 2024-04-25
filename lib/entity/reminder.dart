@@ -14,3 +14,10 @@ class WKReminder {
   int needUpload = 0;
   String publisher = '';
 }
+
+class WKMentionType {
+  //有人@我
+  static const int wkReminderTypeMentionMe = 1;
+  //申请加群
+  static const int wkApplyJoinGroupApprove = 2;
+}

@@ -225,7 +225,7 @@ class WKDBConst {
     reminder.version = readInt(data, 'version');
     reminder.done = readInt(data, 'done');
     String data1 = readString(data, 'data');
-    reminder.needUpload = readInt(data, 'needUpload');
+    reminder.needUpload = readInt(data, 'need_upload');
     reminder.publisher = readString(data, 'publisher');
     if (data1 != '') {
       reminder.data = jsonDecode(data1);

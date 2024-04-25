@@ -177,7 +177,7 @@ class ReminderDB {
     map['text'] = reminder.text;
     map['version'] = reminder.version;
     map['done'] = reminder.done;
-    map['needUpload'] = reminder.needUpload;
+    map['need_upload'] = reminder.needUpload;
     map['publisher'] = reminder.publisher;
     if (reminder.data != null) {
       map['data'] = jsonEncode(reminder.data);

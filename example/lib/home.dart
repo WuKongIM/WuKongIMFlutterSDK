@@ -1,6 +1,7 @@
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
+import 'package:wukongimfluttersdk/entity/reminder.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
@@ -127,6 +128,28 @@ class ListViewShowDataState extends State<ListViewShowData> {
     return uiConversation.lastContent;
   }
 
+  String getReminderText(UIConversation uiConversation) {
+    String content = "";
+    if (uiConversation.isMentionMe == 0) {
+      uiConversation.msg.getReminderList().then((value) {
+        if (value != null && value.isNotEmpty) {
+          for (var i = 0; i < value.length; i++) {
+            if (value[i].type == WKMentionType.wkReminderTypeMentionMe &&
+                value[i].done == 0) {
+              content = value[i].data;
+              uiConversation.isMentionMe = 1;
+              setState(() {});
+              break;
+            }
+          }
+        }
+      });
+    } else {
+      content = "[有人@你]";
+    }
+    return content;
+  }
+
   String getChannelAvatarURL(UIConversation uiConversation) {
     if (uiConversation.channelAvatar == '') {
       uiConversation.msg.getWkChannel().then((channel) {
@@ -208,6 +231,13 @@ class ListViewShowDataState extends State<ListViewShowData> {
                   Row(
                     children: [
                       Text(
+                        getReminderText(uiMsg),
+                        style: const TextStyle(
+                            color: Color.fromARGB(255, 247, 2, 2),
+                            fontSize: 14),
+                        maxLines: 1,
+                      ),
+                      Text(
                         getShowContent(uiMsg),
                         style:
                             const TextStyle(color: Colors.grey, fontSize: 14),
@@ -245,7 +275,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ChatPage(),
+                    builder: (context) => const ChatPage(),
                     settings: RouteSettings(
                       arguments: ChatChannel(
                         msgList[pos].msg.channelID,
@@ -274,7 +304,35 @@ class ListViewShowDataState extends State<ListViewShowData> {
             WKIM.shared.conversationManager.clearAllRedDot();
           },
           child: const Text(
-            '清除所有未读',
+            '清除未读',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 240, 2, 133),
+          ),
+          onPressed: () {
+            if (msgList.isEmpty) {
+              return;
+            }
+
+            List<WKReminder> list = [];
+            WKReminder reminder = WKReminder();
+            reminder.needUpload = 0;
+            reminder.type = WKMentionType.wkReminderTypeMentionMe;
+            reminder.data = '[有人@你]';
+            reminder.done = 0;
+            reminder.reminderID = 11;
+            reminder.version = 1;
+            reminder.publisher = "uid_1";
+            reminder.channelID = msgList[0].msg.channelID;
+            reminder.channelType = msgList[0].msg.channelType;
+            list.add(reminder);
+            WKIM.shared.reminderManager.saveOrUpdateReminders(list);
+          },
+          child: const Text(
+            '提醒项',
             style: TextStyle(color: Colors.white),
           ),
         ),
@@ -286,7 +344,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
             WKIM.shared.connectionManager.disconnect(false);
           },
           child: const Text(
-            '断开连接',
+            '断开',
             style: TextStyle(color: Colors.white),
           ),
         ),

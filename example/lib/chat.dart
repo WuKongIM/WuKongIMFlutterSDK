@@ -151,6 +151,7 @@ class ChatListDataState extends State<ChatList> {
         oldestOrderSeq, oldestOrderSeq == 0, pullMode, 10, 0, (list) {
       List<UIMsg> uiList = [];
       for (int i = 0; i < list.length; i++) {
+        print(list[i].content);
         if (pullMode == 0 && !isReset) {
           uiList.add(UIMsg(list[i]));
           // msgList.insert(0, UIMsg(list[i]));
@@ -368,6 +369,7 @@ class ChatListDataState extends State<ChatList> {
                       _textEditingController.text = '';
                       Setting setting = Setting();
                       setting.receipt = 1; //开启回执
+                      // 回复
                       WKTextContent text = WKTextContent(content);
                       WKReply reply = WKReply();
                       reply.messageId = "11";
@@ -377,6 +379,7 @@ class ChatListDataState extends State<ChatList> {
                       WKTextContent payloadText = WKTextContent("dds");
                       reply.payload = payloadText;
                       text.reply = reply;
+                      // 标记
                       List<WKMsgEntity> list = [];
                       WKMsgEntity entity = WKMsgEntity();
                       entity.offset = 0;
@@ -384,6 +387,11 @@ class ChatListDataState extends State<ChatList> {
                       entity.length = 1;
                       list.add(entity);
                       text.entities = list;
+                      // 艾特
+                      WKMentionInfo mentionInfo = WKMentionInfo();
+                      mentionInfo.mentionAll = true;
+                      mentionInfo.uids = ['uid_1', 'uid_2'];
+                      text.mentionInfo = mentionInfo;
                       // CustomMsg customMsg = CustomMsg(content);
                       WKIM.shared.messageManager.sendMessageWithSetting(
                           text, WKChannel(channelID, channelType), setting);

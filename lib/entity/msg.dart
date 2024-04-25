@@ -286,3 +286,9 @@ class WKSyncChannelMsg {
   int more = 0;
   List<WKSyncMsg>? messages = [];
 }
+
+class WKMentionInfo {
+  bool isMentionMe = false;
+  bool mentionAll = false;
+  List<String>? uids;
+}

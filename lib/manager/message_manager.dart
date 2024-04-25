@@ -81,6 +81,28 @@ class WKMessageManager {
       }
       content.entities = list;
     }
+    // 解析艾特
+    var mentionJson = json['mention'];
+    if (mentionJson != null) {
+      var mentionInfo = WKMentionInfo();
+      var mentionAll = WKDBConst.readInt(mentionJson, 'all');
+      var uidList = mentionJson['uids'];
+      if (uidList != null) {
+        List<String> uids = [];
+        for (var uid in uidList) {
+          uids.add(uid);
+          if (uid == WKIM.shared.options.uid) {
+            mentionInfo.isMentionMe = true;
+          }
+        }
+        mentionInfo.uids = uids;
+      }
+      if (mentionAll == 1) {
+        mentionInfo.mentionAll = true;
+        mentionInfo.isMentionMe = true;
+      }
+      content.mentionInfo = mentionInfo;
+    }
     return content;
   }
 
@@ -616,6 +638,22 @@ class WKMessageManager {
         jsonArray.add(jo);
       }
       json['entities'] = jsonArray;
+    }
+    // 解析艾特
+    if (wkMsg.messageContent!.mentionInfo != null) {
+      var mentionJson = {};
+      if (wkMsg.messageContent!.mentionInfo!.mentionAll) {
+        mentionJson['all'] = 1;
+      }
+      if (wkMsg.messageContent!.mentionInfo!.uids != null &&
+          wkMsg.messageContent!.mentionInfo!.uids!.isNotEmpty) {
+        var jsonArray = [];
+        for (String uid in wkMsg.messageContent!.mentionInfo!.uids!) {
+          jsonArray.add(uid);
+        }
+        mentionJson['uids'] = jsonArray;
+      }
+      json['mention'] = mentionJson;
     }
     return jsonEncode(json);
   }
