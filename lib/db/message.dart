@@ -638,12 +638,12 @@ class MessageDB {
             txn.insert(WKDBConst.tableMessageExtra, insertCVList[0],
                 conflictAlgorithm: ConflictAlgorithm.replace);
           }
-          if (updateCVList.isNotEmpty) {
-            for (int i = 0; i < updateCVList.length; i++) {
-              txn.update(WKDBConst.tableMessageExtra, updateCVList[0],
-                  where: "message_id=?",
-                  whereArgs: [updateCVList[i]['message_id']]);
-            }
+        }
+        if (updateCVList.isNotEmpty) {
+          for (int i = 0; i < updateCVList.length; i++) {
+            txn.update(WKDBConst.tableMessageExtra, updateCVList[0],
+                where: "message_id=?",
+                whereArgs: [updateCVList[i]['message_id']]);
           }
         }
       });

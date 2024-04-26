@@ -74,3 +74,5 @@
  * fix: Add clear all channel red dots method
  ### 1.3.7
  * fix: Add send message can reminder member method
+ ### 1.3.7
+ * fix: Update message save remote extra method
