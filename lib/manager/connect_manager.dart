@@ -283,7 +283,10 @@ class WKConnectionManager {
     } else if (packet.header.packetType == PacketType.recv) {
       var recvPacket = packet as RecvPacket;
       _verifyRecvMsg(recvPacket);
-      _sendReceAckPacket(recvPacket.messageID, recvPacket.messageSeq);
+      if (!recvPacket.header.noPersist) {
+        _sendReceAckPacket(
+            recvPacket.messageID, recvPacket.messageSeq, recvPacket.header);
+      }
     } else if (packet.header.packetType == PacketType.sendack) {
       var sendack = packet as SendAckPacket;
       WKIM.shared.messageManager.updateSendResult(sendack.messageID,
@@ -314,8 +317,11 @@ class WKConnectionManager {
     // WKDBHelper.shared.close();
   }
 
-  _sendReceAckPacket(BigInt messageID, int messageSeq) {
+  _sendReceAckPacket(BigInt messageID, int messageSeq, PacketHeader header) {
     RecvAckPacket ackPacket = RecvAckPacket();
+    ackPacket.header.noPersist = header.noPersist;
+    ackPacket.header.syncOnce = header.syncOnce;
+    ackPacket.header.showUnread = header.showUnread;
     ackPacket.messageID = messageID;
     ackPacket.messageSeq = messageSeq;
     _sendPacket(ackPacket);

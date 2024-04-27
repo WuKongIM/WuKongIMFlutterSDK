@@ -74,5 +74,7 @@
  * fix: Add clear all channel red dots method
  ### 1.3.7
  * fix: Add send message can reminder member method
- ### 1.3.7
+ ### 1.3.8
  * fix: Update message save remote extra method
+ ### 1.3.9
+ * fix: Update RecvAckPacket header encode method
