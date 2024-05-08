@@ -159,6 +159,12 @@ class WKDBConst {
     channel.deviceFlag = readInt(data, 'device_flag');
     channel.parentChannelID = readString(data, 'parent_channel_id');
     channel.parentChannelType = readInt(data, 'parent_channel_type');
+    String parentChannelId = readString(data, 'c_parent_channel_id');
+    int parentChannelType = readInt(data, 'c_parent_channel_type');
+    if (parentChannelId != '') {
+      channel.parentChannelID = parentChannelId;
+      channel.parentChannelType = parentChannelType;
+    }
     channel.createdAt = readString(data, 'created_at');
     channel.updatedAt = readString(data, 'updated_at');
     String remoteExtra = readString(data, 'remote_extra');

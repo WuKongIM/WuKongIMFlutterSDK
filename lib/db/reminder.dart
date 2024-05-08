@@ -111,9 +111,8 @@ class ReminderDB {
       if (maps.containsKey(key) && maps[key] != null) {
         uiMsgList[i].setReminderList(maps[key]!);
       }
-      WKIM.shared.conversationManager
-          .setRefreshMsg(uiMsgList[i], i == list.length - 1);
     }
+    WKIM.shared.conversationManager.setRefreshUIMsgs(uiMsgList);
     return reminderList;
   }
 

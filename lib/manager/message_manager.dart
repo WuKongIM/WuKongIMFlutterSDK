@@ -582,7 +582,9 @@ class WKMessageManager {
       WKUIConversationMsg? uiMsg =
           await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg);
       if (uiMsg != null) {
-        WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
+        List<WKUIConversationMsg> uiMsgs = [];
+        uiMsgs.add(uiMsg);
+        WKIM.shared.conversationManager.setRefreshUIMsgs(uiMsgs);
       }
     }
     if (wkMsg.messageContent is WKMediaMessageContent) {
@@ -773,7 +775,9 @@ class WKMessageManager {
             var uiMsg =
                 await WKIM.shared.conversationManager.saveWithLiMMsg(tempMsg);
             if (uiMsg != null) {
-              WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
+              List<WKUIConversationMsg> uiMsgs = [];
+              uiMsgs.add(uiMsg);
+              WKIM.shared.conversationManager.setRefreshUIMsgs(uiMsgs);
             }
           }
         }

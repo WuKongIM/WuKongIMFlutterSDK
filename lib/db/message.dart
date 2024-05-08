@@ -608,6 +608,25 @@ class MessageDB {
     return msgs;
   }
 
+  Future<bool> insertMsgExtras(List<WKMsgExtra> list) async {
+    if (list.isEmpty) {
+      return true;
+    }
+    List<Map<String, Object>> insertCVList = [];
+    for (int i = 0, size = list.length; i < size; i++) {
+      insertCVList.add(getExtraMap(list[i]));
+    }
+    WKDBHelper.shared.getDB().transaction((txn) async {
+      if (insertCVList.isNotEmpty) {
+        for (int i = 0; i < insertCVList.length; i++) {
+          txn.insert(WKDBConst.tableMessageExtra, insertCVList[i],
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      }
+    });
+    return true;
+  }
+
   Future<bool> insertOrUpdateMsgExtras(List<WKMsgExtra> list) async {
     List<String> msgIds = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -635,7 +654,7 @@ class MessageDB {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (int i = 0; i < insertCVList.length; i++) {
-            txn.insert(WKDBConst.tableMessageExtra, insertCVList[0],
+            txn.insert(WKDBConst.tableMessageExtra, insertCVList[i],
                 conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }

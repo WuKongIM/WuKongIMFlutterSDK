@@ -70,26 +70,53 @@ class ListViewShowDataState extends State<ListViewShowData> {
       }
       setState(() {});
     });
-    // 监听更新消息事件
-    WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
-        (msg, isEnd) async {
-      bool isAdd = true;
-      for (var i = 0; i < msgList.length; i++) {
-        if (msgList[i].msg.channelID == msg.channelID &&
-            msgList[i].msg.channelType == msg.channelType) {
-          msgList[i].msg = msg;
-          msgList[i].lastContent = '';
-          isAdd = false;
-          break;
+    WKIM.shared.conversationManager
+        .addOnRefreshMsgListListener('chat_conversation', (msgs) {
+      if (msgs.isEmpty) {
+        return;
+      }
+      List<UIConversation> list = [];
+      for (WKUIConversationMsg msg in msgs) {
+        bool isAdd = true;
+        for (var i = 0; i < msgList.length; i++) {
+          if (msgList[i].msg.channelID == msg.channelID) {
+            msgList[i].msg = msg;
+            msgList[i].lastContent = '';
+            isAdd = false;
+            break;
+          }
+        }
+        if (isAdd) {
+          list.add(UIConversation(msg));
         }
       }
-      if (isAdd) {
-        msgList.add(UIConversation(msg));
+      if (list.isNotEmpty) {
+        msgList.addAll(list);
       }
-      if (isEnd && mounted) {
+      if (mounted) {
         setState(() {});
       }
     });
+    // 监听更新消息事件
+    // WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
+    //     (msg, isEnd) async {
+    //   bool isAdd = true;
+    //   for (var i = 0; i < msgList.length; i++) {
+    //     if (msgList[i].msg.channelID == msg.channelID &&
+    //         msgList[i].msg.channelType == msg.channelType) {
+    //       msgList[i].msg = msg;
+    //       msgList[i].lastContent = '';
+    //       isAdd = false;
+    //       break;
+    //     }
+    //   }
+    //   if (isAdd) {
+    //     msgList.add(UIConversation(msg));
+    //   }
+    //   if (isEnd && mounted) {
+    //     setState(() {});
+    //   }
+    // });
     // 监听刷新channel资料事件
     WKIM.shared.channelManager.addOnRefreshListener("cover_chat", (channel) {
       for (var i = 0; i < msgList.length; i++) {

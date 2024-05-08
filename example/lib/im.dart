@@ -54,19 +54,19 @@ class IMUtils {
     // 获取channel资料
     WKIM.shared.channelManager
         .addOnGetChannelListener((channelId, channelType, back) {
-      print('获取channel资料');
       if (channelType == WKChannelType.personal) {
         // 获取个人资料
-        // 这里直接返回了。实际情况可通过API请求后返回
+        // 这里直接返回了
+        // todo 实际情况可通过API请求后返回
         var channel = WKChannel(channelId, channelType);
-        channel.channelName = "单聊${channel.channelID.hashCode}";
+        channel.channelName = "【单聊】${channel.channelID}";
         var index = channel.channelID.hashCode % imgs.length;
         channel.avatar = imgs[index];
         back(channel);
       } else if (channelType == WKChannelType.group) {
         // 获取群资料
         var channel = WKChannel(channelId, channelType);
-        channel.channelName = "群聊${channel.channelID.hashCode}";
+        channel.channelName = "【群聊】${channel.channelID}";
         var index = channel.channelID.hashCode % imgs.length;
         channel.avatar = imgs[index];
         back(channel);

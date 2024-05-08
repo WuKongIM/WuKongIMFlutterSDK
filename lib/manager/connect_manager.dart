@@ -463,7 +463,9 @@ class WKConnectionManager {
       WKUIConversationMsg? uiMsg =
           await WKIM.shared.conversationManager.saveWithLiMMsg(msg);
       if (uiMsg != null) {
-        WKIM.shared.conversationManager.setRefreshMsg(uiMsg, true);
+        List<WKUIConversationMsg> list = [];
+        list.add(uiMsg);
+        WKIM.shared.conversationManager.setRefreshUIMsgs(list);
       }
     } else {
       Logs.debug(

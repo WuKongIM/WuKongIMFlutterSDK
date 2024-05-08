@@ -127,6 +127,21 @@ class ConversationDB {
     return list;
   }
 
+  insetMsgs(List<WKConversationMsg> list) async {
+    List<Map<String, dynamic>> insertList = [];
+    for (WKConversationMsg msg in list) {
+      insertList.add(getMap(msg, true));
+    }
+    WKDBHelper.shared.getDB().transaction((txn) async {
+      if (insertList.isNotEmpty) {
+        for (int i = 0; i < insertList.length; i++) {
+          txn.insert(WKDBConst.tableConversation, insertList[i],
+              conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+      }
+    });
+  }
+
   insertMsgList(List<WKConversationMsg> list) async {
     List<String> channelIds = [];
     for (var i = 0; i < list.length; i++) {

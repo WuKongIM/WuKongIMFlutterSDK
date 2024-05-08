@@ -16,6 +16,7 @@ class WKConversationManager {
   static WKConversationManager get shared => _instance;
 
   HashMap<String, Function(WKUIConversationMsg, bool)>? _refeshMsgMap;
+  HashMap<String, Function(List<WKUIConversationMsg>)>? _refreshMsgListMap;
   HashMap<String, Function(String, int)>? _deleteMsgMap;
   HashMap<String, Function()>? _clearAllRedDotMap;
 
@@ -97,7 +98,9 @@ class WKConversationManager {
         .queryMsgByMsgChannelId(channelID, channelType);
     if (msg != null) {
       var uiMsg = ConversationDB.shared.getUIMsg(msg);
-      setRefreshMsg(uiMsg, true);
+      List<WKUIConversationMsg> uiMsgs = [];
+      uiMsgs.add(uiMsg);
+      setRefreshUIMsgs(uiMsgs);
     }
   }
 
@@ -139,7 +142,7 @@ class WKConversationManager {
     }
   }
 
-  setRefreshMsg(WKUIConversationMsg msg, bool isEnd) {
+  _setRefreshMsg(WKUIConversationMsg msg, bool isEnd) {
     if (_refeshMsgMap != null) {
       _refeshMsgMap!.forEach((key, back) {
         back(msg, isEnd);
@@ -147,6 +150,7 @@ class WKConversationManager {
     }
   }
 
+  @Deprecated("Please replace with `addOnRefreshMsgListListener` method")
   addOnRefreshMsgListener(
       String key, Function(WKUIConversationMsg, bool) back) {
     _refeshMsgMap ??= HashMap();
@@ -156,6 +160,33 @@ class WKConversationManager {
   removeOnRefreshMsg(String key) {
     if (_refeshMsgMap != null) {
       _refeshMsgMap!.remove(key);
+    }
+  }
+
+  setRefreshUIMsgs(List<WKUIConversationMsg> msgs) {
+    _setRefreshMsgList(msgs);
+    for (int i = 0, size = msgs.length; i < size; i++) {
+      _setRefreshMsg(msgs[i], i == msgs.length - 1);
+    }
+  }
+
+  _setRefreshMsgList(List<WKUIConversationMsg> msgs) {
+    if (_refreshMsgListMap != null) {
+      _refreshMsgListMap!.forEach((key, back) {
+        back(msgs);
+      });
+    }
+  }
+
+  addOnRefreshMsgListListener(
+      String key, Function(List<WKUIConversationMsg>) back) {
+    _refreshMsgListMap ??= HashMap();
+    _refreshMsgListMap![key] = back;
+  }
+
+  removeOnRefreshMsgListListener(String key) {
+    if (_refreshMsgListMap != null) {
+      _refreshMsgListMap!.remove(key);
     }
   }
 
@@ -239,14 +270,16 @@ class WKConversationManager {
       }
     }
     if (msgExtraList.isNotEmpty) {
-      MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
+      MessageDB.shared.insertMsgExtras(msgExtraList);
+      // MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
     }
 
     if (msgList.isNotEmpty) {
       MessageDB.shared.insertMsgList(msgList);
     }
     if (conversationMsgList.isNotEmpty) {
-      ConversationDB.shared.insertMsgList(conversationMsgList);
+      // ConversationDB.shared.insertMsgList(conversationMsgList);
+      ConversationDB.shared.insetMsgs(conversationMsgList);
     }
     if (msgReactionList.isNotEmpty) {
       ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
@@ -256,10 +289,7 @@ class WKConversationManager {
       WKIM.shared.messageManager.pushNewMsg(msgList);
     }
     if (uiMsgList.isNotEmpty) {
-      for (int i = 0, size = uiMsgList.length; i < size; i++) {
-        WKIM.shared.conversationManager
-            .setRefreshMsg(uiMsgList[i], i == uiMsgList.length - 1);
-      }
+      setRefreshUIMsgs(uiMsgList);
     }
     if (syncChat.cmds != null && syncChat.cmds!.isNotEmpty) {
       for (int i = 0, size = syncChat.cmds!.length; i < size; i++) {
