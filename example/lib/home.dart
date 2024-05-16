@@ -123,6 +123,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
         if (msgList[i].msg.channelID == channel.channelID &&
             msgList[i].msg.channelType == channel.channelType) {
           msgList[i].msg.setWkChannel(channel);
+          msgList[i].channelAvatar = channel.avatar;
+          msgList[i].channelName = channel.channelName;
           setState(() {});
           break;
         }

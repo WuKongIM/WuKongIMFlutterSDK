@@ -170,7 +170,7 @@ class WKMessageManager {
   }
 
   saveRemoteExtraMsg(List<WKMsgExtra> list) async {
-    MessageDB.shared.insertOrUpdateMsgExtras(list);
+    MessageDB.shared.insertMsgExtras(list);
     List<String> msgIds = [];
     for (var extra in list) {
       msgIds.add(extra.messageID);
@@ -239,7 +239,7 @@ class WKMessageManager {
     }
     bool isSuccess = true;
     if (msgExtraList.isNotEmpty) {
-      isSuccess = await MessageDB.shared.insertOrUpdateMsgExtras(msgExtraList);
+      isSuccess = await MessageDB.shared.insertMsgExtras(msgExtraList);
     }
     if (msgList.isNotEmpty) {
       isSuccess = await MessageDB.shared.insertMsgList(msgList);
@@ -741,7 +741,7 @@ class WKMessageManager {
     list.add(msgExtra);
     List<String> messageIds = [];
     messageIds.add(messageID);
-    var result = await MessageDB.shared.insertOrUpdateMsgExtras(list);
+    var result = await MessageDB.shared.insertMsgExtras(list);
     if (result) {
       var wkMsgs = await MessageDB.shared.queryWithMessageIds(messageIds);
       getMsgReactionsAndRefreshMsg(messageIds, wkMsgs);
