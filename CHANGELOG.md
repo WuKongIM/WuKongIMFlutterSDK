@@ -78,5 +78,5 @@
  * fix: Update message save remote extra method
  ### 1.3.9
  * fix: Update RecvAckPacket header encode method
- ### 1.3.9
+ ### 1.4.0
  * fix: Modifying the issue of a large number of offline messages getting stuck during synchronization
