@@ -240,7 +240,7 @@ class WKDBConst {
     if (jsonStr != '' && isJsonString(jsonStr)) {
       return jsonDecode(jsonStr);
     }
-    return {};
+    return jsonStr;
   }
 
   static bool isJsonString(String str) {
