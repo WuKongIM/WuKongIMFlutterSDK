@@ -96,41 +96,17 @@ class ChannelMemberDB {
     return list;
   }
 
-  insertOrUpdateList(
-      List<WKChannelMember> allMemberList, List<WKChannelMember> existList) {
+  insertList(List<WKChannelMember> allMemberList) {
     List<Map<String, Object>> insertCVList = [];
-    List<Map<String, Object>> updateCVList = [];
     for (WKChannelMember channelMember in allMemberList) {
-      bool isAdd = true;
-      for (WKChannelMember cm in existList) {
-        if (channelMember.memberUID == cm.memberUID) {
-          isAdd = false;
-          updateCVList.add(getMap(channelMember));
-          break;
-        }
-      }
-      if (isAdd) {
-        insertCVList.add(getMap(channelMember));
-      }
+      insertCVList.add(getMap(channelMember));
     }
-    if (insertCVList.isNotEmpty || updateCVList.isNotEmpty) {
+    if (insertCVList.isNotEmpty) {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (Map<String, dynamic> value in insertCVList) {
             txn.insert(WKDBConst.tableChannelMember, value,
                 conflictAlgorithm: ConflictAlgorithm.replace);
-          }
-        }
-
-        if (updateCVList.isNotEmpty) {
-          for (Map<String, dynamic> value in updateCVList) {
-            txn.update(WKDBConst.tableChannelMember, value,
-                where: "channel_id=? and channel_type=? and member_uid=?",
-                whereArgs: [
-                  value['channel_id'],
-                  value['channel_type'],
-                  value['member_uid']
-                ]);
           }
         }
       });

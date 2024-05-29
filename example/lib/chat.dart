@@ -45,11 +45,18 @@ class ChatListDataState extends State<ChatList> {
   final ScrollController _scrollController = ScrollController();
 
   ChatListDataState(this.channelID, this.channelType) {
-    if (channelType == WKChannelType.group) {
-      title = '群聊【$channelID】';
-    } else {
-      title = '单聊【$channelID】';
-    }
+    WKIM.shared.channelManager
+        .getChannel(channelID, channelType)
+        .then((channel) {
+      print(channel?.localExtra);
+      print(channel?.remoteExtraMap);
+      WKIM.shared.channelManager.fetchChannelInfo(channelID, channelType);
+      if (channelType == WKChannelType.group) {
+        title = '${channel?.channelName}';
+      } else {
+        title = '${channel?.channelName}';
+      }
+    });
   }
   List<UIMsg> msgList = [];
   String title = '';
@@ -151,7 +158,6 @@ class ChatListDataState extends State<ChatList> {
         oldestOrderSeq, oldestOrderSeq == 0, pullMode, 10, 0, (list) {
       List<UIMsg> uiList = [];
       for (int i = 0; i < list.length; i++) {
-        print(list[i].content);
         if (pullMode == 0 && !isReset) {
           uiList.add(UIMsg(list[i]));
           // msgList.insert(0, UIMsg(list[i]));

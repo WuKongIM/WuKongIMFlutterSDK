@@ -37,7 +37,7 @@ class IMUtils {
       "https://lmg.jj20.com/up/allimg/tx28/430423183653303.jpg",
       "https://lmg.jj20.com/up/allimg/tx23/520420024834916.jpg",
       "https://himg.bdimg.com/sys/portraitn/item/public.1.a535a65d.tJe8MgWmP8zJ456B73Kzfg",
-      "https://images.liqucn.com/img/h23/h07/img_localize_cb7b78b88d5b33e2ce8921221bf3deae_400x400.png",
+      "https://img2.baidu.com/it/u=3324164588,1070151830&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=500",
       "https://img1.baidu.com/it/u=3916753633,2634890492&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=400",
       "https://img0.baidu.com/it/u=4210586523,443489101&fm=253&fmt=auto&app=138&f=JPEG?w=304&h=304",
       "https://img2.baidu.com/it/u=2559320899,1546883787&fm=253&fmt=auto&app=138&f=JPEG?w=441&h=499",
@@ -54,6 +54,7 @@ class IMUtils {
     // 获取channel资料
     WKIM.shared.channelManager
         .addOnGetChannelListener((channelId, channelType, back) {
+      print('获取频道资料');
       if (channelType == WKChannelType.personal) {
         // 获取个人资料
         // 这里直接返回了
@@ -62,6 +63,8 @@ class IMUtils {
         channel.channelName = "【单聊】${channel.channelID}";
         var index = channel.channelID.hashCode % imgs.length;
         channel.avatar = imgs[index];
+        channel.remoteExtraMap = {'status': 1, 'notice': 'xx'};
+        channel.localExtra = {'localStatus': 1, 'localNotice': 'nxx'};
         back(channel);
       } else if (channelType == WKChannelType.group) {
         // 获取群资料
@@ -69,6 +72,8 @@ class IMUtils {
         channel.channelName = "【群聊】${channel.channelID}";
         var index = channel.channelID.hashCode % imgs.length;
         channel.avatar = imgs[index];
+        channel.remoteExtraMap = {'status': 2, 'notice': 'ss'};
+        channel.localExtra = {'localStatus': 2, 'localNotice': 'nss'};
         back(channel);
       }
     });

@@ -7,9 +7,11 @@
 ## 快速入门
 
 #### 安装
+[![pub package](https://img.shields.io/pub/v/wukongimfluttersdk.svg)](https://pub.dartlang.org/packages/wukongimfluttersdk)
+
 ```
 dependencies:
-  wukongimfluttersdk: ^1.4.1
+  wukongimfluttersdk: ^version // 版本号看上面
 ```
 #### 引入
 ```dart
@@ -85,3 +87,6 @@ WKIM.shared.cmdManager.addOnCmdListener('chat', (cmdMsg) {
 });
 ```
 - 包含`key`的事件监听均有移除监听的方法，为了避免重复收到事件回掉，在退出或销毁页面时通过传入的`key`移除事件
+
+### 许可证
+悟空IM 使用 Apache 2.0 许可证。有关详情，请参阅 LICENSE 文件。

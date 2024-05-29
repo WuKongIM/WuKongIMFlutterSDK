@@ -87,7 +87,7 @@ class WKChannelMemberManager {
     }
 
     // 先保存或修改成员
-    ChannelMemberDB.shared.insertOrUpdateList(list, existList);
+    ChannelMemberDB.shared.insertList(list);
 
     if (addList.isNotEmpty) {
       setOnNewChannelMember(addList);

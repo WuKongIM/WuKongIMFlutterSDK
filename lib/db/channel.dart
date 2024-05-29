@@ -26,27 +26,17 @@ class ChannelDB {
 
   insertOrUpdateList(List<WKChannel> list) async {
     List<Map<String, dynamic>> addList = [];
-    List<Map<String, dynamic>> updateList = [];
     for (WKChannel channel in list) {
-      bool bl = await isExist(channel.channelID, channel.channelType);
-      if (bl) {
-        updateList.add(getMap(channel));
-      } else {
+      if (channel.channelID != '') {
         addList.add(getMap(channel));
       }
     }
-    if (addList.isNotEmpty || updateList.isNotEmpty) {
+    if (addList.isNotEmpty) {
       WKDBHelper.shared.getDB().transaction((txn) async {
         if (addList.isNotEmpty) {
           for (Map<String, dynamic> value in addList) {
-            txn.insert(WKDBConst.tableChannel, value);
-          }
-        }
-        if (updateList.isNotEmpty) {
-          for (Map<String, dynamic> value in updateList) {
-            txn.update(WKDBConst.tableChannel, value,
-                where: "channel_id=? and channel_type=?",
-                whereArgs: [value['channel_id'], value['channel_type']]);
+            txn.insert(WKDBConst.tableChannel, value,
+                conflictAlgorithm: ConflictAlgorithm.replace);
           }
         }
       });
@@ -54,12 +44,7 @@ class ChannelDB {
   }
 
   saveOrUpdate(WKChannel channel) async {
-    bool bl = await isExist(channel.channelID, channel.channelType);
-    if (!bl) {
-      insert(channel);
-    } else {
-      update(channel);
-    }
+    insert(channel);
   }
 
   insert(WKChannel channel) {
