@@ -378,7 +378,11 @@ class MessageDB {
           oldestMsgSeq != 0 &&
           oldestMsgSeq - maxMessageSeq > 1) {
         isSyncMsg = true;
-        startMsgSeq = oldestMsgSeq;
+        if (contain) {
+          startMsgSeq = oldestMsgSeq;
+        } else {
+          startMsgSeq = oldestMsgSeq - 1;
+        }
         endMsgSeq = maxMessageSeq;
       }
     } else {
@@ -387,7 +391,11 @@ class MessageDB {
           oldestMsgSeq != 0 &&
           minMessageSeq - oldestMsgSeq > 1) {
         isSyncMsg = true;
-        startMsgSeq = oldestMsgSeq;
+        if (contain) {
+          startMsgSeq = oldestMsgSeq;
+        } else {
+          startMsgSeq = oldestMsgSeq + 1;
+        }
         endMsgSeq = minMessageSeq;
       }
     }
@@ -413,13 +421,20 @@ class MessageDB {
               }
               if (pullMode == 0) {
                 // 下拉
-                startMsgSeq = max;
-                endMsgSeq = min;
+                if (max > startMsgSeq) {
+                  startMsgSeq = max;
+                }
+                if (endMsgSeq == 0 || min < endMsgSeq) {
+                  endMsgSeq = min;
+                }
               } else {
-                startMsgSeq = min;
-                endMsgSeq = max;
+                if (startMsgSeq == 0 || min < startMsgSeq) {
+                  startMsgSeq = min;
+                }
+                if (max > endMsgSeq) {
+                  endMsgSeq = max;
+                }
               }
-              break;
             }
           }
         }
@@ -752,6 +767,14 @@ class MessageDB {
           await ReactionDB.shared.queryWithMessageId(wkMsg.messageID);
     }
     return wkMsg;
+  }
+
+  Future<int> deleteWithMessageIDs(List<String> msgIds) async {
+    var map = <String, Object>{};
+    map['is_deleted'] = 1;
+    return await WKDBHelper.shared.getDB().update(WKDBConst.tableMessage, map,
+        where: "message_id in (${WKDBConst.getPlaceholders(msgIds.length)})",
+        whereArgs: msgIds);
   }
 
   Future<int> deleteWithChannel(String channelId, int channelType) async {

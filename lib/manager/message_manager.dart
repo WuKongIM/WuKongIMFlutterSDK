@@ -172,8 +172,12 @@ class WKMessageManager {
   saveRemoteExtraMsg(List<WKMsgExtra> list) async {
     MessageDB.shared.insertMsgExtras(list);
     List<String> msgIds = [];
+    List<String> deletedMsgIds = [];
     for (var extra in list) {
       msgIds.add(extra.messageID);
+      if (extra.isMutualDeleted == 1) {
+        deletedMsgIds.add(extra.messageID);
+      }
     }
     var msgList = await MessageDB.shared.queryWithMessageIds(msgIds);
     for (var msg in msgList) {
@@ -198,6 +202,9 @@ class WKMessageManager {
         }
       }
       setRefreshMsg(msg);
+    }
+    if (deletedMsgIds.isNotEmpty) {
+      MessageDB.shared.deleteWithMessageIDs(deletedMsgIds);
     }
   }
 

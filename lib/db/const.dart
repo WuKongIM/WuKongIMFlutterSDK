@@ -46,11 +46,7 @@ class WKDBConst {
     msg.topicID = readString(data, 'topic_id');
     // 扩展表数据
     msg.wkMsgExtra = serializeMsgExtra(data);
-
-    String extra = readString(data, 'extra');
-    if (extra != '') {
-      msg.localExtraMap = jsonEncode(extra);
-    }
+    msg.localExtraMap = readDynamic(data, 'extra');
     if (msg.content != '') {
       dynamic contentJson = jsonDecode(msg.content);
       msg.messageContent = WKIM.shared.messageManager
@@ -109,10 +105,7 @@ class WKDBConst {
     msg.lastMsgSeq = readInt(data, 'last_msg_seq');
     msg.parentChannelID = readString(data, 'parent_channel_id');
     msg.parentChannelType = readInt(data, 'parent_channel_type');
-    String extra = readString(data, 'extra');
-    if (extra != '') {
-      msg.localExtraMap = jsonDecode(extra);
-    }
+    msg.localExtraMap = readDynamic(data, 'extra');
     msg.msgExtra = serializeConversationExtra(data);
     return msg;
   }
@@ -167,14 +160,8 @@ class WKDBConst {
     }
     channel.createdAt = readString(data, 'created_at');
     channel.updatedAt = readString(data, 'updated_at');
-    String remoteExtra = readString(data, 'remote_extra');
-    if (remoteExtra != '') {
-      channel.remoteExtraMap = jsonDecode(remoteExtra);
-    }
-    String localExtra = readString(data, 'extra');
-    if (remoteExtra != '') {
-      channel.localExtra = jsonDecode(localExtra);
-    }
+    channel.remoteExtraMap = readDynamic(data, 'remote_extra');
+    channel.localExtra = readDynamic(data, 'extra');
     return channel;
   }
 
@@ -210,11 +197,7 @@ class WKDBConst {
     } else {
       member.memberAvatarCacheKey = readString(data, 'member_avatar_cache_key');
     }
-    String extra = readString(data, 'extra');
-    if (extra != '') {
-      member.extraMap = jsonDecode(extra);
-    }
-
+    member.extraMap = readDynamic(data, 'extra');
     return member;
   }
 
@@ -230,12 +213,9 @@ class WKDBConst {
     reminder.text = readString(data, 'text');
     reminder.version = readInt(data, 'version');
     reminder.done = readInt(data, 'done');
-    String data1 = readString(data, 'data');
     reminder.needUpload = readInt(data, 'need_upload');
     reminder.publisher = readString(data, 'publisher');
-    if (data1 != '') {
-      reminder.data = jsonDecode(data1);
-    }
+    reminder.data = readDynamic(data, 'data');
     return reminder;
   }
 
@@ -253,6 +233,23 @@ class WKDBConst {
       return '';
     }
     return result.toString();
+  }
+
+  static dynamic readDynamic(dynamic data, String key) {
+    String jsonStr = readString(data, key);
+    if (jsonStr != '' && isJsonString(jsonStr)) {
+      return jsonDecode(jsonStr);
+    }
+    return {};
+  }
+
+  static bool isJsonString(String str) {
+    try {
+      final parsed = json.decode(str);
+      return parsed is Map || parsed is List;
+    } on FormatException {
+      return false;
+    }
   }
 
   static String getPlaceholders(int count) {

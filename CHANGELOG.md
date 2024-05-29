@@ -80,3 +80,5 @@
  * fix: Update RecvAckPacket header encode method
  ### 1.4.0
  * fix: Modifying the issue of a large number of offline messages getting stuck during synchronization
+ ### 1.4.1
+ * fix: Modifying non JSON serialization errors in extended fields
