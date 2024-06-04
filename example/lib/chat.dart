@@ -155,7 +155,8 @@ class ChatListDataState extends State<ChatList> {
 
   getMsgList(int oldestOrderSeq, int pullMode, bool isReset) {
     WKIM.shared.messageManager.getOrSyncHistoryMessages(channelID, channelType,
-        oldestOrderSeq, oldestOrderSeq == 0, pullMode, 10, 0, (list) {
+        oldestOrderSeq, oldestOrderSeq == 0, pullMode, 5, 0, (list) {
+      print('同步完成${list.length}条消息');
       List<UIMsg> uiList = [];
       for (int i = 0; i < list.length; i++) {
         if (pullMode == 0 && !isReset) {

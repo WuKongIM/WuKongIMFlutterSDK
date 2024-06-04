@@ -450,25 +450,22 @@ class MessageDB {
     //计算最后一页后是否还存在消息
     int syncLimit = limit;
     if (!isSyncMsg && tempList.length < limit) {
-      if (pullMode == 0) {
-        //如果下拉获取数据
-        isSyncMsg = true;
-        // startMsgSeq = oldestMsgSeq;
-        startMsgSeq = minMessageSeq; // 不满足查询数量同步时按查询到的最小seq开始同步
-        if (!contain) {
-          syncLimit = syncLimit + 1;
-        }
-        endMsgSeq = 0;
+      isSyncMsg = true;
+      if (contain) {
+        startMsgSeq = oldestMsgSeq;
       } else {
-        //如果上拉获取数据
-        isSyncMsg = true;
-        // startMsgSeq = oldestMsgSeq;
-        startMsgSeq = maxMessageSeq; // 不满足查询数量同步时按查询到的最大seq开始同步
-        endMsgSeq = 0;
-        if (!contain) {
-          syncLimit = syncLimit + 1;
+        if (pullMode == 0) {
+          startMsgSeq = oldestMsgSeq - 1;
+        } else {
+          startMsgSeq = oldestMsgSeq + 1;
         }
       }
+      endMsgSeq = 0;
+    }
+    if (startMsgSeq == 0 && endMsgSeq == 0 && tempList.length < limit) {
+      isSyncMsg = true;
+      endMsgSeq = oldestMsgSeq;
+      startMsgSeq = 0;
     }
     if (isSyncMsg &&
         (startMsgSeq != endMsgSeq || (startMsgSeq == 0 && endMsgSeq == 0)) &&

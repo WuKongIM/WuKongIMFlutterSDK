@@ -80,6 +80,7 @@ class HttpUtils {
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
     final dio = Dio();
+    print('开始seq: $startMsgSeq 结束seq: $endMsgSeq');
     final response = await dio.post('$apiURL/channel/messagesync', data: {
       "login_uid": UserInfo.uid, // 当前登录用户uid
       "channel_id": channelID, //  频道ID
@@ -96,6 +97,7 @@ class HttpUtils {
       msg.endMessageSeq = data['end_message_seq'];
       msg.more = data['more'];
       var messages = data['messages'] as List<dynamic>;
+
       List<WKSyncMsg> msgList = [];
       for (int i = 0; i < messages.length; i++) {
         dynamic json = messages[i];

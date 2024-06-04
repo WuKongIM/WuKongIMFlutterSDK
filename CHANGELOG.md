@@ -82,3 +82,5 @@
  * fix: Modifying the issue of a large number of offline messages getting stuck during synchronization
  ### 1.4.1
  * fix: Modifying non JSON serialization errors in extended fields
+ ### 1.4.2
+ * fix: Optimize synchronization channel messages
