@@ -36,7 +36,7 @@ class WKConversationManager {
     return result;
   }
 
-  Future<WKUIConversationMsg?> saveWithLiMMsg(WKMsg msg) async {
+  Future<WKUIConversationMsg?> saveWithLiMMsg(WKMsg msg, int redDot) async {
     WKConversationMsg wkConversationMsg = WKConversationMsg();
     if (msg.channelType == WKChannelType.communityTopic &&
         msg.channelID != '') {
@@ -52,7 +52,7 @@ class WKConversationManager {
     wkConversationMsg.lastMsgTimestamp = msg.timestamp;
     wkConversationMsg.lastClientMsgNO = msg.clientMsgNO;
     wkConversationMsg.lastMsgSeq = msg.messageSeq;
-    wkConversationMsg.unreadCount = msg.header.redDot ? 1 : 0;
+    wkConversationMsg.unreadCount = redDot;
     WKUIConversationMsg? uiMsg = await ConversationDB.shared
         .insertOrUpdateWithConvMsg(wkConversationMsg);
     return uiMsg;

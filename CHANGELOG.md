@@ -84,3 +84,5 @@
  * fix: Modifying non JSON serialization errors in extended fields
  ### 1.4.2
  * fix: Optimize synchronization channel messages
+ ### 1.4.3
+ * fix: Modifying messages sent by oneself will increase the issue of unread quantity

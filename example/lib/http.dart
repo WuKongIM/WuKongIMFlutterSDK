@@ -121,7 +121,7 @@ class HttpUtils {
     String payload = json['payload'];
     try {
       msg.payload = jsonDecode(utf8.decode(base64Decode(payload)));
-      // print('查询的消息${msg.payload}');
+      print('消息seq: ${msg.messageSeq},查询的消息${msg.payload}');
     } catch (e) {
       // print('异常了');
     }

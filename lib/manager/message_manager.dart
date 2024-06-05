@@ -587,7 +587,7 @@ class WKMessageManager {
     WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
     if (row > 0) {
       WKUIConversationMsg? uiMsg =
-          await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg);
+          await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
       if (uiMsg != null) {
         List<WKUIConversationMsg> uiMsgs = [];
         uiMsgs.add(uiMsg);
@@ -779,8 +779,8 @@ class WKMessageManager {
           var tempMsg = await MessageDB.shared.queryMaxOrderSeqMsgWithChannel(
               wkMsg.channelID, wkMsg.channelType);
           if (tempMsg != null) {
-            var uiMsg =
-                await WKIM.shared.conversationManager.saveWithLiMMsg(tempMsg);
+            var uiMsg = await WKIM.shared.conversationManager
+                .saveWithLiMMsg(tempMsg, 0);
             if (uiMsg != null) {
               List<WKUIConversationMsg> uiMsgs = [];
               uiMsgs.add(uiMsg);
