@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 class WKChannelMember {
   String channelID = "";
   //频道类型
@@ -27,7 +25,7 @@ class WKChannelMember {
   // 机器人0否1是
   int robot = 0;
   //扩展字段
-  HashMap extraMap = HashMap();
+  dynamic extraMap;
   // 用户备注
   String remark = "";
   // 邀请者uid

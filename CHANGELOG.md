@@ -86,3 +86,5 @@
  * fix: Optimize synchronization channel messages
  ### 1.4.3
  * fix: Modifying messages sent by oneself will increase the issue of unread quantity
+ ### 1.4.4
+ * fix: Update parsing channel member extension data
