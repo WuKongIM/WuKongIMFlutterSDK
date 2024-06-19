@@ -9,6 +9,8 @@ import 'package:uuid/uuid.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
+import 'package:wukongimfluttersdk/entity/channel.dart';
+import 'package:wukongimfluttersdk/entity/channel_member.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/proto/write_read.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
@@ -454,6 +456,18 @@ class WKConnectionManager {
     msg.isDeleted = _isDeletedMsg(contentJson);
     msg.messageContent = WKIM.shared.messageManager
         .getMessageModel(msg.contentType, contentJson);
+    WKChannel? fromChannel = await WKIM.shared.channelManager
+        .getChannel(msg.fromUID, WKChannelType.personal);
+    if (fromChannel != null) {
+      msg.setFrom(fromChannel);
+    }
+    if (msg.channelType == WKChannelType.group) {
+      WKChannelMember? memberChannel = await WKIM.shared.channelMemberManager
+          .getMember(msg.channelID, WKChannelType.group, msg.fromUID);
+      if (memberChannel != null) {
+        msg.setMemberOfFrom(memberChannel);
+      }
+    }
     WKIM.shared.messageManager.parsingMsg(msg);
     if (msg.isDeleted == 0 &&
         !msg.header.noPersist &&

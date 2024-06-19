@@ -88,3 +88,5 @@
  * fix: Modifying messages sent by oneself will increase the issue of unread quantity
  ### 1.4.4
  * fix: Update parsing channel member extension data
+  ### 1.4.5
+ * fix: Update send & recv message No fromChannel information added

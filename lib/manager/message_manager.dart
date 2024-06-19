@@ -580,8 +580,13 @@ class WKMessageManager {
     int tempOrderSeq = await MessageDB.shared
         .queryMaxOrderSeq(wkMsg.channelID, wkMsg.channelType);
     wkMsg.orderSeq = tempOrderSeq + 1;
-
     wkMsg.content = _getSendPayload(wkMsg);
+    wkMsg.setChannelInfo(channel);
+    WKChannel? from = await WKIM.shared.channelManager
+        .getChannel(wkMsg.fromUID, WKChannelType.personal);
+    if (from == null) {
+      wkMsg.setFrom(from!);
+    }
     int row = await saveMsg(wkMsg);
     wkMsg.clientSeq = row;
     WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
