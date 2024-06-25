@@ -584,8 +584,8 @@ class WKMessageManager {
     wkMsg.setChannelInfo(channel);
     WKChannel? from = await WKIM.shared.channelManager
         .getChannel(wkMsg.fromUID, WKChannelType.personal);
-    if (from == null) {
-      wkMsg.setFrom(from!);
+    if (from != null) {
+      wkMsg.setFrom(from);
     }
     int row = await saveMsg(wkMsg);
     wkMsg.clientSeq = row;

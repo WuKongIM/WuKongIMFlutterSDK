@@ -46,7 +46,7 @@
  * Modifying the issue of reconnecting disconnected objects without destroying them
  ### 1.2.3
  * Optimize message queries
-### 1.2.4
+ ### 1.2.4
  * Optimize connection
  ### 1.2.5
  * Modifying the issue of disconnected sockets not being destroyed
@@ -88,5 +88,7 @@
  * fix: Modifying messages sent by oneself will increase the issue of unread quantity
  ### 1.4.4
  * fix: Update parsing channel member extension data
-  ### 1.4.5
+ ### 1.4.5
  * fix: Update send & recv message No fromChannel information added
+ ### 1.4.6
+ * fix: Update send message fromChannel information is Null
