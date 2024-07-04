@@ -447,6 +447,10 @@ class WKConnectionManager {
     msg.timestamp = recvMsg.messageTime;
     msg.fromUID = recvMsg.fromUID;
     msg.clientMsgNO = recvMsg.clientMsgNO;
+    msg.expireTime = recvMsg.expire;
+    if (msg.expireTime > 0) {
+      msg.expireTimestamp = msg.expireTime + msg.timestamp;
+    }
     msg.status = WKSendMsgResult.sendSuccess;
     msg.topicID = recvMsg.topic;
     msg.orderSeq = await WKIM.shared.messageManager

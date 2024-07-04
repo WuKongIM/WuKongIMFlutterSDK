@@ -61,8 +61,8 @@ class WKDBHelper {
     return true;
   }
 
-  Database getDB() {
-    return _database!;
+  Database? getDB() {
+    return _database;
   }
 
   close() {

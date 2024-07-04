@@ -14,8 +14,9 @@ class ReactionDB {
         "select max(seq) seq from ${WKDBConst.tableMessageReaction} where channel_id=? and channel_type=? limit 0, 1";
     int version = 0;
 
-    List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
+    List<Map<String, Object?>> list = await WKDBHelper.shared
+        .getDB()!
+        .rawQuery(sql, [channelID, channelType]);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {
@@ -27,7 +28,7 @@ class ReactionDB {
 
   Future<List<WKMsgReaction>> queryWithMessageId(String messageId) async {
     List<WKMsgReaction> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableMessageReaction,
         where: "message_id=? and is_deleted=0",
         whereArgs: [messageId],
@@ -43,7 +44,7 @@ class ReactionDB {
   Future<List<WKMsgReaction>> queryWithMessageIds(
       List<String> messageIds) async {
     List<WKMsgReaction> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableMessageReaction,
         where:
             "message_id in (${WKDBConst.getPlaceholders(messageIds.length)}) and is_deleted=0",
@@ -90,14 +91,14 @@ class ReactionDB {
   // }
 
   insertReaction(WKMsgReaction reaction) {
-    WKDBHelper.shared.getDB().insert(
+    WKDBHelper.shared.getDB()!.insert(
         WKDBConst.tableMessageReaction, getReactionMap(reaction),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<bool> isExistReaction(String uid, String messageID) async {
     bool isExist = false;
-    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableMessageReaction,
         where: "message_id=? and uid=?",
         whereArgs: [messageID, uid]);

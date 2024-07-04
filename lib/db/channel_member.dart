@@ -19,7 +19,10 @@ class ChannelMemberDB {
     args.add(channelType);
     args.addAll(uidList);
     List<WKChannelMember> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannelMember,
         where:
             "channel_id=? and channel_type=? and member_uid in (${WKDBConst.getPlaceholders(uidList.length)})",
@@ -36,9 +39,12 @@ class ChannelMemberDB {
     String sql =
         "select max(version) version from ${WKDBConst.tableChannelMember} where channel_id =? and channel_type=? limit 0, 1";
     int version = 0;
-
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql, [channelID, channelType]);
+    if (WKDBHelper.shared.getDB() == null) {
+      return version;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared
+        .getDB()!
+        .rawQuery(sql, [channelID, channelType]);
     if (results.isNotEmpty) {
       dynamic data = results[0];
       version = WKDBConst.readInt(data, 'version');
@@ -51,8 +57,11 @@ class ChannelMemberDB {
     String sql =
         "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} left join ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid = ${WKDBConst.tableChannel}.channel_id AND ${WKDBConst.tableChannel}.channel_type=1 where (${WKDBConst.tableChannelMember}.channel_id=? and ${WKDBConst.tableChannelMember}.channel_type=? and ${WKDBConst.tableChannelMember}.member_uid=?)";
     WKChannelMember? channelMember;
+    if (WKDBHelper.shared.getDB() == null) {
+      return channelMember;
+    }
     List<Map<String, Object?>> list = await WKDBHelper.shared
-        .getDB()
+        .getDB()!
         .rawQuery(sql, [channelId, channelType, memberUID]);
     if (list.isNotEmpty) {
       channelMember = WKDBConst.serializeChannelMember(list[0]);
@@ -65,8 +74,12 @@ class ChannelMemberDB {
     String sql =
         "select ${WKDBConst.tableChannelMember}.*,$channelCols from ${WKDBConst.tableChannelMember} LEFT JOIN ${WKDBConst.tableChannel} on ${WKDBConst.tableChannelMember}.member_uid=${WKDBConst.tableChannel}.channel_id and ${WKDBConst.tableChannel}.channel_type=1 where ${WKDBConst.tableChannelMember}.channel_id=? and ${WKDBConst.tableChannelMember}.channel_type=? and ${WKDBConst.tableChannelMember}.is_deleted=0 and ${WKDBConst.tableChannelMember}.status=1 order by ${WKDBConst.tableChannelMember}.role=1 desc,${WKDBConst.tableChannelMember}.role=2 desc,${WKDBConst.tableChannelMember}.created_at asc";
     List<WKChannelMember> list = [];
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql, [channelId, channelType]);
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared
+        .getDB()!
+        .rawQuery(sql, [channelId, channelType]);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         list.add(WKDBConst.serializeChannelMember(data));
@@ -83,7 +96,10 @@ class ChannelMemberDB {
     args.addAll(uidList);
 
     List<WKChannelMember> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannelMember,
         where:
             "channel_id=? and channel_type=? and member_uid in (${WKDBConst.getPlaceholders(uidList.length)}) ",
@@ -97,12 +113,15 @@ class ChannelMemberDB {
   }
 
   insertList(List<WKChannelMember> allMemberList) {
+    if (WKDBHelper.shared.getDB() == null) {
+      return;
+    }
     List<Map<String, Object>> insertCVList = [];
     for (WKChannelMember channelMember in allMemberList) {
       insertCVList.add(getMap(channelMember));
     }
     if (insertCVList.isNotEmpty) {
-      WKDBHelper.shared.getDB().transaction((txn) async {
+      WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (Map<String, dynamic> value in insertCVList) {
             txn.insert(WKDBConst.tableChannelMember, value,

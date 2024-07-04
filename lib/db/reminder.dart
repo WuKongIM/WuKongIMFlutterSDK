@@ -21,7 +21,7 @@ class ReminderDB {
     int version = 0;
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {
@@ -34,7 +34,7 @@ class ReminderDB {
   Future<List<WKReminder>> queryWithChannel(
       String channelID, int channelType, int done) async {
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableReminders,
         where: "channel_id=? and channel_type=? and done=?",
         whereArgs: [channelID, channelType, done],
@@ -82,7 +82,7 @@ class ReminderDB {
     }
 
     if (addList.isNotEmpty || updateList.isNotEmpty) {
-      WKDBHelper.shared.getDB().transaction((txn) async {
+      WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (addList.isNotEmpty) {
           for (Map<String, dynamic> value in addList) {
             txn.insert(WKDBConst.tableReminders, value,
@@ -118,7 +118,7 @@ class ReminderDB {
 
   Future<List<WKReminder>> queryWithChannelIds(List<String> channelIds) async {
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableReminders,
         where:
             "channel_id in (${WKDBConst.getPlaceholders(channelIds.length)})",
@@ -133,7 +133,7 @@ class ReminderDB {
 
   Future<List<WKReminder>> queryWithIds(List<int> ids) async {
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableReminders,
         where: "reminder_id in (${WKDBConst.getPlaceholders(ids.length)})",
         whereArgs: ids);

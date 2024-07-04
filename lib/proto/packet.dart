@@ -8,6 +8,7 @@ class PacketHeader {
   bool noPersist = false; // 是否不存储
   bool syncOnce = false; // 是否只同步一次
   int remainingLength = 0;
+  bool hasServerVersion = false; // 是否有服务端版本
 }
 
 class Packet {
@@ -60,6 +61,7 @@ class SendPacket extends Packet {
   int channelType;
   String? topic;
   String payload = '';
+  int expire = 0;
   SendPacket({
     this.clientSeq = 0,
     this.clientMsgNO = "",
@@ -122,6 +124,7 @@ class RecvPacket extends Packet {
   int messageTime = 0;
   String topic = "";
   String payload = "";
+  int expire = 0;
   @override
   String toString() {
     return "msgkey：$msgKey，chanenlID：$channelID，channelType：$channelType，fromUID：$fromUID，clientMsgNO：$clientMsgNO，messageID：$messageID，messageSeq：$messageSeq，messageTime：$messageTime，payload：$payload";

@@ -30,6 +30,8 @@ class WKMsg {
   WKChannel? _channelInfo;
   WKChannelMember? _memberOfFrom;
   int orderSeq = 0;
+  int expireTime = 0;
+  int expireTimestamp = 0;
   int viewed = 0;
   int viewedAt = 0;
   String topicID = "";
@@ -89,6 +91,7 @@ class WKMsgExtra {
   int editedAt = 0;
   String contentEdit = "";
   int needUpload = 0;
+  int isPinned = 0;
   WKMessageContent? messageContent;
 }
 

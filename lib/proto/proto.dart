@@ -1,4 +1,7 @@
+import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:wukongimfluttersdk/wkim.dart';
 
 import '../common/logs.dart';
 import 'packet.dart';
@@ -94,6 +97,12 @@ Uint8List encodeConnect(ConnectPacket packet) {
 decodeConnack(PacketHeader header, ReadData reader) {
   var p = ConnackPacket();
   p.header = header;
+  if (header.hasServerVersion) {
+    var version = reader.readByte();
+    Logs.debug("server protocol version: $version");
+    WKIM.shared.options.protoVersion =
+        min(version, WKIM.shared.options.protoVersion);
+  }
   p.timeDiff = reader.readUint64().toInt();
   p.reasonCode = reader.readUint8();
   p.serverKey = reader.readString();
@@ -102,7 +111,7 @@ decodeConnack(PacketHeader header, ReadData reader) {
 }
 
 PacketHeader decodeHeader(ReadData reader) {
-  var b = reader.readUint8();
+  var b = reader.readByte();
   var header = PacketHeader();
   header.noPersist = (b & 0x01) > 0;
   header.showUnread = ((b >> 1) & 0x01) > 0;
@@ -111,6 +120,9 @@ PacketHeader decodeHeader(ReadData reader) {
   if (header.packetType != PacketType.ping &&
       header.packetType != PacketType.pong) {
     header.remainingLength = reader.readVariableLength();
+  }
+  if (header.packetType == PacketType.connack) {
+    header.hasServerVersion = (b & 0x01) > 0;
   }
   return header;
 }
@@ -161,6 +173,9 @@ Uint8List encodeSend(SendPacket packet) {
   }
   write.writeString(packet.channelID);
   write.writeUint8(packet.channelType);
+  if (WKIM.shared.options.protoVersion >= 3) {
+    write.writeUint32(packet.expire);
+  }
   write.writeString(packet.encodeMsgKey());
   if (packet.setting.topic == 1) {
     write.writeString(packet.topic == null ? "" : packet.topic!);
@@ -194,6 +209,9 @@ RecvPacket decodeRecv(PacketHeader header, ReadData reader) {
   recv.fromUID = reader.readString();
   recv.channelID = reader.readString();
   recv.channelType = reader.readUint8().toInt();
+  if (WKIM.shared.options.protoVersion >= 3) {
+    recv.expire = reader.readUint32().toInt();
+  }
   recv.clientMsgNO = reader.readString();
   if (recv.setting.stream == 1) {
     recv.streamNo = reader.readString();

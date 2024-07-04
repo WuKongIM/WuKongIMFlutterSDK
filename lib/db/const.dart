@@ -44,6 +44,8 @@ class WKDBConst {
     msg.viewed = readInt(data, 'viewed');
     msg.viewedAt = readInt(data, 'viewed_at');
     msg.topicID = readString(data, 'topic_id');
+    msg.expireTime = readInt(data, 'expire_time');
+    msg.expireTimestamp = readInt(data, 'expire_timestamp');
     // 扩展表数据
     msg.wkMsgExtra = serializeMsgExtra(data);
     msg.localExtraMap = readDynamic(data, 'extra');
@@ -76,6 +78,7 @@ class WKDBConst {
     extra.editedAt = readInt(data, 'edited_at');
     extra.contentEdit = readString(data, 'content_edit');
     extra.needUpload = readInt(data, 'need_upload');
+    extra.isPinned = readInt(data, 'is_pinned');
     return extra;
   }
 
@@ -224,7 +227,10 @@ class WKDBConst {
     if (result == Null || result == null) {
       return 0;
     }
-    return result as int;
+    if (result is int) {
+      return int.parse(result.toString());
+    }
+    return 0;
   }
 
   static String readString(dynamic data, String key) {

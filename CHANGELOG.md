@@ -92,3 +92,5 @@
  * fix: Update send & recv message No fromChannel information added
  ### 1.4.6
  * fix: Update send message fromChannel information is Null
+ ### 1.4.7
+ * fix: Upgrade message protocol, add message extension topping function and the ability to send expired messages

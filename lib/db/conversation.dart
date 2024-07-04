@@ -21,8 +21,11 @@ class ConversationDB {
     String sql =
         "SELECT ${WKDBConst.tableConversation}.*,$channelCols,$extraCols FROM ${WKDBConst.tableConversation} LEFT JOIN ${WKDBConst.tableChannel} ON ${WKDBConst.tableConversation}.channel_id = ${WKDBConst.tableChannel}.channel_id AND ${WKDBConst.tableConversation}.channel_type = ${WKDBConst.tableChannel}.channel_type LEFT JOIN ${WKDBConst.tableConversationExtra} ON ${WKDBConst.tableConversation}.channel_id=${WKDBConst.tableConversationExtra}.channel_id AND ${WKDBConst.tableConversation}.channel_type=${WKDBConst.tableConversationExtra}.channel_type where ${WKDBConst.tableConversation}.is_deleted=0 order by last_msg_timestamp desc";
     List<WKUIConversationMsg> list = [];
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
     List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
         WKConversationMsg msg = WKDBConst.serializeCoversation(data);
@@ -36,9 +39,12 @@ class ConversationDB {
   }
 
   Future<bool> delete(String channelID, int channelType) async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return false;
+    }
     Map<String, dynamic> data = HashMap<String, Object>();
     data['is_deleted'] = 1;
-    int row = await WKDBHelper.shared.getDB().update(
+    int row = await WKDBHelper.shared.getDB()!.update(
         WKDBConst.tableConversation, data,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelID, channelType]);
@@ -47,18 +53,21 @@ class ConversationDB {
 
   Future<WKUIConversationMsg?> insertOrUpdateWithConvMsg(
       WKConversationMsg conversationMsg) async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return null;
+    }
     int row;
     WKConversationMsg? lastMsg = await queryMsgByMsgChannelId(
         conversationMsg.channelID, conversationMsg.channelType);
 
     if (lastMsg == null || lastMsg.channelID.isEmpty) {
-      row = await WKDBHelper.shared.getDB().insert(
+      row = await WKDBHelper.shared.getDB()!.insert(
           WKDBConst.tableConversation, getMap(conversationMsg, false),
           conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
       conversationMsg.unreadCount =
           lastMsg.unreadCount + conversationMsg.unreadCount;
-      row = await WKDBHelper.shared.getDB().update(
+      row = await WKDBHelper.shared.getDB()!.update(
           WKDBConst.tableConversation, getMap(conversationMsg, false),
           where: "channel_id=? and channel_type=?",
           whereArgs: [conversationMsg.channelID, conversationMsg.channelType]);
@@ -72,8 +81,10 @@ class ConversationDB {
   Future<WKConversationMsg?> queryMsgByMsgChannelId(
       String channelId, int channelType) async {
     WKConversationMsg? msg;
-
-    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return msg;
+    }
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableConversation,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelId, channelType]);
@@ -85,11 +96,14 @@ class ConversationDB {
 
   Future<int> getMaxVersion() async {
     int maxVersion = 0;
+    if (WKDBHelper.shared.getDB() == null) {
+      return maxVersion;
+    }
     String sql =
         "select max(version) version from ${WKDBConst.tableConversation} limit 0, 1";
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       maxVersion = WKDBConst.readInt(data, 'version');
@@ -99,11 +113,14 @@ class ConversationDB {
 
   Future<String> getLastMsgSeqs() async {
     String lastMsgSeqs = "";
+    if (WKDBHelper.shared.getDB() == null) {
+      return lastMsgSeqs;
+    }
     String sql =
         "select GROUP_CONCAT(channel_id||':'||channel_type||':'|| last_seq,'|') synckey from (select *,(select max(message_seq) from ${WKDBConst.tableMessage} where ${WKDBConst.tableMessage}.channel_id=${WKDBConst.tableConversation}.channel_id and ${WKDBConst.tableMessage}.channel_type=${WKDBConst.tableConversation}.channel_type limit 1) last_seq from ${WKDBConst.tableConversation}) cn where channel_id<>'' AND is_deleted=0";
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       lastMsgSeqs = WKDBConst.readString(data, 'synckey');
@@ -114,7 +131,10 @@ class ConversationDB {
   Future<List<WKConversationMsg>> queryWithChannelIds(
       List<String> channelIds) async {
     List<WKConversationMsg> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableConversation,
         where:
             "channel_id in (${WKDBConst.getPlaceholders(channelIds.length)})",
@@ -128,11 +148,14 @@ class ConversationDB {
   }
 
   insetMsgs(List<WKConversationMsg> list) async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return;
+    }
     List<Map<String, dynamic>> insertList = [];
     for (WKConversationMsg msg in list) {
       insertList.add(getMap(msg, true));
     }
-    WKDBHelper.shared.getDB().transaction((txn) async {
+    WKDBHelper.shared.getDB()!.transaction((txn) async {
       if (insertList.isNotEmpty) {
         for (int i = 0; i < insertList.length; i++) {
           txn.insert(WKDBConst.tableConversation, insertList[i],
@@ -143,6 +166,9 @@ class ConversationDB {
   }
 
   insertMsgList(List<WKConversationMsg> list) async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return;
+    }
     List<String> channelIds = [];
     for (var i = 0; i < list.length; i++) {
       if (list[i].channelID != '') {
@@ -170,7 +196,7 @@ class ConversationDB {
       }
     }
     if (insertList.isNotEmpty || updateList.isNotEmpty) {
-      WKDBHelper.shared.getDB().transaction((txn) async {
+      WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (insertList.isNotEmpty) {
           for (int i = 0; i < insertList.length; i++) {
             txn.insert(WKDBConst.tableConversation, insertList[i],
@@ -189,16 +215,22 @@ class ConversationDB {
   }
 
   clearAll() {
-    WKDBHelper.shared.getDB().delete(WKDBConst.tableConversation);
+    if (WKDBHelper.shared.getDB() == null) {
+      return;
+    }
+    WKDBHelper.shared.getDB()!.delete(WKDBConst.tableConversation);
   }
 
   Future<int> queryExtraMaxVersion() async {
     int maxVersion = 0;
+    if (WKDBHelper.shared.getDB() == null) {
+      return maxVersion;
+    }
     String sql =
         "select max(version) version from ${WKDBConst.tableConversationExtra}";
 
     List<Map<String, Object?>> list =
-        await WKDBHelper.shared.getDB().rawQuery(sql);
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
     if (list.isNotEmpty) {
       dynamic data = list[0];
       maxVersion = WKDBConst.readInt(data, 'version');
@@ -207,16 +239,23 @@ class ConversationDB {
   }
 
   Future<int> clearAllRedDot() async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return 0;
+    }
     var map = <String, Object>{};
+
     map['unread_count'] = 0;
     return await WKDBHelper.shared
-        .getDB()
+        .getDB()!
         .update(WKDBConst.tableConversation, map, where: "unread_count>0");
   }
 
   Future<int> updateWithField(
       dynamic map, String channelID, int channelType) async {
-    return await WKDBHelper.shared.getDB().update(
+    if (WKDBHelper.shared.getDB() == null) {
+      return 0;
+    }
+    return await WKDBHelper.shared.getDB()!.update(
         WKDBConst.tableConversation, map,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelID, channelType]);

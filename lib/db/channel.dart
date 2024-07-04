@@ -14,7 +14,10 @@ class ChannelDB {
 
   Future<WKChannel?> query(String channelID, int channelType) async {
     WKChannel? channel;
-    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return channel;
+    }
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannel,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelID, channelType]);
@@ -25,6 +28,9 @@ class ChannelDB {
   }
 
   insertOrUpdateList(List<WKChannel> list) async {
+    if (WKDBHelper.shared.getDB() == null) {
+      return;
+    }
     List<Map<String, dynamic>> addList = [];
     for (WKChannel channel in list) {
       if (channel.channelID != '') {
@@ -32,7 +38,7 @@ class ChannelDB {
       }
     }
     if (addList.isNotEmpty) {
-      WKDBHelper.shared.getDB().transaction((txn) async {
+      WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (addList.isNotEmpty) {
           for (Map<String, dynamic> value in addList) {
             txn.insert(WKDBConst.tableChannel, value,
@@ -48,19 +54,22 @@ class ChannelDB {
   }
 
   insert(WKChannel channel) {
-    WKDBHelper.shared.getDB().insert(WKDBConst.tableChannel, getMap(channel),
+    WKDBHelper.shared.getDB()?.insert(WKDBConst.tableChannel, getMap(channel),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   update(WKChannel channel) {
-    WKDBHelper.shared.getDB().update(WKDBConst.tableChannel, getMap(channel),
+    WKDBHelper.shared.getDB()?.update(WKDBConst.tableChannel, getMap(channel),
         where: "channel_id=? and channel_type=?",
         whereArgs: [channel.channelID, channel.channelType]);
   }
 
   Future<bool> isExist(String channelID, int channelType) async {
     bool isExit = false;
-    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return isExit;
+    }
+    List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannel,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelID, channelType]);
@@ -85,7 +94,10 @@ class ChannelDB {
     args.addAll(channelIDs);
     args.add(channelType);
     List<WKChannel> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB().query(
+    if (WKDBHelper.shared.getDB() == null) {
+      return list;
+    }
+    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannel,
         where:
             "channel_id in (${WKDBConst.getPlaceholders(channelIDs.length)}) and channel_type=?",
