@@ -94,3 +94,5 @@
  * fix: Update send message fromChannel information is Null
  ### 1.4.7
  * fix: Upgrade message protocol, add message extension topping function and the ability to send expired messages
+### 1.4.8
+ * fix: Upgrade send message api
