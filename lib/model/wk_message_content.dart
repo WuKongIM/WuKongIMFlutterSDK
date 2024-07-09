@@ -3,6 +3,7 @@ import 'package:wukongimfluttersdk/entity/msg.dart';
 class WKMessageContent {
   var contentType = 0;
   String content = "";
+  @Deprecated('Mark with WKSendOptions')
   String topicId = "";
   WKReply? reply;
   List<WKMsgEntity>? entities;

@@ -403,6 +403,7 @@ class WKConnectionManager {
     packet.clientSeq = wkMsg.clientSeq;
     packet.clientMsgNO = wkMsg.clientMsgNO;
     packet.topic = wkMsg.topicID;
+    packet.expire = wkMsg.expireTime;
     packet.payload = wkMsg.content;
     _addSendingMsg(packet);
     _sendPacket(packet);
@@ -500,11 +501,10 @@ class WKConnectionManager {
     int isDelete = 0;
     if (jsonObject != null) {
       var visibles = jsonObject['visibles'];
-      if (visibles != null) {
+      if (visibles != null && visibles is List) {
         bool isIncludeLoginUser = false;
-        var uids = visibles as List<String>;
-        for (int i = 0, size = uids.length; i < size; i++) {
-          if (uids[i] == WKIM.shared.options.uid) {
+        for (int i = 0, size = visibles.length; i < size; i++) {
+          if (visibles[i] == WKIM.shared.options.uid) {
             isIncludeLoginUser = true;
             break;
           }

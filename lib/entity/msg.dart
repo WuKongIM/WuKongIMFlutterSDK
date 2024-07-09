@@ -72,7 +72,7 @@ class WKMsg {
 }
 
 class MessageHeader {
-  bool redDot = false; // 是否显示红点
+  bool redDot = true; // 是否显示红点
   bool noPersist = false; // 是否不存储
   bool syncOnce = false; // 是否只同步一次
 }
@@ -294,4 +294,11 @@ class WKMentionInfo {
   bool isMentionMe = false;
   bool mentionAll = false;
   List<String>? uids;
+}
+
+class WKSendOptions {
+  MessageHeader header = MessageHeader();
+  Setting setting = Setting();
+  int expire = 0;
+  String topicID = "";
 }

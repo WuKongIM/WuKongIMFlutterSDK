@@ -68,7 +68,7 @@ class WKMessageManager {
     }
     // var entities = WKDBConst.readString(json, 'entities');
     var jsonArray = json['entities'];
-    if (jsonArray != null) {
+    if (jsonArray != null && jsonArray is List) {
       // var jsonArray = jsonDecode(entities);
       List<WKMsgEntity> list = [];
       for (var entityJson in jsonArray) {
@@ -87,7 +87,7 @@ class WKMessageManager {
       var mentionInfo = WKMentionInfo();
       var mentionAll = WKDBConst.readInt(mentionJson, 'all');
       var uidList = mentionJson['uids'];
-      if (uidList != null) {
+      if (uidList != null && uidList is List) {
         List<String> uids = [];
         for (var uid in uidList) {
           uids.add(uid);
@@ -554,25 +554,20 @@ class WKMessageManager {
   }
 
   sendMessage(WKMessageContent messageContent, WKChannel channel) async {
-    var header = MessageHeader();
-    header.redDot = true;
-    sendMessageWithSettingAndHeader(messageContent, channel, Setting(), header);
+    sendWithOption(messageContent, channel, WKSendOptions());
   }
 
-  sendMessageWithSetting(
-      WKMessageContent messageContent, WKChannel channel, Setting setting) {
-    var header = MessageHeader();
-    header.redDot = true;
-    sendMessageWithSettingAndHeader(messageContent, channel, setting, header);
-  }
-
-  sendMessageWithSettingAndHeader(WKMessageContent messageContent,
-      WKChannel channel, Setting setting, MessageHeader header) async {
+  sendWithOption(WKMessageContent messageContent, WKChannel channel,
+      WKSendOptions options) async {
     WKMsg wkMsg = WKMsg();
-    wkMsg.setting = setting;
-    wkMsg.header = header;
+    wkMsg.setting = options.setting;
+    wkMsg.header = options.header;
     wkMsg.messageContent = messageContent;
-    wkMsg.topicID = messageContent.topicId;
+    wkMsg.topicID = options.topicID;
+    wkMsg.expireTime = options.expire;
+    if (wkMsg.expireTime > 0) {
+      wkMsg.expireTimestamp = wkMsg.timestamp + wkMsg.expireTime;
+    }
     wkMsg.channelID = channel.channelID;
     wkMsg.channelType = channel.channelType;
     wkMsg.fromUID = WKIM.shared.options.uid!;
@@ -631,6 +626,23 @@ class WKMessageManager {
     } else {
       WKIM.shared.connectionManager.sendMessage(wkMsg);
     }
+  }
+
+  @Deprecated('use sendWithOption')
+  sendMessageWithSetting(
+      WKMessageContent messageContent, WKChannel channel, Setting setting) {
+    var header = MessageHeader();
+    header.redDot = true;
+    sendMessageWithSettingAndHeader(messageContent, channel, setting, header);
+  }
+
+  @Deprecated('use sendWithOption')
+  sendMessageWithSettingAndHeader(WKMessageContent messageContent,
+      WKChannel channel, Setting setting, MessageHeader header) async {
+    var options = WKSendOptions();
+    options.setting = setting;
+    options.header = header;
+    sendWithOption(messageContent, channel, options);
   }
 
   String _getSendPayload(WKMsg wkMsg) {

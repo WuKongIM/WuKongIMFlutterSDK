@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
@@ -9,7 +7,6 @@ import 'package:wukongimfluttersdk/proto/proto.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
-import 'custom_message.dart';
 import 'msg.dart';
 
 class ChatPage extends StatelessWidget {
@@ -399,8 +396,11 @@ class ChatListDataState extends State<ChatList> {
                       mentionInfo.uids = ['uid_1', 'uid_2'];
                       text.mentionInfo = mentionInfo;
                       // CustomMsg customMsg = CustomMsg(content);
-                      WKIM.shared.messageManager.sendMessageWithSetting(
-                          text, WKChannel(channelID, channelType), setting);
+                      var option = WKSendOptions();
+                      option.setting = setting;
+                      WKIM.shared.messageManager.sendWithOption(
+                          text, WKChannel(channelID, channelType), option);
+
                       // WKImageContent imageContent = WKImageContent(100, 200);
                       // imageContent.localPath = 'addskds';
                       // WKIM.shared.messageManager.sendMessage(
