@@ -96,3 +96,5 @@
  * fix: Upgrade message protocol, add message extension topping function and the ability to send expired messages
 ### 1.4.8
  * fix: Upgrade send message api
+ ### 1.4.9
+ * fix: Upgrade save channel member extra data api
