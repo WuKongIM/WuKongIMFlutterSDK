@@ -98,5 +98,5 @@
  * fix: Upgrade send message api
  ### 1.4.9
  * fix: Upgrade save channel member extra data api
- ### 1.4.9
+ ### 1.5.0
  * fix: Upgrade send noPersist message
