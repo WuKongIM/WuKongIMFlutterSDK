@@ -572,9 +572,7 @@ class WKMessageManager {
     wkMsg.channelType = channel.channelType;
     wkMsg.fromUID = WKIM.shared.options.uid!;
     wkMsg.contentType = messageContent.contentType;
-    int tempOrderSeq = await MessageDB.shared
-        .queryMaxOrderSeq(wkMsg.channelID, wkMsg.channelType);
-    wkMsg.orderSeq = tempOrderSeq + 1;
+
     wkMsg.content = _getSendPayload(wkMsg);
     wkMsg.setChannelInfo(channel);
     WKChannel? from = await WKIM.shared.channelManager
@@ -582,18 +580,24 @@ class WKMessageManager {
     if (from != null) {
       wkMsg.setFrom(from);
     }
-    int row = await saveMsg(wkMsg);
-    wkMsg.clientSeq = row;
-    WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
-    if (row > 0) {
-      WKUIConversationMsg? uiMsg =
-          await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
-      if (uiMsg != null) {
-        List<WKUIConversationMsg> uiMsgs = [];
-        uiMsgs.add(uiMsg);
-        WKIM.shared.conversationManager.setRefreshUIMsgs(uiMsgs);
+    if (!options.header.noPersist) {
+      int tempOrderSeq = await MessageDB.shared
+          .queryMaxOrderSeq(wkMsg.channelID, wkMsg.channelType);
+      wkMsg.orderSeq = tempOrderSeq + 1;
+      int row = await saveMsg(wkMsg);
+      wkMsg.clientSeq = row;
+      if (row > 0) {
+        WKUIConversationMsg? uiMsg =
+            await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
+        WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
+        if (uiMsg != null) {
+          List<WKUIConversationMsg> uiMsgs = [];
+          uiMsgs.add(uiMsg);
+          WKIM.shared.conversationManager.setRefreshUIMsgs(uiMsgs);
+        }
       }
     }
+
     if (wkMsg.messageContent is WKMediaMessageContent) {
       // 附件消息
       if (_uploadAttachmentBack != null) {
