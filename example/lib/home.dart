@@ -42,14 +42,18 @@ class ListViewShowDataState extends State<ListViewShowData> {
   }
 
   var _connectionStatusStr = '';
+  var nodeId = 0;
   _initListener() {
     // 监听连接状态事件
     WKIM.shared.connectionManager.addOnConnectionStatus('home',
-        (status, reason) {
+        (status, reason, connInfo) {
       if (status == WKConnectStatus.connecting) {
         _connectionStatusStr = '连接中...';
       } else if (status == WKConnectStatus.success) {
-        _connectionStatusStr = '最近会话【连接成功】';
+        if (connInfo != null) {
+          nodeId = connInfo.nodeId;
+        }
+        _connectionStatusStr = '连接成功(节点:${connInfo?.nodeId})';
       } else if (status == WKConnectStatus.noNetwork) {
         _connectionStatusStr = '网络异常';
       } else if (status == WKConnectStatus.syncMsg) {
@@ -58,6 +62,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
         _connectionStatusStr = '未连接，在其他设备登录';
       } else if (status == WKConnectStatus.fail) {
         _connectionStatusStr = '未连接';
+      } else if (status == WKConnectStatus.syncCompleted) {
+        _connectionStatusStr = '连接成功(节点:$nodeId)';
       }
       if (mounted) {
         setState(() {});

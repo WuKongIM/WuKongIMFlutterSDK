@@ -338,7 +338,6 @@ class MessageDB {
   }
 
   var requestCount = 0;
-  var isMore = 1;
   void getOrSyncHistoryMessages(
       String channelId,
       int channelType,
@@ -351,12 +350,6 @@ class MessageDB {
     //获取原始数据
     List<WKMsg> list = await getMessages(
         channelId, channelType, oldestOrderSeq, contain, pullMode, limit);
-    if (isMore == 0) {
-      iGetOrSyncHistoryMsgBack(list);
-      isMore = 1;
-      requestCount = 0;
-      return;
-    }
     //业务判断数据
     List<WKMsg> tempList = [];
     for (int i = 0, size = list.length; i < size; i++) {
@@ -396,12 +389,7 @@ class MessageDB {
     } else {
       oldestMsgSeq = oldestOrderSeq ~/ 1000;
     }
-    if (oldestMsgSeq == 1 || isMore == 0) {
-      isMore = 1;
-      requestCount = 0;
-      iGetOrSyncHistoryMsgBack(list);
-      return;
-    }
+
     if (pullMode == 0) {
       //下拉获取消息
       if (maxMessageSeq != 0 &&
@@ -508,21 +496,21 @@ class MessageDB {
       WKIM.shared.messageManager.setSyncChannelMsgListener(
           channelId, channelType, startMsgSeq, endMsgSeq, syncLimit, pullMode,
           (syncChannelMsg) {
-        if (syncChannelMsg != null &&
-            syncChannelMsg.messages != null &&
-            syncChannelMsg.messages!.isNotEmpty) {
-          isMore = syncChannelMsg.more;
-          getOrSyncHistoryMessages(channelId, channelType, oldestOrderSeq,
-              contain, pullMode, limit, iGetOrSyncHistoryMsgBack, syncBack);
+        if (syncChannelMsg != null) {
+          if (oldestMsgSeq == 0 ||
+              (syncChannelMsg.messages != null &&
+                  syncChannelMsg.messages!.length < limit)) {
+            requestCount = 5;
+            getOrSyncHistoryMessages(channelId, channelType, oldestOrderSeq,
+                contain, pullMode, limit, iGetOrSyncHistoryMsgBack, syncBack);
+          }
         } else {
           requestCount = 0;
-          isMore = 1;
           iGetOrSyncHistoryMsgBack(list);
         }
       });
     } else {
       requestCount = 0;
-      isMore = 1;
       iGetOrSyncHistoryMsgBack(list);
     }
   }

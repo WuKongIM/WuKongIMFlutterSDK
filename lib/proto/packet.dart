@@ -1,4 +1,5 @@
 import 'package:wukongimfluttersdk/common/crypto_utils.dart';
+import 'package:wukongimfluttersdk/wkim.dart';
 
 import 'proto.dart';
 
@@ -44,6 +45,8 @@ class ConnackPacket extends Packet {
   String salt;
   int timeDiff;
   int reasonCode;
+  int serviceProtoVersion = WKIM.shared.options.protoVersion;
+  int nodeId = 0;
   ConnackPacket({
     this.serverKey = "",
     this.salt = "",

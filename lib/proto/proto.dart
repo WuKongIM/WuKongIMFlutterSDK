@@ -95,19 +95,22 @@ Uint8List encodeConnect(ConnectPacket packet) {
 }
 
 decodeConnack(PacketHeader header, ReadData reader) {
-  var p = ConnackPacket();
-  p.header = header;
+  var connAck = ConnackPacket();
+  connAck.header = header;
   if (header.hasServerVersion) {
     var version = reader.readByte();
     Logs.debug("server protocol version: $version");
-    WKIM.shared.options.protoVersion =
+    connAck.serviceProtoVersion =
         min(version, WKIM.shared.options.protoVersion);
   }
-  p.timeDiff = reader.readUint64().toInt();
-  p.reasonCode = reader.readUint8();
-  p.serverKey = reader.readString();
-  p.salt = reader.readString();
-  return p;
+  connAck.timeDiff = reader.readUint64().toInt();
+  connAck.reasonCode = reader.readUint8();
+  connAck.serverKey = reader.readString();
+  connAck.salt = reader.readString();
+  if (connAck.serviceProtoVersion >= 4) {
+    connAck.nodeId = reader.readUint64().toInt();
+  }
+  return connAck;
 }
 
 PacketHeader decodeHeader(ReadData reader) {

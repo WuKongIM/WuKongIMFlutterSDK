@@ -48,4 +48,6 @@ class WKConnectStatus {
   static const int connecting = 4;
   //无网络
   static const int noNetwork = 5;
+  //同步完成
+  static const int syncCompleted = 6;
 }

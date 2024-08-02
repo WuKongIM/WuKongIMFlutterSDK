@@ -49,15 +49,18 @@ WKIM.shared.messageManager.sendMessage(WKTextContent('我是文本消息'), WKCh
 **连接监听**
 ```dart
 WKIM.shared.connectionManager.addOnConnectionStatus('home',
-        (status, reason) {
+        (status, reason,connectInfo) {
       if (status == WKConnectStatus.connecting) {
         // 连接中
       } else if (status == WKConnectStatus.success) {
+        var nodeId = connectInfo?.nodeId; // 节点id
         // 成功
       } else if (status == WKConnectStatus.noNetwork) {
         // 网络异常
       } else if (status == WKConnectStatus.syncMsg) {
         //同步消息中
+      } else if (status == WKConnectStatus.syncCompleted) {
+        //同步完成
       }
     });
 ```

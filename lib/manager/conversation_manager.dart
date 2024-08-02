@@ -198,8 +198,7 @@ class WKConversationManager {
   }
 
   setSyncConversation(Function() back) async {
-    WKIM.shared.connectionManager
-        .setConnectionStatus(WKConnectStatus.syncMsg, 'sync_conversation_msgs');
+    WKIM.shared.connectionManager.setConnectionStatus(WKConnectStatus.syncMsg);
     if (_syncConersationBack != null) {
       int version = await ConversationDB.shared.getMaxVersion();
       String lastMsgSeqStr = await ConversationDB.shared.getLastMsgSeqs();

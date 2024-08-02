@@ -225,6 +225,9 @@ class WKMessageManager {
           back(result);
         }
       });
+    } else {
+      Logs.error('未提供同步频道消息事件');
+      back(null);
     }
   }
 

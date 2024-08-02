@@ -79,9 +79,9 @@ class WKConnectionManager {
   final heartIntervalSecond = const Duration(seconds: 60);
   final checkNetworkSecond = const Duration(seconds: 1);
   final HashMap<int, SendingMsg> _sendingMsgMap = HashMap();
-  HashMap<String, Function(int, String)>? _connectionListenerMap;
+  HashMap<String, Function(int, int?, ConnectionInfo?)>? _connectionListenerMap;
   _WKSocket? _socket;
-  addOnConnectionStatus(String key, Function(int, String) back) {
+  addOnConnectionStatus(String key, Function(int, int?, ConnectionInfo?) back) {
     _connectionListenerMap ??= HashMap();
     _connectionListenerMap![key] = back;
   }
@@ -92,10 +92,10 @@ class WKConnectionManager {
     }
   }
 
-  setConnectionStatus(int status, String reason) {
+  setConnectionStatus(int status, {int? reasoncode, ConnectionInfo? info}) {
     if (_connectionListenerMap != null) {
       _connectionListenerMap!.forEach((key, back) {
-        back(status, reason);
+        back(status, reasoncode, info);
       });
     }
   }
@@ -137,8 +137,7 @@ class WKConnectionManager {
       WKDBHelper.shared.close();
     }
     _closeAll();
-    WKIM.shared.connectionManager
-        .setConnectionStatus(WKConnectStatus.fail, "Actively disconnect");
+    WKIM.shared.connectionManager.setConnectionStatus(WKConnectStatus.fail);
   }
 
   _socketConnect(String addr) {
@@ -147,7 +146,7 @@ class WKConnectionManager {
     var host = addrs[0];
     var port = addrs[1];
     try {
-      setConnectionStatus(WKConnectStatus.connecting, '');
+      setConnectionStatus(WKConnectStatus.connecting);
       Socket.connect(host, int.parse(port), timeout: const Duration(seconds: 5))
           .then((socket) {
         _socket = _WKSocket.newSocket(socket);
@@ -265,21 +264,26 @@ class WKConnectionManager {
       var connackPacket = packet as ConnackPacket;
       if (connackPacket.reasonCode == 1) {
         Logs.debug('连接成功！');
+        WKIM.shared.options.protoVersion = connackPacket.serviceProtoVersion;
         CryptoUtils.setServerKeyAndSalt(
             connackPacket.serverKey, connackPacket.salt);
-        setConnectionStatus(WKConnectStatus.success, '');
-        WKIM.shared.conversationManager.setSyncConversation(() {
-          setConnectionStatus(WKConnectStatus.success, '');
-        });
+        setConnectionStatus(WKConnectStatus.success,
+            reasoncode: connackPacket.reasonCode,
+            info: ConnectionInfo(connackPacket.nodeId));
+        try {
+          WKIM.shared.conversationManager.setSyncConversation(() {
+            setConnectionStatus(WKConnectStatus.syncCompleted);
+          });
+        } catch (e) {
+          Logs.error(e.toString());
+        }
+
         _resendMsg();
         _startHeartTimer();
         _startCheckNetworkTimer();
       } else {
-        String reason = '';
-        if (connackPacket.reasonCode == WKConnectStatus.kicked) {
-          reason = 'ReasonAuthFail';
-        }
-        setConnectionStatus(WKConnectStatus.fail, reason);
+        setConnectionStatus(WKConnectStatus.fail,
+            reasoncode: connackPacket.reasonCode);
         Logs.debug('连接失败！错误->${connackPacket.reasonCode}');
       }
     } else if (packet.header.packetType == PacketType.recv) {
@@ -299,7 +303,7 @@ class WKConnectionManager {
     } else if (packet.header.packetType == PacketType.disconnect) {
       disconnect(true);
       // _closeAll();
-      setConnectionStatus(WKConnectStatus.kicked, 'ReasonConnectKick');
+      setConnectionStatus(WKConnectStatus.kicked);
     } else if (packet.header.packetType == PacketType.pong) {
       Logs.info('pong...');
     }
@@ -359,7 +363,7 @@ class WKConnectionManager {
           isReconnection = true;
           Logs.debug('网络断开了');
           _checkSedingMsg();
-          setConnectionStatus(WKConnectStatus.noNetwork, '');
+          setConnectionStatus(WKConnectStatus.noNetwork);
         } else {
           if (isReconnection) {
             connect();
@@ -596,4 +600,9 @@ class SendingMsg {
   SendingMsg(this.sendPacket) {
     sendTime = (DateTime.now().millisecondsSinceEpoch / 1000).truncate();
   }
+}
+
+class ConnectionInfo {
+  int nodeId;
+  ConnectionInfo(this.nodeId);
 }

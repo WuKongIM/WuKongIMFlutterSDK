@@ -44,28 +44,32 @@ class HttpUtils {
     WKSyncConversation conversation = WKSyncConversation();
     conversation.conversations = [];
     if (response.statusCode == HttpStatus.ok) {
-      var list = response.data as List<dynamic>;
-      for (int i = 0; i < list.length; i++) {
-        var json = list[i];
-        WKSyncConvMsg convMsg = WKSyncConvMsg();
-        convMsg.channelID = json['channel_id'];
-        convMsg.channelType = json['channel_type'];
-        convMsg.unread = json['unread'];
-        convMsg.timestamp = json['timestamp'];
-        convMsg.lastMsgSeq = json['last_msg_seq'];
-        convMsg.lastClientMsgNO = json['last_client_msg_no'];
-        convMsg.version = json['version'];
-        var msgListJson = json['recents'] as List<dynamic>;
-        List<WKSyncMsg> msgList = [];
-        if (msgListJson.isNotEmpty) {
-          for (int j = 0; j < msgListJson.length; j++) {
-            var msgJson = msgListJson[j];
-            msgList.add(getWKSyncMsg(msgJson));
+      try {
+        var list = jsonDecode(response.data);
+        for (int i = 0; i < list.length; i++) {
+          var json = list[i];
+          WKSyncConvMsg convMsg = WKSyncConvMsg();
+          convMsg.channelID = json['channel_id'];
+          convMsg.channelType = json['channel_type'];
+          convMsg.unread = json['unread'];
+          convMsg.timestamp = json['timestamp'];
+          convMsg.lastMsgSeq = json['last_msg_seq'];
+          convMsg.lastClientMsgNO = json['last_client_msg_no'];
+          convMsg.version = json['version'];
+          var msgListJson = json['recents'] as List<dynamic>;
+          List<WKSyncMsg> msgList = [];
+          if (msgListJson.isNotEmpty) {
+            for (int j = 0; j < msgListJson.length; j++) {
+              var msgJson = msgListJson[j];
+              msgList.add(getWKSyncMsg(msgJson));
+            }
           }
-        }
 
-        convMsg.recents = msgList;
-        conversation.conversations!.add(convMsg);
+          convMsg.recents = msgList;
+          conversation.conversations!.add(convMsg);
+        }
+      } catch (e) {
+        print('同步最近会话错误');
       }
     }
     back(conversation);
@@ -91,12 +95,18 @@ class HttpUtils {
       "pull_mode": pullMode // 拉取模式 0:向下拉取 1:向上拉取
     });
     if (response.statusCode == HttpStatus.ok) {
-      var data = response.data;
+      var data = jsonDecode(response.data);
       WKSyncChannelMsg msg = WKSyncChannelMsg();
       msg.startMessageSeq = data['start_message_seq'];
       msg.endMessageSeq = data['end_message_seq'];
       msg.more = data['more'];
-      var messages = data['messages'] as List<dynamic>;
+      var messages;
+      var list = data['messages'];
+      if (list is String) {
+        messages = jsonDecode(data['messages']);
+      } else {
+        messages = list;
+      }
 
       List<WKSyncMsg> msgList = [];
       for (int i = 0; i < messages.length; i++) {
