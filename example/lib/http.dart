@@ -45,7 +45,8 @@ class HttpUtils {
     conversation.conversations = [];
     if (response.statusCode == HttpStatus.ok) {
       try {
-        var list = jsonDecode(response.data);
+        var list = response.data;
+        // var list = jsonDecode(response.data);
         for (int i = 0; i < list.length; i++) {
           var json = list[i];
           WKSyncConvMsg convMsg = WKSyncConvMsg();
@@ -84,7 +85,6 @@ class HttpUtils {
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
     final dio = Dio();
-    print('开始seq: $startMsgSeq 结束seq: $endMsgSeq');
     final response = await dio.post('$apiURL/channel/messagesync', data: {
       "login_uid": UserInfo.uid, // 当前登录用户uid
       "channel_id": channelID, //  频道ID
@@ -95,18 +95,12 @@ class HttpUtils {
       "pull_mode": pullMode // 拉取模式 0:向下拉取 1:向上拉取
     });
     if (response.statusCode == HttpStatus.ok) {
-      var data = jsonDecode(response.data);
+      var data = response.data;
       WKSyncChannelMsg msg = WKSyncChannelMsg();
       msg.startMessageSeq = data['start_message_seq'];
       msg.endMessageSeq = data['end_message_seq'];
       msg.more = data['more'];
-      var messages;
-      var list = data['messages'];
-      if (list is String) {
-        messages = jsonDecode(data['messages']);
-      } else {
-        messages = list;
-      }
+      var messages = data['messages'];
 
       List<WKSyncMsg> msgList = [];
       for (int i = 0; i < messages.length; i++) {

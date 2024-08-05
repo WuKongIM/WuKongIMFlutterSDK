@@ -392,6 +392,10 @@ class MessageDB {
 
     if (pullMode == 0) {
       //下拉获取消息
+      if (oldestMsgSeq == 1) {
+        iGetOrSyncHistoryMsgBack([]);
+        return;
+      }
       if (maxMessageSeq != 0 &&
           oldestMsgSeq != 0 &&
           oldestMsgSeq - maxMessageSeq > 1) {
