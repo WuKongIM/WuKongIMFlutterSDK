@@ -7,7 +7,7 @@ class UIConversation {
   String channelName = '';
   WKUIConversationMsg msg;
   UIConversation(this.msg);
-  List<WKReminder>? reminders = [];
+  List<WKReminder>? reminders;
   String getUnreadCount() {
     if (msg.unreadCount > 0) {
       return '${msg.unreadCount}';

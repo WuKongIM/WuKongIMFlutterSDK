@@ -150,7 +150,6 @@ class ListViewShowDataState extends State<ListViewShowData> {
     String content = "";
     if (uiConversation.reminders == null) {
       uiConversation.msg.getReminderList().then((value) {
-        Logs.debug('执行体系');
         uiConversation.reminders = value;
         setState(() {});
       });
