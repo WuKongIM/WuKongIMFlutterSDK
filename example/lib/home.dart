@@ -1,5 +1,6 @@
 import 'package:example/const.dart';
 import 'package:flutter/material.dart';
+import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/reminder.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
@@ -77,7 +78,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
       setState(() {});
     });
     WKIM.shared.conversationManager
-        .addOnRefreshMsgListListener('chat_conversation', (msgs) {
+        .addOnRefreshMsgListListener('chat_conversation', (msgs) async {
       if (msgs.isEmpty) {
         return;
       }
@@ -88,6 +89,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
           if (msgList[i].msg.channelID == msg.channelID) {
             msgList[i].msg = msg;
             msgList[i].lastContent = '';
+            msgList[i].reminders = null;
             isAdd = false;
             break;
           }
@@ -103,26 +105,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
         setState(() {});
       }
     });
-    // 监听更新消息事件
-    // WKIM.shared.conversationManager.addOnRefreshMsgListener('chat_conversation',
-    //     (msg, isEnd) async {
-    //   bool isAdd = true;
-    //   for (var i = 0; i < msgList.length; i++) {
-    //     if (msgList[i].msg.channelID == msg.channelID &&
-    //         msgList[i].msg.channelType == msg.channelType) {
-    //       msgList[i].msg = msg;
-    //       msgList[i].lastContent = '';
-    //       isAdd = false;
-    //       break;
-    //     }
-    //   }
-    //   if (isAdd) {
-    //     msgList.add(UIConversation(msg));
-    //   }
-    //   if (isEnd && mounted) {
-    //     setState(() {});
-    //   }
-    // });
+
     // 监听刷新channel资料事件
     WKIM.shared.channelManager.addOnRefreshListener("cover_chat", (channel) {
       for (var i = 0; i < msgList.length; i++) {
@@ -165,22 +148,24 @@ class ListViewShowDataState extends State<ListViewShowData> {
 
   String getReminderText(UIConversation uiConversation) {
     String content = "";
-    if (uiConversation.isMentionMe == 0) {
+    if (uiConversation.reminders == null) {
       uiConversation.msg.getReminderList().then((value) {
-        if (value != null && value.isNotEmpty) {
-          for (var i = 0; i < value.length; i++) {
-            if (value[i].type == WKMentionType.wkReminderTypeMentionMe &&
-                value[i].done == 0) {
-              content = value[i].data;
-              uiConversation.isMentionMe = 1;
-              setState(() {});
-              break;
-            }
-          }
-        }
+        Logs.debug('执行体系');
+        uiConversation.reminders = value;
+        setState(() {});
       });
-    } else {
-      content = "[有人@你]";
+      return content;
+    }
+    if (uiConversation.reminders!.isNotEmpty) {
+      for (var i = 0; i < uiConversation.reminders!.length; i++) {
+        if (uiConversation.reminders![i].type ==
+                WKMentionType.wkReminderTypeMentionMe &&
+            uiConversation.reminders![i].done == 0) {
+          content = uiConversation.reminders![i].data;
+          content = '[有人@你]';
+          break;
+        }
+      }
     }
     return content;
   }
@@ -310,7 +295,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ChatPage(),
+                    builder: (_) => const ChatPage(),
                     settings: RouteSettings(
                       arguments: ChatChannel(
                         msgList[pos].msg.channelID,
