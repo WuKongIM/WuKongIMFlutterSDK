@@ -52,6 +52,18 @@ class WKChannelManager {
     ChannelDB.shared.insertOrUpdateList(list);
   }
 
+  // 全局搜索
+  Future<List<WKChannelSearchResult>> search(String keyword) {
+    return ChannelDB.shared.search(keyword);
+  }
+
+  // 搜索已关注channel(好友)
+  Future<List<WKChannel>> searchWithChannelTypeAndFollow(
+      String searchKey, int channelType, int follow) {
+    return ChannelDB.shared
+        .searchWithChannelTypeAndFollow(searchKey, channelType, follow);
+  }
+
   addOrUpdateChannel(WKChannel channel) {
     _updateChannel(channel);
     _setRefresh(channel);

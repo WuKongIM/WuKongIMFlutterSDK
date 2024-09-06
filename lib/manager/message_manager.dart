@@ -134,6 +134,40 @@ class WKMessageManager {
     }
   }
 
+  // 全局搜索
+  Future<List<WKMessageSearchResult>> search(String keyword) {
+    return MessageDB.shared.search(keyword);
+  }
+
+  /*
+     * 搜索某个频道到消息
+     *
+     * @param searchKey   关键字
+     * @param channelID   频道ID
+     * @param channelType 频道类型
+     * @return List<WKMsg>
+     */
+  Future<List<WKMsg>> searchWithChannel(
+      String keyword, String channelID, int channelType) {
+    return MessageDB.shared.searchWithChannel(keyword, channelID, channelType);
+  }
+
+  /*
+     * 查询某个频道的固定类型消息
+     *
+     * @param channelID      频道ID
+     * @param channelType    频道列席
+     * @param oldestOrderSeq 最后一次消息大orderSeq
+     * @param limit          每次获取数量
+     * @param contentTypes   消息内容类型
+     * @return List<WKMsg>
+     */
+  Future<List<WKMsg>> searchMsgWithChannelAndContentTypes(String channelID,
+      int channelType, int oldestOrderSeq, int limit, List<int> contentTypes) {
+    return MessageDB.shared.searchMsgWithChannelAndContentTypes(
+        channelID, channelType, oldestOrderSeq, limit, contentTypes);
+  }
+
   Future<WKMsg?> getWithClientMsgNo(String clientMsgNo) {
     return MessageDB.shared.queryWithClientMsgNo(clientMsgNo);
   }

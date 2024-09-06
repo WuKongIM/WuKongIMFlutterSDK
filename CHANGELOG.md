@@ -102,3 +102,5 @@
  * fix: Upgrade send noPersist message
 ### 1.5.1
  * fix: Add connection ack and return nodeId
+### 1.5.2
+ * fix: Add search channel and message method

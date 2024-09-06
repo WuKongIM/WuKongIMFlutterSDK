@@ -52,3 +52,9 @@ class WKChannel {
   int parentChannelType = 0;
   WKChannel(this.channelID, this.channelType);
 }
+
+class WKChannelSearchResult {
+  WKChannel? channel;
+  // 包含的成员名称
+  String containMemberName = '';
+}

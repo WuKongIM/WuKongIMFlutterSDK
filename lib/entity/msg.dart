@@ -302,3 +302,11 @@ class WKSendOptions {
   int expire = 0;
   String topicID = "";
 }
+
+class WKMessageSearchResult {
+  WKChannel? channel;
+  //包含关键字的信息
+  String searchableWord = "";
+  //条数
+  int messageCount = 0;
+}

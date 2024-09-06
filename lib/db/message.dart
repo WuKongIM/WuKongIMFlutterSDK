@@ -829,6 +829,147 @@ class MessageDB {
         whereArgs: [channelId, channelType]);
   }
 
+  Future<List<WKMessageSearchResult>> search(String keyword) async {
+    List<WKMessageSearchResult> list = [];
+    var sql =
+        "select distinct c.*, count(*) message_count, case count(*) WHEN 1 then m.client_seq else ''END client_seq, CASE count(*) WHEN 1 THEN m.searchable_word else '' end searchable_word from ${WKDBConst.tableChannel} c LEFT JOIN ${WKDBConst.tableMessage} m ON m.channel_id = c.channel_id and m.channel_type = c.channel_type WHERE m.is_deleted=0 and searchable_word LIKE ? GROUP BY c.channel_id, c.channel_type ORDER BY m.created_at DESC limit 100";
+    List<Map<String, Object?>> results =
+        await WKDBHelper.shared.getDB()!.rawQuery(sql, ['%$keyword%']);
+    for (Map<String, Object?> data in results) {
+      var channel = WKDBConst.serializeChannel(data);
+      var message = WKMessageSearchResult();
+      message.channel = channel;
+      message.messageCount = WKDBConst.readInt(data, 'message_count');
+      message.searchableWord = WKDBConst.readString(data, 'searchable_word');
+      list.add(message);
+    }
+    return list;
+  }
+
+  Future<List<WKMsg>> searchWithChannel(
+      String keyword, String channelId, int channelType) async {
+    List<WKMsg> list = [];
+    var sql =
+        "select * from (select $messageCols,$extraCols from ${WKDBConst.tableMessage} left join ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id= ${WKDBConst.tableMessageExtra}.message_id where  ${WKDBConst.tableMessage}.searchable_word like ? and  ${WKDBConst.tableMessage}.channel_id=? and  ${WKDBConst.tableMessage}.channel_type=?) where is_deleted=0 and revoke=0";
+    List<Map<String, Object?>> results = await WKDBHelper.shared
+        .getDB()!
+        .rawQuery(sql, ['%$keyword%', channelId, channelType]);
+    List<String> fromUIDs = [];
+    WKChannel? channel =
+        await WKIM.shared.channelManager.getChannel(channelId, channelType);
+
+    for (Map<String, Object?> data in results) {
+      var msg = WKDBConst.serializeWKMsg(data);
+      if (channel != null) {
+        msg.setChannelInfo(channel);
+      }
+      if (msg.fromUID != '') {
+        fromUIDs.add(msg.fromUID);
+      }
+      list.add(msg);
+    }
+    if (fromUIDs.isNotEmpty) {
+      List<String> uniqueList = fromUIDs.toSet().toList();
+      List<WKChannel> wkChannels = await ChannelDB.shared
+          .queryWithChannelIdsAndChannelType(
+              uniqueList, WKChannelType.personal);
+      if (wkChannels.isNotEmpty) {
+        for (WKChannel channel in wkChannels) {
+          for (WKMsg msg in list) {
+            if (msg.fromUID == channel.channelID) {
+              msg.setFrom(channel);
+              break;
+            }
+          }
+        }
+      }
+
+      if (channelType == WKChannelType.group) {
+        List<WKChannelMember> members = await ChannelMemberDB.shared
+            .queryMemberWithUIDs(channelId, channelType, uniqueList);
+        if (members.isNotEmpty) {
+          for (WKChannelMember member in members) {
+            for (WKMsg msg in list) {
+              if (msg.fromUID == member.memberUID) {
+                msg.setMemberOfFrom(member);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return list;
+  }
+
+  Future<List<WKMsg>> searchMsgWithChannelAndContentTypes(
+      String channelID,
+      int channelType,
+      int oldestOrderSeq,
+      int limit,
+      List<int> contentTypes) async {
+    var sql = "";
+    List<WKMsg> list = [];
+    List<Object?> arguments = [];
+    if (oldestOrderSeq <= 0) {
+      arguments = [channelID, channelType, contentTypes];
+      sql =
+          "select * from (select $messageCols,$extraCols from ${WKDBConst.tableMessage} left join ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id where ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 and ${WKDBConst.tableMessage}.type in (${WKDBConst.getPlaceholders(contentTypes.length)})) where is_deleted=0 and revoke=0 order by order_seq desc limit 0,$limit";
+    } else {
+      arguments = [channelID, channelType, oldestOrderSeq, contentTypes];
+      sql =
+          "select * from (select $messageCols,$extraCols from ${WKDBConst.tableMessage} left join ${WKDBConst.tableMessageExtra} on ${WKDBConst.tableMessage}.message_id=${WKDBConst.tableMessageExtra}.message_id where ${WKDBConst.tableMessage}.channel_id=? and ${WKDBConst.tableMessage}.channel_type=? and ${WKDBConst.tableMessage}.order_seq<? and ${WKDBConst.tableMessage}.type<>0 and ${WKDBConst.tableMessage}.type<>99 and ${WKDBConst.tableMessage}.type in (${WKDBConst.getPlaceholders(contentTypes.length)})) where is_deleted=0 and revoke=0 order by order_seq desc limit 0,$limit";
+    }
+    List<Map<String, Object?>> results =
+        await WKDBHelper.shared.getDB()!.rawQuery(sql, arguments);
+    List<String> fromUIDs = [];
+    WKChannel? channel =
+        await WKIM.shared.channelManager.getChannel(channelID, channelType);
+
+    for (Map<String, Object?> data in results) {
+      var msg = WKDBConst.serializeWKMsg(data);
+      if (channel != null) {
+        msg.setChannelInfo(channel);
+      }
+      if (msg.fromUID != '') {
+        fromUIDs.add(msg.fromUID);
+      }
+      list.add(msg);
+    }
+    if (fromUIDs.isNotEmpty) {
+      List<String> uniqueList = fromUIDs.toSet().toList();
+      List<WKChannel> wkChannels = await ChannelDB.shared
+          .queryWithChannelIdsAndChannelType(
+              uniqueList, WKChannelType.personal);
+      if (wkChannels.isNotEmpty) {
+        for (WKChannel channel in wkChannels) {
+          for (WKMsg msg in list) {
+            if (msg.fromUID == channel.channelID) {
+              msg.setFrom(channel);
+              break;
+            }
+          }
+        }
+      }
+
+      if (channelType == WKChannelType.group) {
+        List<WKChannelMember> members = await ChannelMemberDB.shared
+            .queryMemberWithUIDs(channelID, channelType, uniqueList);
+        if (members.isNotEmpty) {
+          for (WKChannelMember member in members) {
+            for (WKMsg msg in list) {
+              if (msg.fromUID == member.memberUID) {
+                msg.setMemberOfFrom(member);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    return list;
+  }
+
   dynamic getMap(WKMsg msg) {
     var map = <String, Object>{};
     map['message_id'] = msg.messageID;
