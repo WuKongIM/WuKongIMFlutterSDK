@@ -51,13 +51,17 @@ class WKDBConst {
     msg.localExtraMap = readDynamic(data, 'extra');
     if (msg.content != '') {
       dynamic contentJson = jsonDecode(msg.content);
-      msg.messageContent = WKIM.shared.messageManager
-          .getMessageModel(msg.contentType, contentJson);
+      if (contentJson != null && contentJson != '') {
+        msg.messageContent = WKIM.shared.messageManager
+            .getMessageModel(msg.contentType, contentJson);
+      }
     }
     if (msg.wkMsgExtra!.contentEdit != '') {
       dynamic json = jsonDecode(msg.wkMsgExtra!.contentEdit);
-      msg.wkMsgExtra!.messageContent = WKIM.shared.messageManager
-          .getMessageModel(WkMessageContentType.text, json);
+      if (json != null && json != '') {
+        msg.wkMsgExtra!.messageContent = WKIM.shared.messageManager
+            .getMessageModel(WkMessageContentType.text, json);
+      }
     }
 
     return msg;

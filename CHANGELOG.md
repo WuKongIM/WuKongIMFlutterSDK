@@ -104,3 +104,5 @@
  * fix: Add connection ack and return nodeId
 ### 1.5.2
  * fix: Add search channel and message method
+### 1.5.3
+ * fix: Compatibility message extension editing content is empty, parsing error issue

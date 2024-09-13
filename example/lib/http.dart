@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:example/const.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
@@ -10,7 +11,17 @@ class HttpUtils {
   static String apiURL = "https://api.githubim.com";
 
   static Future<int> login(String uid, String token) async {
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) {
+      // 信任所有证书
+      return true;
+    };
     final dio = Dio();
+    dio.httpClientAdapter = DefaultHttpClientAdapter()
+      ..onHttpClientCreate = (client) {
+        return httpClient;
+      };
     final response = await dio.post("$apiURL/user/token", data: {
       'uid': uid,
       'token': token,
@@ -21,7 +32,17 @@ class HttpUtils {
   }
 
   static Future<String> getIP() async {
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) {
+      // 信任所有证书
+      return true;
+    };
     final dio = Dio();
+    dio.httpClientAdapter = DefaultHttpClientAdapter()
+      ..onHttpClientCreate = (client) {
+        return httpClient;
+      };
     String ip = '';
     final response = await dio.get('$apiURL/route');
     if (response.statusCode == HttpStatus.ok) {
@@ -32,7 +53,17 @@ class HttpUtils {
 
   static syncConversation(String lastSsgSeqs, int msgCount, int version,
       Function(WKSyncConversation) back) async {
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) {
+      // 信任所有证书
+      return true;
+    };
     final dio = Dio();
+    dio.httpClientAdapter = DefaultHttpClientAdapter()
+      ..onHttpClientCreate = (client) {
+        return httpClient;
+      };
     final response = await dio.post('$apiURL/conversation/sync', data: {
       "uid": UserInfo.uid, // 当前登录用户uid
       "version": version, //  当前客户端的会话最大版本号(从保存的结果里取最大的version，如果本地没有数据则传0)，
@@ -84,7 +115,17 @@ class HttpUtils {
       int limit,
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
+    final httpClient = HttpClient();
+    httpClient.badCertificateCallback =
+        (X509Certificate cert, String host, int port) {
+      // 信任所有证书
+      return true;
+    };
     final dio = Dio();
+    dio.httpClientAdapter = DefaultHttpClientAdapter()
+      ..onHttpClientCreate = (client) {
+        return httpClient;
+      };
     final response = await dio.post('$apiURL/channel/messagesync', data: {
       "login_uid": UserInfo.uid, // 当前登录用户uid
       "channel_id": channelID, //  频道ID

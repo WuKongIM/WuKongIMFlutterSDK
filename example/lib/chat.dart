@@ -319,9 +319,12 @@ class ChatListDataState extends State<ChatList> {
                 '清空记录',
                 style: TextStyle(color: Color.fromARGB(255, 4, 80, 194)),
               ),
-              onPressed: () {
-                WKIM.shared.messageManager
-                    .clearWithChannel(channelID, channelType);
+              onPressed: () async {
+                var v = await WKIM.shared.messageManager
+                    .getMaxExtraVersionWithChannel(channelID, channelType);
+                print(v);
+                // WKIM.shared.messageManager
+                //     .clearWithChannel(channelID, channelType);
               }),
         ],
       ),
@@ -360,7 +363,23 @@ class ChatListDataState extends State<ChatList> {
                 ),
                 MaterialButton(
                   onPressed: () {
-                    getLast();
+                    WKMsgExtra extra = WKMsgExtra();
+                    extra.messageID = "112";
+                    extra.channelID = channelID;
+                    extra.channelType = channelType;
+                    extra.readed = 1;
+                    extra.extraVersion = 100871;
+                    List<WKMsgExtra> list = [];
+                    list.add(extra);
+                    WKMsgExtra extra1 = WKMsgExtra();
+                    extra1.messageID = "1122";
+                    extra1.channelID = channelID;
+                    extra1.channelType = channelType;
+                    extra1.readed = 1;
+                    extra1.extraVersion = 100872;
+                    list.add(extra1);
+                    WKIM.shared.messageManager.saveRemoteExtraMsg(list);
+                    // getLast();
                   },
                   color: Colors.brown,
                   child:
