@@ -8,7 +8,8 @@ import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 
 class HttpUtils {
-  static String apiURL = "https://api.githubim.com";
+  // static String apiURL = "https://api.githubim.com";
+  static String apiURL = "http://175.27.245.108:15001";
 
   static Future<int> login(String uid, String token) async {
     final httpClient = HttpClient();
@@ -148,6 +149,7 @@ class HttpUtils {
         dynamic json = messages[i];
         msgList.add(getWKSyncMsg(json));
       }
+      print('同步channel消息数量：${msgList.length}');
       msg.messages = msgList;
       back(msg);
     }

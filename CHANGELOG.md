@@ -108,3 +108,5 @@
  * fix: Compatibility message extension editing content is empty, parsing error issue
 ### 1.5.4
  * fix: Update sync channel message
+ ### 1.5.5
+ * fix: After successfully modifying the synchronization channel message, no problem was returned
