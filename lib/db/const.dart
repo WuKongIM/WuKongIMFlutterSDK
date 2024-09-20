@@ -5,6 +5,7 @@ import 'package:wukongimfluttersdk/entity/channel_member.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/entity/reminder.dart';
+import 'package:wukongimfluttersdk/model/wk_unknown_content.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
@@ -54,6 +55,8 @@ class WKDBConst {
       if (contentJson != null && contentJson != '') {
         msg.messageContent = WKIM.shared.messageManager
             .getMessageModel(msg.contentType, contentJson);
+      } else {
+        msg.messageContent = WKUnknownContent();
       }
     }
     if (msg.wkMsgExtra!.contentEdit != '') {

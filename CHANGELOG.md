@@ -106,3 +106,5 @@
  * fix: Add search channel and message method
 ### 1.5.3
  * fix: Compatibility message extension editing content is empty, parsing error issue
+### 1.5.4
+ * fix: Update sync channel message

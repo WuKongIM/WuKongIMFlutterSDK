@@ -507,6 +507,9 @@ class MessageDB {
             requestCount = 5;
             getOrSyncHistoryMessages(channelId, channelType, oldestOrderSeq,
                 contain, pullMode, limit, iGetOrSyncHistoryMsgBack, syncBack);
+          } else {
+            requestCount = 0;
+            iGetOrSyncHistoryMsgBack(list);
           }
         } else {
           requestCount = 0;
