@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
-import 'home.dart';
+import 'ui_conversation.dart';
 
 void main() {
   runApp(const MyApp());
@@ -74,7 +74,7 @@ class LoginDemoState extends State<LoginDemo> {
                           TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                     ),
                     Text(
-                      '悟空IM演示程序。当前SDK版本：V1.0.1',
+                      '悟空IM演示程序。当前SDK版本：V1.5.6',
                       textAlign: TextAlign.center,
                       style:
                           TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -92,7 +92,7 @@ class LoginDemoState extends State<LoginDemo> {
                 },
                 decoration: const InputDecoration(
                     labelText: 'API基地址',
-                    hintText: 'API基地址 默认【https://api.githubim.com】'),
+                    hintText: 'API基地址 默认【http://62.234.8.38:7090/v1】'),
               ),
             ),
             Padding(

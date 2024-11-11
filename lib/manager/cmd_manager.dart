@@ -13,6 +13,12 @@ class WKCMDManager {
   handleCMD(dynamic json) {
     String cmd = WKDBConst.readString(json, 'cmd');
     dynamic param = json['param'];
+    if (param != null && param is Map) {
+      if (!param.containsKey('channel_id')) {
+        param['channel_id'] = json['channel_id'];
+        param['channel_type'] = json['channel_type'];
+      }
+    }
     WKCMD wkcmd = WKCMD();
     wkcmd.cmd = cmd;
     wkcmd.param = param;

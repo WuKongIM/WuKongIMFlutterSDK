@@ -1,14 +1,16 @@
 import 'package:example/const.dart';
+import 'package:example/http.dart';
 import 'package:flutter/material.dart';
-import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/reminder.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
-import 'chat.dart';
-import 'contestation.dart';
-import 'input_dialog.dart';
+import 'popmenu_util.dart';
+import 'popup_item.dart';
+import 'ui_chat.dart';
+import 'conversation_msg.dart';
+import 'ui_input_dialog.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -112,7 +114,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
         if (msgList[i].msg.channelID == channel.channelID &&
             msgList[i].msg.channelType == channel.channelType) {
           msgList[i].msg.setWkChannel(channel);
-          msgList[i].channelAvatar = channel.avatar;
+          msgList[i].channelAvatar = "${HttpUtils.apiURL}/${channel.avatar}";
           msgList[i].channelName = channel.channelName;
           setState(() {});
           break;
@@ -173,7 +175,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
     if (uiConversation.channelAvatar == '') {
       uiConversation.msg.getWkChannel().then((channel) {
         if (channel != null) {
-          uiConversation.channelAvatar = channel.avatar;
+          uiConversation.channelAvatar =
+              "${HttpUtils.apiURL}/${channel.avatar}";
         }
       });
     }
@@ -189,6 +192,10 @@ class ListViewShowDataState extends State<ListViewShowData> {
           } else {
             uiConversation.channelName = channel.channelRemark;
           }
+          if (uiConversation.channelName == '') {
+            WKIM.shared.channelManager.fetchChannelInfo(
+                uiConversation.msg.channelID, uiConversation.msg.channelType);
+          }
         } else {
           WKIM.shared.channelManager.fetchChannelInfo(
               uiConversation.msg.channelID, uiConversation.msg.channelType);
@@ -200,7 +207,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
 
   Widget _buildRow(UIConversation uiMsg) {
     return Container(
-        margin: const EdgeInsets.all(10),
+        color: Colors.white,
+        padding: const EdgeInsets.all(10),
         child: Row(
           children: [
             Container(
@@ -282,7 +290,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 221, 221, 221),
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(255, 251, 246, 246),
         title: Text(_connectionStatusStr),
       ),
       body: ListView.builder(
@@ -290,6 +300,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
           itemCount: msgList.length,
           itemBuilder: (context, pos) {
             return GestureDetector(
+              onLongPressStart: (details) {
+                longClick(msgList[pos], context, details);
+              },
               onTap: () {
                 Navigator.push(
                   context,
@@ -315,46 +328,6 @@ class ListViewShowDataState extends State<ListViewShowData> {
         child: const Icon(Icons.add),
       ),
       persistentFooterButtons: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 240, 117, 2),
-          ),
-          onPressed: () {
-            WKIM.shared.conversationManager.clearAllRedDot();
-          },
-          child: const Text(
-            '清除未读',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 240, 2, 133),
-          ),
-          onPressed: () {
-            if (msgList.isEmpty) {
-              return;
-            }
-
-            List<WKReminder> list = [];
-            WKReminder reminder = WKReminder();
-            reminder.needUpload = 0;
-            reminder.type = WKMentionType.wkReminderTypeMentionMe;
-            reminder.data = '[有人@你]';
-            reminder.done = 0;
-            reminder.reminderID = 11;
-            reminder.version = 1;
-            reminder.publisher = "uid_1";
-            reminder.channelID = msgList[0].msg.channelID;
-            reminder.channelType = msgList[0].msg.channelType;
-            list.add(reminder);
-            WKIM.shared.reminderManager.saveOrUpdateReminders(list);
-          },
-          child: const Text(
-            '提醒项',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.red,
@@ -386,23 +359,57 @@ class ListViewShowDataState extends State<ListViewShowData> {
   _showDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext context) => InputDialog(
+      builder: (BuildContext _context) => InputDialog(
         title: const Text("创建新的聊天"),
-        back: (channelID, channelType) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChatPage(),
-              settings: RouteSettings(
-                arguments: ChatChannel(
-                  channelID,
-                  channelType,
+        back: (channelID, channelType) async {
+          bool isSuccess = await HttpUtils.createGroup(channelID);
+          if (isSuccess) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatPage(),
+                settings: RouteSettings(
+                  arguments: ChatChannel(
+                    channelID,
+                    channelType,
+                  ),
                 ),
               ),
-            ),
-          );
+            );
+          }
         },
       ),
     );
+  }
+
+  longClick(UIConversation uiMsg, BuildContext context,
+      LongPressStartDetails details) {
+    List<PopupItem> items = [];
+    if (uiMsg.msg.unreadCount > 0) {
+      items.add(PopupItem(
+        text: '设置已读',
+        onTap: () {
+          HttpUtils.clearUnread(uiMsg.msg.channelID, uiMsg.msg.channelType);
+        },
+      ));
+    }
+    items.add(PopupItem(
+        text: '测试提醒项',
+        onTap: () {
+          List<WKReminder> list = [];
+          WKReminder reminder = WKReminder();
+          reminder.needUpload = 0;
+          reminder.type = WKMentionType.wkReminderTypeMentionMe;
+          reminder.data = '[有人@你]';
+          reminder.done = 0;
+          reminder.reminderID = 11;
+          reminder.version = 1;
+          reminder.publisher = "uid_1";
+          reminder.channelID = uiMsg.msg.channelID;
+          reminder.channelType = uiMsg.msg.channelType;
+          list.add(reminder);
+          WKIM.shared.reminderManager.saveOrUpdateReminders(list);
+        }));
+    PopmenuUtil.showPopupMenu(context, details, items);
   }
 }

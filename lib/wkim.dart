@@ -1,4 +1,3 @@
-import 'package:wukongimfluttersdk/common/crypto_utils.dart';
 import 'package:wukongimfluttersdk/common/mode.dart';
 import 'package:wukongimfluttersdk/db/wk_db_helper.dart';
 import 'package:wukongimfluttersdk/manager/channel_manager.dart';
@@ -28,7 +27,7 @@ class WKIM {
 
   Future<bool> setup(Options opts) async {
     options = opts;
-    CryptoUtils.init();
+    deviceFlagApp = opts.deviceFlag;
     _initNormalMsgContent();
     if (isApp()) {
       bool result = await WKDBHelper.shared.init();
@@ -68,6 +67,7 @@ class WKIM {
     });
   }
 
+  @Deprecated('Use Options deviceFlag')
   void setDeviceFlag(int deviceFlag) {
     deviceFlagApp = deviceFlag;
   }

@@ -1,6 +1,5 @@
 import 'package:wukongimfluttersdk/entity/msg.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
-import 'package:wukongimfluttersdk/wkim.dart';
 
 import 'const.dart';
 
@@ -11,10 +10,6 @@ class UIMsg {
   String getShowContent() {
     if (wkMsg.messageContent == null) {
       return '';
-    }
-    var readCount = 0;
-    if (wkMsg.wkMsgExtra != null) {
-      readCount = wkMsg.wkMsgExtra!.readedCount;
     }
     return wkMsg.messageContent!.displayText();
     // return "${wkMsg.messageContent!.displayText()} [是否需要回执：${wkMsg.setting.receipt}]，[已读数量：$readCount]";

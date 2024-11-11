@@ -50,7 +50,7 @@ class WKMsg {
     _channelInfo = wkChannel;
   }
 
-  getChannelInfo() {
+  WKChannel? getChannelInfo() {
     return _channelInfo;
   }
 
@@ -58,7 +58,7 @@ class WKMsg {
     _memberOfFrom = wkChannelMember;
   }
 
-  getMemberOfFrom() {
+  WKChannelMember? getMemberOfFrom() {
     return _memberOfFrom;
   }
 
@@ -66,7 +66,7 @@ class WKMsg {
     _from = channel;
   }
 
-  getFrom() {
+  WKChannel? getFrom() {
     return _from;
   }
 }

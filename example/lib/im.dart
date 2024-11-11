@@ -1,13 +1,12 @@
 import 'package:example/const.dart';
 import 'package:wukongimfluttersdk/common/options.dart';
-import 'package:wukongimfluttersdk/entity/channel.dart';
 import 'package:wukongimfluttersdk/model/wk_image_content.dart';
 import 'package:wukongimfluttersdk/model/wk_video_content.dart';
 import 'package:wukongimfluttersdk/model/wk_voice_content.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
-import 'custom_message.dart';
+import 'order_message_content.dart';
 import 'http.dart';
 
 class IMUtils {
@@ -15,7 +14,7 @@ class IMUtils {
     bool result = await WKIM.shared
         .setup(Options.newDefault(UserInfo.uid, UserInfo.token));
     WKIM.shared.options.getAddr = (Function(String address) complete) async {
-      String ip = await HttpUtils.getIP();
+      String ip = await HttpUtils.getIP(UserInfo.uid);
       complete(ip);
     };
     if (result) {
@@ -24,57 +23,64 @@ class IMUtils {
     }
     // 注册自定义消息
     WKIM.shared.messageManager
-        .registerMsgContent(12, (data) => CustomMsg("").decodeJson(data));
+        .registerMsgContent(56, (data) => OrderMsg().decodeJson(data));
     return result;
   }
 
+  // 监听sdk事件
+  // 以下事件必须得实现
   static initListener() {
-    var imgs = [
-      "https://lmg.jj20.com/up/allimg/tx29/06052048151752929.png",
-      "https://pic.imeitou.com/uploads/allimg/2021061715/aqg1wx3nsds.jpg",
-      "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
-      "https://lmg.jj20.com/up/allimg/tx30/10121138219844229.jpg",
-      "https://lmg.jj20.com/up/allimg/tx28/430423183653303.jpg",
-      "https://lmg.jj20.com/up/allimg/tx23/520420024834916.jpg",
-      "https://himg.bdimg.com/sys/portraitn/item/public.1.a535a65d.tJe8MgWmP8zJ456B73Kzfg",
-      "https://img2.baidu.com/it/u=3324164588,1070151830&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=500",
-      "https://img1.baidu.com/it/u=3916753633,2634890492&fm=253&fmt=auto&app=138&f=JPEG?w=400&h=400",
-      "https://img0.baidu.com/it/u=4210586523,443489101&fm=253&fmt=auto&app=138&f=JPEG?w=304&h=304",
-      "https://img2.baidu.com/it/u=2559320899,1546883787&fm=253&fmt=auto&app=138&f=JPEG?w=441&h=499",
-      "https://img0.baidu.com/it/u=2952429745,3806929819&fm=253&fmt=auto&app=138&f=JPEG?w=380&h=380",
-      "https://img2.baidu.com/it/u=3783923022,668713258&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=500",
-    ];
-
+    // 监听同步消息扩展
+    WKIM.shared.cmdManager.addOnCmdListener('sys_im', (wkcmd) async {
+      if (wkcmd.cmd == 'messageRevoke') {
+        var channelID = wkcmd.param['channel_id'];
+        var channelType = wkcmd.param['channel_type'];
+        if (channelID != '') {
+          // 同步消息扩展
+          var maxVersion = await WKIM.shared.messageManager
+              .getMaxExtraVersionWithChannel(channelID, channelType);
+          HttpUtils.syncMsgExtra(channelID, channelType, maxVersion);
+        }
+      } else if (wkcmd.cmd == 'channelUpdate') {
+        var channelID = wkcmd.param['channel_id'];
+        var channelType = wkcmd.param['channel_type'];
+        if (channelID != '') {
+          if (channelType == WKChannelType.personal) {
+            // 同步个人信息
+            HttpUtils.getUserInfo(channelID);
+          } else if (channelType == WKChannelType.group) {
+            // 同步群信息
+            HttpUtils.getGroupInfo(channelID);
+          }
+        }
+      } else if (wkcmd.cmd == 'unreadClear') {
+        print('清空红点的cmd');
+        // 未读消息清除
+        var channelID = wkcmd.param['channel_id'];
+        var channelType = wkcmd.param['channel_type'];
+        var unread = wkcmd.param['unread'];
+        if (channelID != '') {
+          WKIM.shared.conversationManager
+              .updateRedDot(channelID, channelType, unread);
+        }
+      }
+    });
+    // 监听同步某个频道的消息
     WKIM.shared.messageManager.addOnSyncChannelMsgListener((channelID,
         channelType, startMessageSeq, endMessageSeq, limit, pullMode, back) {
-      // 同步某个频道的消息
       HttpUtils.syncChannelMsg(channelID, channelType, startMessageSeq,
           endMessageSeq, limit, pullMode, (p0) => back(p0));
     });
-    // 获取channel资料
+    // 监听获取channel资料（群/个人信息）
     WKIM.shared.channelManager
         .addOnGetChannelListener((channelId, channelType, back) {
-      print('获取频道资料');
       if (channelType == WKChannelType.personal) {
         // 获取个人资料
-        // 这里直接返回了
-        // todo 实际情况可通过API请求后返回
-        var channel = WKChannel(channelId, channelType);
-        channel.channelName = "【单聊】${channel.channelID}";
-        var index = channel.channelID.hashCode % imgs.length;
-        channel.avatar = imgs[index];
-        channel.remoteExtraMap = {'status': 1, 'notice': 'xx'};
-        channel.localExtra = {'localStatus': 1, 'localNotice': 'nxx'};
-        back(channel);
+        print('获取个人资料$channelId');
+        HttpUtils.getUserInfo(channelId);
       } else if (channelType == WKChannelType.group) {
         // 获取群资料
-        var channel = WKChannel(channelId, channelType);
-        channel.channelName = "【群聊】${channel.channelID}";
-        var index = channel.channelID.hashCode % imgs.length;
-        channel.avatar = imgs[index];
-        channel.remoteExtraMap = {'status': 2, 'notice': 'ss'};
-        channel.localExtra = {'localStatus': 2, 'localNotice': 'nss'};
-        back(channel);
+        HttpUtils.getGroupInfo(channelId);
       }
     });
     // 监听同步最近会话

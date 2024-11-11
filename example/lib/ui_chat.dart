@@ -1,4 +1,6 @@
 import 'package:example/const.dart';
+import 'package:example/http.dart';
+import 'package:example/order_message_content.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
 import 'package:wukongimfluttersdk/entity/msg.dart';
@@ -7,7 +9,9 @@ import 'package:wukongimfluttersdk/proto/proto.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
 import 'package:wukongimfluttersdk/wkim.dart';
 
+import 'chatview.dart';
 import 'msg.dart';
+import 'ui_input_dialog.dart';
 
 class ChatPage extends StatelessWidget {
   const ChatPage({super.key});
@@ -45,14 +49,8 @@ class ChatListDataState extends State<ChatList> {
     WKIM.shared.channelManager
         .getChannel(channelID, channelType)
         .then((channel) {
-      print(channel?.localExtra);
-      print(channel?.remoteExtraMap);
       WKIM.shared.channelManager.fetchChannelInfo(channelID, channelType);
-      if (channelType == WKChannelType.group) {
-        title = '${channel?.channelName}';
-      } else {
-        title = '${channel?.channelName}';
-      }
+      title = '${channel?.channelName}';
     });
   }
   List<UIMsg> msgList = [];
@@ -66,6 +64,20 @@ class ChatListDataState extends State<ChatList> {
   }
 
   initListener() {
+    // 监听刷新频道
+    WKIM.shared.channelManager.addOnRefreshListener('chat', (channel) {
+      if (channelID == channel.channelID) {
+        title = channel.channelName;
+      }
+      for (var i = 0; i < msgList.length; i++) {
+        if (msgList[i].wkMsg.fromUID == channel.channelID) {
+          msgList[i].wkMsg.setFrom(channel);
+        }
+      }
+      setState(() {});
+    });
+
+    // 监听发送消息入库返回
     WKIM.shared.messageManager.addOnMsgInsertedListener((wkMsg) {
       setState(() {
         msgList.add(UIMsg(wkMsg));
@@ -74,6 +86,8 @@ class ChatListDataState extends State<ChatList> {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       });
     });
+
+    // 监听新消息
     WKIM.shared.messageManager.addOnNewMsgListener('chat', (msgs) {
       setState(() {
         for (var i = 0; i < msgs.length; i++) {
@@ -90,6 +104,8 @@ class ChatListDataState extends State<ChatList> {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       });
     });
+
+    // 监听消息刷新
     WKIM.shared.messageManager.addOnRefreshMsgListener('chat', (wkMsg) {
       for (var i = 0; i < msgList.length; i++) {
         if (msgList[i].wkMsg.clientMsgNO == wkMsg.clientMsgNO) {
@@ -102,6 +118,19 @@ class ChatListDataState extends State<ChatList> {
       }
       setState(() {});
     });
+
+    // 监听删除消息
+    WKIM.shared.messageManager.addOnDeleteMsgListener('chat', (clientMsgNo) {
+      for (var i = 0; i < msgList.length; i++) {
+        if (msgList[i].wkMsg.clientMsgNO == clientMsgNo) {
+          setState(() {
+            msgList.removeAt(i);
+          });
+          break;
+        }
+      }
+    });
+
     // 清除聊天记录
     WKIM.shared.messageManager.addOnClearChannelMsgListener("chat",
         (channelId, channelType) {
@@ -178,67 +207,16 @@ class ChatListDataState extends State<ChatList> {
   }
 
   Widget _buildRow(UIMsg uiMsg) {
+    if (uiMsg.wkMsg.wkMsgExtra?.revoke == 1) {
+      return getRevokedView(uiMsg, context);
+    }
     if (uiMsg.wkMsg.fromUID == UserInfo.uid) {
       return Container(
         padding: const EdgeInsets.only(left: 0, top: 5, right: 0, bottom: 5),
         child: Row(
           children: [
-            Expanded(
-              child: Container(
-                padding:
-                    const EdgeInsets.only(left: 5, top: 3, right: 5, bottom: 3),
-                margin: const EdgeInsets.only(
-                    left: 60, top: 0, right: 5, bottom: 0),
-                decoration: const BoxDecoration(
-                    shape: BoxShape.rectangle,
-                    borderRadius: BorderRadius.all(Radius.circular(12)),
-                    color: Colors.blue),
-                alignment: Alignment.bottomRight,
-                child: Column(
-                  children: [
-                    Container(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        uiMsg.getShowContent(),
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Text(
-                          uiMsg.getShowTime(),
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 12),
-                        ),
-                        Image(
-                            image: AssetImage(uiMsg.getStatusIV()),
-                            width: 30,
-                            height: 30)
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Container(
-              decoration: const BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Color.fromARGB(255, 243, 33, 131)),
-              width: 50,
-              alignment: Alignment.center,
-              height: 50,
-              margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Text(
-                CommonUtils.getAvatar(uiMsg.wkMsg.fromUID),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
+            getSendView(uiMsg, context),
+            chatAvatar(uiMsg),
           ],
         ),
       );
@@ -246,62 +224,7 @@ class ChatListDataState extends State<ChatList> {
       return Container(
         padding: const EdgeInsets.only(left: 0, top: 5, right: 0, bottom: 5),
         child: Row(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Color.fromARGB(255, 215, 80, 1)),
-              width: 50,
-              alignment: Alignment.center,
-              height: 50,
-              margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Text(
-                CommonUtils.getAvatar(uiMsg.wkMsg.fromUID),
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-            Expanded(
-              child: Container(
-                alignment: Alignment.centerLeft,
-                margin: const EdgeInsets.only(
-                    left: 0, top: 0, right: 60, bottom: 0),
-                child: Container(
-                  padding: const EdgeInsets.only(
-                      left: 10, top: 3, right: 10, bottom: 3),
-                  decoration: const BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                      color: Color.fromARGB(255, 163, 33, 243)),
-                  child: Column(
-                    children: [
-                      Container(
-                        alignment: Alignment.topLeft,
-                        child: Text(
-                          uiMsg.getShowContent(),
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            uiMsg.getShowTime(),
-                            style: const TextStyle(
-                                color: Colors.grey, fontSize: 12),
-                          )
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            )
-          ],
+          children: [chatAvatar(uiMsg), getRecvView(uiMsg, context)],
         ),
       );
     }
@@ -315,23 +238,90 @@ class ChatListDataState extends State<ChatList> {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          MaterialButton(
-              child: const Text(
-                '清空记录',
-                style: TextStyle(color: Color.fromARGB(255, 4, 80, 194)),
-              ),
-              onPressed: () async {
-                var v = await WKIM.shared.messageManager
-                    .getMaxExtraVersionWithChannel(channelID, channelType);
-                print(v);
-                // WKIM.shared.messageManager
-                //     .clearWithChannel(channelID, channelType);
-              }),
+          PopupMenuButton<String>(
+            onSelected: (value) => {
+              if (value == '清空聊天记录')
+                {
+                  showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0),
+                          ),
+                          backgroundColor: Colors.white,
+                          title: const Text('确认清空聊天记录？'),
+                          content: const Text('清空后将无法恢复，确定要清空吗?'),
+                          actions: <Widget>[
+                            GestureDetector(
+                              child: const Text(
+                                '取消',
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 113, 112, 112),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                            GestureDetector(
+                              child: Container(
+                                margin: const EdgeInsets.only(left: 20),
+                                child: const Text('确认',
+                                    style: TextStyle(
+                                        color: Colors.red,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                HttpUtils.clearChannelMsg(
+                                    channelID, channelType);
+                              },
+                            ),
+                          ],
+                        );
+                      })
+                }
+              else if (value == '修改群名称')
+                {showUpdateChannelNameDialog(context)}
+            },
+            itemBuilder: (context) {
+              return getPopuMenuItems();
+            },
+          )
         ],
       ),
+      floatingActionButton: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            FloatingActionButton(
+              heroTag: 'previous',
+              onPressed: () {
+                getPrevious();
+              },
+              tooltip: '上一页',
+              backgroundColor: Colors.transparent,
+              child: const Icon(Icons.vertical_align_top),
+            ),
+            const SizedBox(height: 10.0),
+            FloatingActionButton(
+              heroTag: 'next',
+              onPressed: () {
+                getLast();
+              },
+              backgroundColor: Colors.transparent,
+              tooltip: '下一页',
+              child: const Icon(Icons.vertical_align_bottom),
+            ),
+            const SizedBox(height: 20.0),
+          ]),
       body: Container(
         padding:
             const EdgeInsets.only(left: 10, top: 10, right: 10, bottom: 10),
+        color: const Color.fromARGB(255, 221, 221, 221),
         child: Column(
           children: [
             Expanded(
@@ -356,36 +346,22 @@ class ChatListDataState extends State<ChatList> {
                 ),
                 MaterialButton(
                   onPressed: () {
-                    getPrevious();
+                    DateTime now = DateTime.now();
+                    var orderMsg = OrderMsg();
+                    orderMsg.title = "问界M9纯电版 旗舰SUV 2024款 3.0L 自动 豪华版";
+                    orderMsg.num = 300;
+                    orderMsg.price = 20;
+                    orderMsg.orderNo = '${now.millisecondsSinceEpoch}';
+                    orderMsg.imgUrl =
+                        "https://img0.baidu.com/it/u=4245434814,3643211003&fm=253&fmt=auto&app=120&f=JPEG?w=674&h=500";
+                    WKIM.shared.messageManager.sendMessage(
+                        orderMsg, WKChannel(channelID, channelType));
                   },
                   color: Colors.brown,
-                  child:
-                      const Text("上一页", style: TextStyle(color: Colors.white)),
+                  child: const Text("自定义消息",
+                      style: TextStyle(color: Colors.white)),
                 ),
-                MaterialButton(
-                  onPressed: () {
-                    WKMsgExtra extra = WKMsgExtra();
-                    extra.messageID = "112";
-                    extra.channelID = channelID;
-                    extra.channelType = channelType;
-                    extra.readed = 1;
-                    extra.extraVersion = 100871;
-                    List<WKMsgExtra> list = [];
-                    list.add(extra);
-                    WKMsgExtra extra1 = WKMsgExtra();
-                    extra1.messageID = "1122";
-                    extra1.channelID = channelID;
-                    extra1.channelType = channelType;
-                    extra1.readed = 1;
-                    extra1.extraVersion = 100872;
-                    list.add(extra1);
-                    WKIM.shared.messageManager.saveRemoteExtraMsg(list);
-                    // getLast();
-                  },
-                  color: Colors.brown,
-                  child:
-                      const Text("下一页", style: TextStyle(color: Colors.white)),
-                ),
+                const SizedBox(width: 10.0),
                 MaterialButton(
                   onPressed: () {
                     if (content != '') {
@@ -458,10 +434,42 @@ class ChatListDataState extends State<ChatList> {
     );
   }
 
+  getPopuMenuItems() {
+    var list = <PopupMenuItem<String>>[];
+    list.add(const PopupMenuItem<String>(
+      value: '清空聊天记录',
+      child: Text('清空聊天记录'),
+    ));
+    if (channelType == WKChannelType.group) {
+      list.add(const PopupMenuItem<String>(
+        value: '修改群名称',
+        child: Text('修改群名称'),
+      ));
+    }
+    return list;
+  }
+
+  showUpdateChannelNameDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => InputDialog(
+        title: const Text("请输入群名称"),
+        isOnlyText: true,
+        hintText: '请输入群名称',
+        back: (name, channelType) {
+          HttpUtils.updateGroupName(channelID, name);
+        },
+      ),
+    );
+  }
+
   @override
   void dispose() {
     super.dispose();
+    // 移出监听
     WKIM.shared.messageManager.removeNewMsgListener('chat');
     WKIM.shared.messageManager.removeOnRefreshMsgListener('chat');
+    WKIM.shared.messageManager.removeDeleteMsgListener('chat');
+    WKIM.shared.channelManager.removeOnRefreshListener('chat');
   }
 }

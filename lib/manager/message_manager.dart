@@ -741,6 +741,9 @@ class WKMessageManager {
       map['order_seq'] = orderSeq;
       MessageDB.shared.updateMsgWithField(map, clientSeq);
       setRefreshMsg(wkMsg);
+
+      // 更新最近会话
+      WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
     }
   }
 

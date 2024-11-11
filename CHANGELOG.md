@@ -110,3 +110,7 @@
  * fix: Update sync channel message
  ### 1.5.5
  * fix: After successfully modifying the synchronization channel message, no problem was returned
+ ### 1.5.6
+ * fix: Optimize reconnection and resend messages
+ ### 1.5.7
+ * fix: Optimize channel fields in cmd messages

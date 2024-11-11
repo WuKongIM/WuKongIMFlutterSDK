@@ -36,17 +36,18 @@ class _WKSocket {
     _isListening = false;
     _instance = null;
     try {
-      _socket?.destroy();
+      _socket?.close();
+      // _socket?.destroy();
     } finally {
       _socket = null; // 现在可以将 _socket 设置为 null
     }
   }
 
-  void send(Uint8List data) {
+  send(Uint8List data) {
     try {
       if (_socket?.remotePort != null) {
         _socket?.add(data); // 使用安全调用操作符
-        _socket?.flush();
+        return _socket?.flush();
       }
     } catch (e) {
       Logs.debug('发送消息错误$e');
@@ -78,7 +79,7 @@ class WKConnectionManager {
   Timer? checkNetworkTimer;
   final heartIntervalSecond = const Duration(seconds: 60);
   final checkNetworkSecond = const Duration(seconds: 1);
-  final HashMap<int, SendingMsg> _sendingMsgMap = HashMap();
+  final LinkedHashMap<int, SendingMsg> _sendingMsgMap = LinkedHashMap();
   HashMap<String, Function(int, int?, ConnectionInfo?)>? _connectionListenerMap;
   _WKSocket? _socket;
   addOnConnectionStatus(String key, Function(int, int?, ConnectionInfo?) back) {
@@ -270,15 +271,18 @@ class WKConnectionManager {
         setConnectionStatus(WKConnectStatus.success,
             reasoncode: connackPacket.reasonCode,
             info: ConnectionInfo(connackPacket.nodeId));
+        // Future.delayed(Duration(seconds: 1), () {
+
+        // });
         try {
           WKIM.shared.conversationManager.setSyncConversation(() {
             setConnectionStatus(WKConnectStatus.syncCompleted);
+            _resendMsg();
           });
         } catch (e) {
           Logs.error(e.toString());
         }
 
-        _resendMsg();
         _startHeartTimer();
         _startCheckNetworkTimer();
       } else {
@@ -287,6 +291,7 @@ class WKConnectionManager {
         Logs.debug('连接失败！错误->${connackPacket.reasonCode}');
       }
     } else if (packet.header.packetType == PacketType.recv) {
+      Logs.debug('收到消息');
       var recvPacket = packet as RecvPacket;
       _verifyRecvMsg(recvPacket);
       if (!recvPacket.header.noPersist) {
@@ -334,6 +339,7 @@ class WKConnectionManager {
   }
 
   _sendConnectPacket() async {
+    CryptoUtils.init();
     var deviceID = await _getDeviceID();
     var connectPacket = ConnectPacket(
         uid: WKIM.shared.options.uid!,
@@ -346,10 +352,10 @@ class WKConnectionManager {
     _sendPacket(connectPacket);
   }
 
-  _sendPacket(Packet packet) {
+  _sendPacket(Packet packet) async {
     var data = WKIM.shared.options.proto.encode(packet);
     if (!isReconnection) {
-      _socket?.send(data);
+      await _socket?.send(data);
     }
   }
 
@@ -366,8 +372,8 @@ class WKConnectionManager {
           setConnectionStatus(WKConnectStatus.noNetwork);
         } else {
           if (isReconnection) {
-            connect();
             isReconnection = false;
+            connect();
           }
         }
       });
@@ -519,13 +525,13 @@ class WKConnectionManager {
     return isDelete;
   }
 
-  _resendMsg() {
+  _resendMsg() async {
     _removeSendingMsg();
     if (_sendingMsgMap.isNotEmpty) {
-      final it = _sendingMsgMap.entries.iterator;
-      while (it.moveNext()) {
-        if (it.current.value.isCanResend) {
-          _sendPacket(it.current.value.sendPacket);
+      for (var entry in _sendingMsgMap.entries) {
+        if (entry.value.isCanResend) {
+          Logs.debug("重发消息：${entry.value.sendPacket.clientSeq}");
+          await _sendPacket(entry.value.sendPacket);
         }
       }
     }
