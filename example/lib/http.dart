@@ -277,6 +277,7 @@ class HttpUtils {
         'channel_id': channelId,
         'channel_type': channelType,
         'client_msg_no': clientMsgNo,
+        'message_seq': msgSeq,
         'message_id': msgId,
       });
       if (response.statusCode == HttpStatus.ok) {
@@ -301,7 +302,7 @@ class HttpUtils {
         return httpClient;
       };
     try {
-      final response = await dio.delete('$apiURL/message', data: {
+      final response = await dio.post('$apiURL/message/delete', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
@@ -350,6 +351,7 @@ class HttpUtils {
             extra.readed = extraJson['readed'] ?? 0;
             extra.readedCount = extraJson['readed_count'] ?? 0;
             extra.isMutualDeleted = extraJson['is_mutual_deleted'] ?? 0;
+            extra.extraVersion = extraJson['extra_version'] ?? 0;
             list.add(extra);
           }
           WKIM.shared.messageManager.saveRemoteExtraMsg(list);
