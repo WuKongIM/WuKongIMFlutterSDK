@@ -89,8 +89,12 @@ class ChatListDataState extends State<ChatList> {
 
     // 监听新消息
     WKIM.shared.messageManager.addOnNewMsgListener('chat', (msgs) {
+      print('收到${msgs.length}条新消息');
       setState(() {
         for (var i = 0; i < msgs.length; i++) {
+          if (msgs[i].channelID != channelID) {
+            continue;
+          }
           if (msgs[i].setting.receipt == 1) {
             // 消息需要回执
             testReceipt(msgs[i]);

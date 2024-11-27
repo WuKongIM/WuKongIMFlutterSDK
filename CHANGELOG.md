@@ -114,3 +114,5 @@
  * fix: Optimize reconnection and resend messages
  ### 1.5.7
  * fix: Optimize channel fields in cmd messages
+ ### 1.5.8
+ * fix: Add query total unread quantity and query followed channels

@@ -22,6 +22,12 @@ class WKChannelManager {
     }
   }
 
+  Future<List<WKChannel>> getWithFollowAndStatus(
+      int channelType, int follow, int status) async {
+    return ChannelDB.shared
+        .queryWithFollowAndStatus(channelType, follow, status);
+  }
+
   Future<WKChannel?> getChannel(String channelID, int channelType) async {
     WKChannel? channel;
     if (_list.isNotEmpty) {

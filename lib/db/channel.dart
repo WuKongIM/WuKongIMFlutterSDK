@@ -142,6 +142,33 @@ class ChannelDB {
     return list;
   }
 
+  Future<List<WKChannel>> queryWithFollowAndStatus(
+      int channelType, int follow, int status) async {
+    List<WKChannel> list = [];
+    var sql =
+        "select * from ${WKDBConst.tableChannel} where channel_type=? and follow=? and status=? and is_deleted=0";
+    List<Map<String, Object?>> results = await WKDBHelper.shared
+        .getDB()!
+        .rawQuery(sql, [channelType, follow, status]);
+    for (Map<String, Object?> data in results) {
+      var channel = WKDBConst.serializeChannel(data);
+      list.add(channel);
+    }
+    return list;
+  }
+
+  Future<List<WKChannel>> queryWithMuted() async {
+    List<WKChannel> list = [];
+    var sql = "select * from ${WKDBConst.tableChannel} where mute=1";
+    List<Map<String, Object?>> results =
+        await WKDBHelper.shared.getDB()!.rawQuery(sql);
+    for (Map<String, Object?> data in results) {
+      var channel = WKDBConst.serializeChannel(data);
+      list.add(channel);
+    }
+    return list;
+  }
+
   Future<List<WKChannel>> searchWithChannelTypeAndFollow(
       String keyword, int channelType, int follow) async {
     List<WKChannel> list = [];

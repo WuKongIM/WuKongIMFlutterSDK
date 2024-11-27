@@ -58,6 +58,10 @@ class WKConversationManager {
     return uiMsg;
   }
 
+  Future<int> getAllUnreadCount() async {
+    return ConversationDB.shared.queryAllUnreadCount();
+  }
+
   Future<int> getExtraMaxVersion() async {
     return ConversationDB.shared.queryExtraMaxVersion();
   }
