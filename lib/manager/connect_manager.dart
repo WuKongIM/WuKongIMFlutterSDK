@@ -3,7 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:connectivity/connectivity.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
@@ -82,6 +82,9 @@ class WKConnectionManager {
   final LinkedHashMap<int, SendingMsg> _sendingMsgMap = LinkedHashMap();
   HashMap<String, Function(int, int?, ConnectionInfo?)>? _connectionListenerMap;
   _WKSocket? _socket;
+  ConnectivityResult lastConnectivityResult = ConnectivityResult.none;
+  final Connectivity _connectivity = Connectivity();
+
   addOnConnectionStatus(String key, Function(int, int?, ConnectionInfo?) back) {
     _connectionListenerMap ??= HashMap();
     _connectionListenerMap![key] = back;
@@ -362,25 +365,33 @@ class WKConnectionManager {
   _startCheckNetworkTimer() {
     _stopCheckNetworkTimer();
     checkNetworkTimer = Timer.periodic(checkNetworkSecond, (timer) {
-      Future<ConnectivityResult> connectivityResult =
-          (Connectivity().checkConnectivity());
+      var connectivityResult = _connectivity.checkConnectivity();
       connectivityResult.then((value) {
-        if (value == ConnectivityResult.none) {
+        if (value.contains(ConnectivityResult.none)) {
           isReconnection = true;
           Logs.debug('网络断开了');
           _checkSedingMsg();
           setConnectionStatus(WKConnectStatus.noNetwork);
         } else {
+          if (!value.contains(lastConnectivityResult)) {
+            isReconnection = true;
+          }
           if (isReconnection) {
             isReconnection = false;
             connect();
           }
+        }
+        if (value.isNotEmpty) {
+          lastConnectivityResult = value[0];
         }
       });
     });
   }
 
   _stopCheckNetworkTimer() {
+    // if (_connectivitySubscription != null) {
+    // _connectivitySubscription?.cancel();
+    // }
     if (checkNetworkTimer != null) {
       checkNetworkTimer!.cancel();
       checkNetworkTimer = null;

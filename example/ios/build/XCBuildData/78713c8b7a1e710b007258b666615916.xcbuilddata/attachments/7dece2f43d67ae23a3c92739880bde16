@@ -1,0 +1,10 @@
+framework module encryptions {
+  umbrella header "encryptions-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module encryptions.__Swift {
+  exclude header "encryptions-Swift.h"
+}

@@ -1,0 +1,25 @@
+Target dependency graph (10 targets)
+Target 'Pods-RunnerTests' in project 'Pods'
+➜ Explicit dependency on target 'Pods-Runner' in project 'Pods'
+Target 'Pods-Runner' in project 'Pods'
+➜ Explicit dependency on target 'Flutter' in project 'Pods'
+➜ Explicit dependency on target 'Reachability' in project 'Pods'
+➜ Explicit dependency on target 'connectivity' in project 'Pods'
+➜ Explicit dependency on target 'encryptions' in project 'Pods'
+➜ Explicit dependency on target 'shared_preferences_foundation' in project 'Pods'
+➜ Explicit dependency on target 'sqflite' in project 'Pods'
+Target 'sqflite' in project 'Pods'
+➜ Explicit dependency on target 'Flutter' in project 'Pods'
+➜ Explicit dependency on target 'sqflite-sqflite_darwin_privacy' in project 'Pods'
+Target 'sqflite-sqflite_darwin_privacy' in project 'Pods' (no dependencies)
+Target 'shared_preferences_foundation' in project 'Pods'
+➜ Explicit dependency on target 'Flutter' in project 'Pods'
+➜ Explicit dependency on target 'shared_preferences_foundation-shared_preferences_foundation_privacy' in project 'Pods'
+Target 'shared_preferences_foundation-shared_preferences_foundation_privacy' in project 'Pods' (no dependencies)
+Target 'encryptions' in project 'Pods'
+➜ Explicit dependency on target 'Flutter' in project 'Pods'
+Target 'connectivity' in project 'Pods'
+➜ Explicit dependency on target 'Flutter' in project 'Pods'
+➜ Explicit dependency on target 'Reachability' in project 'Pods'
+Target 'Reachability' in project 'Pods' (no dependencies)
+Target 'Flutter' in project 'Pods' (no dependencies)

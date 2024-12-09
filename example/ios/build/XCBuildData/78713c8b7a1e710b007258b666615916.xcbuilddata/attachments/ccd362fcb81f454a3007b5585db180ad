@@ -1,0 +1,23 @@
+{
+  'version': 0,
+  'use-external-names': 'false',
+  'case-sensitive': 'false',
+  'roots': [{
+    'type': 'directory',
+    'name': "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Release-iphoneos/encryptions/encryptions.framework/Modules"
+    'contents': [{
+      'type': 'file',
+      'name': "module.modulemap",
+      'external-contents': "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/unextended-module.modulemap",
+    }]
+    },
+    {
+    'type': 'directory',
+    'name': "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Release-iphoneos/encryptions/encryptions.framework/Headers"
+    'contents': [{
+      'type': 'file',
+      'name': "encryptions-Swift.h",
+      'external-contents': "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/unextended-interface-header.h",
+    }]
+    }]
+}

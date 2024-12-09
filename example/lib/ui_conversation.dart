@@ -45,6 +45,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
   }
 
   var _connectionStatusStr = '';
+  var allUnreadCount = 0;
   var nodeId = 0;
   _initListener() {
     // 监听连接状态事件
@@ -71,6 +72,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
       if (mounted) {
         setState(() {});
       }
+    });
+    WKIM.shared.conversationManager.getAllUnreadCount().then((value) {
+      allUnreadCount = value;
     });
     WKIM.shared.conversationManager
         .addOnClearAllRedDotListener("chat_conversation", () {
@@ -293,7 +297,15 @@ class ListViewShowDataState extends State<ListViewShowData> {
       backgroundColor: const Color.fromARGB(255, 221, 221, 221),
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 251, 246, 246),
-        title: Text(_connectionStatusStr),
+        title: Column(
+          children: [
+            Text(_connectionStatusStr),
+            Text(
+              '未读消息数量($allUnreadCount)',
+              style: const TextStyle(color: Colors.black, fontSize: 16),
+            )
+          ],
+        ),
       ),
       body: ListView.builder(
           shrinkWrap: true,

@@ -116,3 +116,5 @@
  * fix: Optimize channel fields in cmd messages
  ### 1.5.8
  * fix: Add query total unread quantity and query followed channels
+ ### 1.5.9
+ * fix: Modify network monitoring

@@ -1,0 +1,20 @@
+{
+  "" : {
+    "const-values" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master.swiftconstvalues",
+    "dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master.d",
+    "diagnostics" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master.dia",
+    "emit-module-dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master-emit-module.dia",
+    "swift-dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/shared_preferences_foundation-master.swiftdeps"
+  },
+  "/Users/songlun/.pub-cache/hosted/pub.flutter-io.cn/shared_preferences_foundation-2.5.3/darwin/shared_preferences_foundation/Sources/shared_preferences_foundation/SharedPreferencesPlugin.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/SharedPreferencesPlugin.o",
+    "llvm-bc" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/SharedPreferencesPlugin.bc",
+    "object" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/SharedPreferencesPlugin.o"
+  },
+  "/Users/songlun/.pub-cache/hosted/pub.flutter-io.cn/shared_preferences_foundation-2.5.3/darwin/shared_preferences_foundation/Sources/shared_preferences_foundation/messages.g.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/messages.g.o",
+    "llvm-bc" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/messages.g.bc",
+    "object" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/shared_preferences_foundation.build/Objects-normal/arm64/messages.g.o"
+  }
+}

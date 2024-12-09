@@ -1,0 +1,25 @@
+{
+  "" : {
+    "const-values" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master.swiftconstvalues",
+    "dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master.d",
+    "diagnostics" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master.dia",
+    "emit-module-dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master-emit-module.dia",
+    "swift-dependencies" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/encryptions-master.swiftdeps"
+  },
+  "/Users/songlun/.pub-cache/hosted/pub.flutter-io.cn/encryptions-1.1.0+1/ios/Classes/Argon2.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Argon2-b8cc50e0f54b8ec495f33f1512a178bf.o",
+    "llvm-bc" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Argon2-b8cc50e0f54b8ec495f33f1512a178bf.bc",
+    "object" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Argon2-b8cc50e0f54b8ec495f33f1512a178bf.o"
+  },
+  "/Users/songlun/.pub-cache/hosted/pub.flutter-io.cn/encryptions-1.1.0+1/ios/Classes/Cipher.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Cipher.o",
+    "llvm-bc" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Cipher.bc",
+    "object" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/Cipher.o"
+  },
+  "/Users/songlun/.pub-cache/hosted/pub.flutter-io.cn/encryptions-1.1.0+1/ios/Classes/SwiftEncryptionsPlugin.swift" : {
+    "index-unit-output-path" : "/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/SwiftEncryptionsPlugin.o",
+    "llvm-bc" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/SwiftEncryptionsPlugin.bc",
+    "object" : "/Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/build/Pods.build/Release-iphoneos/encryptions.build/Objects-normal/arm64/SwiftEncryptionsPlugin.o"
+  }
+}

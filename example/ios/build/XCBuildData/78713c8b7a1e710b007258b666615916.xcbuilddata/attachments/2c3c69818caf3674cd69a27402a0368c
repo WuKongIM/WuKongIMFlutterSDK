@@ -1,0 +1,11 @@
+framework module encryptions {
+  umbrella header "encryptions-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module encryptions.Swift {
+  header "encryptions-Swift.h"
+  requires objc
+}
