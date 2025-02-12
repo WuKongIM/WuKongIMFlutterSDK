@@ -118,3 +118,5 @@
  * fix: Add query total unread quantity and query followed channels
  ### 1.5.9
  * fix: Modify network monitoring
+ ### 1.6.0
+ * fix: Error in modifying the channel extension data synchronized to the most recent session
