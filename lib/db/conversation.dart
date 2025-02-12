@@ -32,6 +32,9 @@ class ConversationDB {
       for (Map<String, Object?> data in results) {
         WKConversationMsg msg = WKDBConst.serializeCoversation(data);
         WKChannel wkChannel = WKDBConst.serializeChannel(data);
+        wkChannel.remoteExtraMap =
+            WKDBConst.readDynamic(data, 'channel_remote_extra');
+        wkChannel.localExtra = WKDBConst.readDynamic(data, 'channel_extra');
         WKUIConversationMsg uiMsg = getUIMsg(msg);
         uiMsg.setWkChannel(wkChannel);
         list.add(uiMsg);
