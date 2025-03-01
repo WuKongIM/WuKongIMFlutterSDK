@@ -118,3 +118,5 @@
  * fix: Add query total unread quantity and query followed channels
  ### 1.5.9
  * fix: Modify network monitoring
+ ### 1.6.1
+ * fix: 修复网络切换时有时无法连接问题

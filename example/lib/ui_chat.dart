@@ -307,7 +307,7 @@ class ChatListDataState extends State<ChatList> {
                 getPrevious();
               },
               tooltip: '上一页',
-              backgroundColor: Colors.transparent,
+              backgroundColor: Colors.white,
               child: const Icon(Icons.vertical_align_top),
             ),
             const SizedBox(height: 10.0),
@@ -316,11 +316,11 @@ class ChatListDataState extends State<ChatList> {
               onPressed: () {
                 getLast();
               },
-              backgroundColor: Colors.transparent,
+              backgroundColor: Colors.white,
               tooltip: '下一页',
               child: const Icon(Icons.vertical_align_bottom),
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 70.0),
           ]),
       body: Container(
         padding:

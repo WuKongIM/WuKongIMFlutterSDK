@@ -55,10 +55,15 @@ class HttpUtils {
         return httpClient;
       };
     String ip = '';
-    final response = await dio.get('$apiURL/users/$uid/route');
-    if (response.statusCode == HttpStatus.ok) {
-      ip = response.data['tcp_addr'];
+    try {
+      final response = await dio.get('$apiURL/users/$uid/route');
+      if (response.statusCode == HttpStatus.ok) {
+        ip = response.data['tcp_addr'];
+      }
+    } catch (e) {
+      ip = '';
     }
+
     return ip;
   }
 

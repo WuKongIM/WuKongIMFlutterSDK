@@ -137,14 +137,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.3"
-  encryptions:
-    dependency: transitive
-    description:
-      name: encryptions
-      sha256: "81396e82751cead8d4c57c10594f6d6c223e8d45b11b0dd9e5741cf2430b6e59"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0+1"
   fake_async:
     dependency: transitive
     description:
@@ -557,21 +549,29 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  web_socket:
+    dependency: transitive
+    description:
+      name: web_socket
+      sha256: "3c12d96c0c9a4eec095246debcea7b86c0324f22df69893d538fcc6f1b8cce83"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
   web_socket_channel:
     dependency: transitive
     description:
       name: web_socket_channel
-      sha256: d88238e5eac9a42bb43ca4e721edba3c08c6354d4a53063afaa568516217621b
+      sha256: "0b8e2457400d8a859b7b2030786835a28a8e80836ef64402abef392ff4f1d0e5"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.0"
+    version: "3.0.2"
   wukongimfluttersdk:
     dependency: "direct main"
     description:
       path: ".."
       relative: true
     source: path
-    version: "1.5.8"
+    version: "1.5.9"
   x25519:
     dependency: transitive
     description:

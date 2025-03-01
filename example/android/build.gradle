@@ -5,16 +5,16 @@ allprojects {
     }
 }
  
-subprojects {
-    afterEvaluate { project ->
-        if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
-            println "project: ${project.name} Namespace get: ${project.android.namespace}"
-            def packageName = project.android.namespace ?: project.android.defaultConfig.applicationId ?: project.android.sourceSets.main.manifest.srcFile.text.find(/package="([^"]*)"/) ?: project.group
-            project.android.namespace = packageName
-            println "Namespace set to: ${packageName} for project: ${project.name}"
-        }
-    }
-}
+// subprojects {
+//     afterEvaluate { project ->
+//         if (project.plugins.hasPlugin('com.android.library') || project.plugins.hasPlugin('com.android.application')) {
+//             println "project: ${project.name} Namespace get: ${project.android.namespace}"
+//             def packageName = project.android.namespace ?: project.android.defaultConfig.applicationId ?: project.android.sourceSets.main.manifest.srcFile.text.find(/package="([^"]*)"/) ?: project.group
+//             project.android.namespace = packageName
+//             println "Namespace set to: ${packageName} for project: ${project.name}"
+//         }
+//     }
+// }
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"

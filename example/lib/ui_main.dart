@@ -19,10 +19,10 @@ void main() {
     // AppLifecycleState.detached
     if (msg == "AppLifecycleState.paused") {
       print("应用在后台");
-      //  WKIM.shared.connectionManager.disconnect(false);
+      WKIM.shared.connectionManager.disconnect(false);
     } else if (msg == "AppLifecycleState.resumed") {
       print("应用在前台");
-      //   WKIM.shared.connectionManager.connect();
+      WKIM.shared.connectionManager.connect();
     }
     return msg;
   });

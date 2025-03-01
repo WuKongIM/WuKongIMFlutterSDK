@@ -59,8 +59,8 @@ class _WKSocket {
       _socket!.listen(onData, onError: (err) {
         Logs.debug('socket断开了${err.toString()}');
       }, onDone: () {
-        close(); // 关闭和重置 Socket 连接
-        error();
+        // close(); // 关闭和重置 Socket 连接
+        // error();
       });
       _isListening = true;
     }
@@ -72,8 +72,10 @@ class WKConnectionManager {
   static final WKConnectionManager _instance =
       WKConnectionManager._privateConstructor();
   static WKConnectionManager get shared => _instance;
-  bool _isLogout = false;
+  // bool _isLogout = false;
+  bool isDisconnection = false;
   bool isReconnection = false;
+  bool isNetworkUnavailable = false;
   final int reconnMilliseconds = 1500;
   Timer? heartTimer;
   Timer? checkNetworkTimer;
@@ -82,7 +84,7 @@ class WKConnectionManager {
   final LinkedHashMap<int, SendingMsg> _sendingMsgMap = LinkedHashMap();
   HashMap<String, Function(int, int?, ConnectionInfo?)>? _connectionListenerMap;
   _WKSocket? _socket;
-  ConnectivityResult lastConnectivityResult = ConnectivityResult.none;
+  ConnectivityResult? lastConnectivityResult;
   final Connectivity _connectivity = Connectivity();
 
   addOnConnectionStatus(String key, Function(int, int?, ConnectionInfo?) back) {
@@ -117,8 +119,11 @@ class WKConnectionManager {
       Logs.error("没有初始化uid或token");
       return;
     }
-    _isLogout = false;
-    disconnect(_isLogout);
+    if (isNetworkUnavailable) {
+      return;
+    }
+    disconnect(false);
+    isDisconnection = false;
     if (WKIM.shared.options.getAddr != null) {
       WKIM.shared.options.getAddr!((String addr) {
         _socketConnect(addr);
@@ -129,7 +134,7 @@ class WKConnectionManager {
   }
 
   disconnect(bool isLogout) {
-    _isLogout = true;
+    isDisconnection = true;
     if (_socket != null) {
       _socket!.close();
     }
@@ -146,6 +151,10 @@ class WKConnectionManager {
 
   _socketConnect(String addr) {
     Logs.info("连接地址--->$addr");
+    if (addr == '') {
+      _connectFail('连接地址为空');
+      return;
+    }
     var addrs = addr.split(":");
     var host = addrs[0];
     var port = addrs[1];
@@ -172,7 +181,7 @@ class WKConnectionManager {
       _cutDatas(data);
       // _decodePacket(data);
     }, () {
-      if (_isLogout) {
+      if (isDisconnection) {
         Logs.debug("登出了");
         return;
       }
@@ -369,11 +378,15 @@ class WKConnectionManager {
       connectivityResult.then((value) {
         if (value.contains(ConnectivityResult.none)) {
           isReconnection = true;
+          isNetworkUnavailable = true;
           Logs.debug('网络断开了');
           _checkSedingMsg();
           setConnectionStatus(WKConnectStatus.noNetwork);
+          lastConnectivityResult = ConnectivityResult.none;
         } else {
-          if (!value.contains(lastConnectivityResult)) {
+          isNetworkUnavailable = false;
+          if (lastConnectivityResult != null &&
+              !value.contains(lastConnectivityResult)) {
             isReconnection = true;
           }
           if (isReconnection) {

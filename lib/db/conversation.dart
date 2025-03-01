@@ -67,6 +67,7 @@ class ConversationDB {
           WKDBConst.tableConversation, getMap(conversationMsg, false),
           conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
+      conversationMsg.localExtraMap ??= lastMsg.localExtraMap;
       conversationMsg.unreadCount =
           lastMsg.unreadCount + conversationMsg.unreadCount;
       row = await WKDBHelper.shared.getDB()!.update(
@@ -298,6 +299,7 @@ class ConversationDB {
     msg.channelID = conversationMsg.channelID;
     msg.channelType = conversationMsg.channelType;
     msg.isDeleted = conversationMsg.isDeleted;
+    msg.localExtraMap = conversationMsg.localExtraMap;
     msg.parentChannelID = conversationMsg.parentChannelID;
     msg.parentChannelType = conversationMsg.parentChannelType;
     msg.setRemoteMsgExtra(conversationMsg.msgExtra);
