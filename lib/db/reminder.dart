@@ -34,15 +34,17 @@ class ReminderDB {
   Future<List<WKReminder>> queryWithChannel(
       String channelID, int channelType, int done) async {
     List<WKReminder> list = [];
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
-        WKDBConst.tableReminders,
-        where: "channel_id=? and channel_type=? and done=?",
-        whereArgs: [channelID, channelType, done],
-        orderBy: "message_seq desc");
-    if (results.isNotEmpty) {
-      for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeReminder(data));
-      }
+    List<Map<String, Object?>>? results = await WKDBHelper.shared
+        .getDB()
+        ?.query(WKDBConst.tableReminders,
+            where: "channel_id=? and channel_type=? and done=?",
+            whereArgs: [channelID, channelType, done],
+            orderBy: "message_seq desc");
+    if (results == null || results.isEmpty) {
+      return list;
+    }
+    for (Map<String, Object?> data in results) {
+      list.add(WKDBConst.serializeReminder(data));
     }
     return list;
   }

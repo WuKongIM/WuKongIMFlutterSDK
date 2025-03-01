@@ -32,6 +32,9 @@ class ConversationDB {
       for (Map<String, Object?> data in results) {
         WKConversationMsg msg = WKDBConst.serializeCoversation(data);
         WKChannel wkChannel = WKDBConst.serializeChannel(data);
+        wkChannel.remoteExtraMap =
+            WKDBConst.readDynamic(data, 'channel_remote_extra');
+        wkChannel.localExtra = WKDBConst.readDynamic(data, 'channel_extra');
         WKUIConversationMsg uiMsg = getUIMsg(msg);
         uiMsg.setWkChannel(wkChannel);
         list.add(uiMsg);
@@ -102,7 +105,7 @@ class ConversationDB {
     var channels = await ChannelDB.shared.queryWithMuted();
     var channelIds = [];
     var sql = "";
-    List<Map<String, Object?>> list;
+    List<Map<String, Object?>>? list;
     if (channels.isNotEmpty) {
       for (var channel in channels) {
         channelIds.add(channel.channelID);
@@ -113,13 +116,14 @@ class ConversationDB {
     } else {
       sql =
           "select SUM(unread_count) count from ${WKDBConst.tableConversation}";
-      list = await WKDBHelper.shared.getDB()!.rawQuery(sql);
+      list = await WKDBHelper.shared.getDB()?.rawQuery(sql);
     }
-    if (list.isNotEmpty) {
-      dynamic data = list[0];
-      count = WKDBConst.readInt(data, 'count');
-      Logs.error('总数量$count');
+    if (list == null || list.isEmpty) {
+      return count;
     }
+    dynamic data = list[0];
+    count = WKDBConst.readInt(data, 'count');
+    Logs.error('总数量$count');
     return count;
   }
 

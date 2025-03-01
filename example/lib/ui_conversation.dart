@@ -319,7 +319,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const ChatPage(),
+                    builder: (context) => const ChatPage(),
                     settings: RouteSettings(
                       arguments: ChatChannel(
                         msgList[pos].msg.channelID,
@@ -371,15 +371,15 @@ class ListViewShowDataState extends State<ListViewShowData> {
   _showDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext _context) => InputDialog(
+      builder: (BuildContext ctx) => InputDialog(
         title: const Text("创建新的聊天"),
         back: (channelID, channelType) async {
           bool isSuccess = await HttpUtils.createGroup(channelID);
           if (isSuccess) {
             Navigator.push(
-              context,
+              ctx,
               MaterialPageRoute(
-                builder: (context) => ChatPage(),
+                builder: (context) => const ChatPage(),
                 settings: RouteSettings(
                   arguments: ChatChannel(
                     channelID,

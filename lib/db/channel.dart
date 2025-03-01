@@ -160,8 +160,11 @@ class ChannelDB {
   Future<List<WKChannel>> queryWithMuted() async {
     List<WKChannel> list = [];
     var sql = "select * from ${WKDBConst.tableChannel} where mute=1";
-    List<Map<String, Object?>> results =
-        await WKDBHelper.shared.getDB()!.rawQuery(sql);
+    List<Map<String, Object?>>? results =
+        await WKDBHelper.shared.getDB()?.rawQuery(sql);
+    if (results == null || results.isEmpty) {
+      return list;
+    }
     for (Map<String, Object?> data in results) {
       var channel = WKDBConst.serializeChannel(data);
       list.add(channel);

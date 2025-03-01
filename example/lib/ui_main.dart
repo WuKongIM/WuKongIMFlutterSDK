@@ -43,7 +43,6 @@ class MyApp extends StatelessWidget {
 
 class LoginDemo extends StatefulWidget {
   const LoginDemo({super.key});
-
   @override
   LoginDemoState createState() => LoginDemoState();
 }
@@ -52,7 +51,9 @@ class LoginDemoState extends State<LoginDemo> {
   var apiStr = '';
   var uidStr = '';
   var tokenStr = '';
-
+  LoginDemoState() {
+    WKIM.shared.connectionManager.disconnect(false);
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,10 +157,10 @@ class LoginDemoState extends State<LoginDemo> {
                     UserInfo.uid = uidStr;
                     IMUtils.initIM().then((result) {
                       if (result) {
-                        Navigator.push(
+                        Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(
-                                builder: (_) => const HomePage()));
+                            MaterialPageRoute(builder: (_) => const HomePage()),
+                            (Route<dynamic> route) => false);
                       }
                     });
                   }
