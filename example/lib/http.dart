@@ -39,6 +39,14 @@ class HttpUtils {
       'device_flag': 0,
       'device_level': 1
     });
+    try {
+      if (response.statusCode == HttpStatus.ok) {
+        UserInfo.name = response.data['name'];
+      }
+    } catch (e) {
+      print('获取用户信息失败');
+    }
+
     return response.statusCode!;
   }
 

@@ -1,6 +1,7 @@
 class UserInfo {
   static String uid = '';
   static String token = '';
+  static String name = '';
 }
 
 class ChatChannel {

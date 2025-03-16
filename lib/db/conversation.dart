@@ -70,7 +70,11 @@ class ConversationDB {
           WKDBConst.tableConversation, getMap(conversationMsg, false),
           conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
-      conversationMsg.localExtraMap ??= lastMsg.localExtraMap;
+      // 这里有错误数据，需要清理
+      var len = lastMsg.localExtraMap?.toString().length ?? 0;
+      if (len < 1000000) {
+        conversationMsg.localExtraMap ??= lastMsg.localExtraMap;
+      }
       conversationMsg.unreadCount =
           lastMsg.unreadCount + conversationMsg.unreadCount;
       row = await WKDBHelper.shared.getDB()!.update(
@@ -321,11 +325,7 @@ class ConversationDB {
     data['parent_channel_id'] = msg.parentChannelID;
     data['parent_channel_type'] = msg.parentChannelType;
     data['is_deleted'] = msg.isDeleted;
-    if (msg.localExtraMap == null) {
-      data['extra'] = '';
-    } else {
-      data['extra'] = jsonEncode(msg.localExtraMap);
-    }
+    data['extra'] = msg.localExtraMap?.toString() ?? "";
     if (isSync) {
       data['version'] = msg.version;
     }

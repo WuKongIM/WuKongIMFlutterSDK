@@ -300,9 +300,21 @@ class ListViewShowDataState extends State<ListViewShowData> {
         title: Column(
           children: [
             Text(_connectionStatusStr),
-            Text(
-              '未读消息数量($allUnreadCount)',
-              style: const TextStyle(color: Colors.black, fontSize: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '用户:${UserInfo.name}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
+                Container(
+                  margin: const EdgeInsets.all(10.0),
+                ),
+                Text(
+                  '未读消息数量($allUnreadCount)',
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                )
+              ],
             )
           ],
         ),
