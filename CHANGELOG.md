@@ -122,3 +122,5 @@
  * fix: Error in modifying the channel extension data synchronized to the most recent session
  ### 1.6.1
  * fix: 修复网络切换时有时无法连接问题
+### 1.6.2
+ * fix: 修改数据库解码错误数据导致oom
