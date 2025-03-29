@@ -20,19 +20,25 @@ getChannelAvatarURL(UIMsg uiMsg) {
 }
 
 Widget chatAvatar(UIMsg uiMsg) {
-  return Image.network(
-    getChannelAvatarURL(uiMsg),
-    height: 40,
-    width: 40,
-    fit: BoxFit.cover,
-    errorBuilder:
-        (BuildContext context, Object exception, StackTrace? stackTrace) {
-      return Image.asset(
-        'assets/ic_default_avatar.png',
-        width: 40,
-        height: 40,
-      );
-    },
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(20),
+    child: Image.network(
+      getChannelAvatarURL(uiMsg),
+      height: 40,
+      width: 40,
+      fit: BoxFit.cover,
+      errorBuilder:
+          (BuildContext context, Object exception, StackTrace? stackTrace) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.asset(
+            'assets/ic_default_avatar.png',
+            width: 40,
+            height: 40,
+          ),
+        );
+      },
+    ),
   );
 }
 
@@ -75,87 +81,109 @@ Widget orderView(UIMsg uiMsg, BuildContext context) {
     rightMargin = 60.0;
   }
   var orderContent = uiMsg.wkMsg.messageContent as OrderMsg;
-  return Expanded(
-    child: GestureDetector(
-      onLongPressStart: (details) {
-        longClick(uiMsg, context, details);
-      },
-      child: Container(
-        padding: const EdgeInsets.only(left: 5, top: 5, right: 5, bottom: 5),
-        margin: EdgeInsets.only(
-            left: leftMargin, top: 0, right: rightMargin, bottom: 0),
-        decoration: const BoxDecoration(
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-            color: Color.fromARGB(255, 250, 250, 250)),
-        alignment: Alignment.centerLeft,
-        child: Column(
-          children: [
-            Container(
-              margin:
-                  const EdgeInsets.only(left: 5, top: 5, right: 5, bottom: 5),
-              alignment: Alignment.centerLeft,
-              child: Text(
-                '订单号：${orderContent.orderNo}',
-                style: const TextStyle(
-                    color: Colors.black,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
+  return GestureDetector(
+    onLongPressStart: (details) {
+      longClick(uiMsg, context, details);
+    },
+    child: Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.7,
+      ),
+      padding: const EdgeInsets.all(12),
+      margin: EdgeInsets.only(
+        left: leftMargin,
+        top: 0,
+        right: rightMargin,
+        bottom: 0,
+      ),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 250, 250, 250),
+        borderRadius: BorderRadius.only(
+          topLeft: const Radius.circular(22),
+          topRight: const Radius.circular(22),
+          bottomLeft: uiMsg.wkMsg.fromUID == UserInfo.uid
+              ? const Radius.circular(22)
+              : const Radius.circular(0),
+          bottomRight: uiMsg.wkMsg.fromUID == UserInfo.uid
+              ? const Radius.circular(0)
+              : const Radius.circular(22),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '订单号：${orderContent.orderNo}',
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-            Container(
-              margin:
-                  const EdgeInsets.only(left: 5, top: 5, right: 5, bottom: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Image.network(
-                    orderContent.imgUrl,
-                    height: 80,
-                    width: 80,
-                    fit: BoxFit.contain,
-                    errorBuilder: (BuildContext context, Object exception,
-                        StackTrace? stackTrace) {
-                      return Image.asset('assets/ic_default_avatar.png');
-                    },
-                  ),
-                  Expanded(
-                      child: Container(
-                    margin: const EdgeInsets.only(
-                        left: 10, top: 5, right: 0, bottom: 5),
-                    child: Column(
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  orderContent.imgUrl,
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.cover,
+                  errorBuilder: (BuildContext context, Object exception,
+                      StackTrace? stackTrace) {
+                    return Image.asset(
+                      'assets/ic_default_avatar.png',
+                      width: 80,
+                      height: 80,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      orderContent.title,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '商品名称：${orderContent.title}',
-                          softWrap: true,
+                          "\$${orderContent.price}",
                           style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.red,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        Row(
-                          children: [
-                            Text("\$${orderContent.price}",
-                                style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 100.0),
-                            Text('共${orderContent.num}件',
-                                style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold)),
-                          ],
-                        )
+                        Text(
+                          '共${orderContent.num}件',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
-                  ))
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     ),
   );
@@ -188,92 +216,87 @@ Widget getRecvView(UIMsg uiMsg, BuildContext context) {
 }
 
 Widget recvTextView(UIMsg uiMsg, BuildContext context) {
-  return Expanded(
-    child: GestureDetector(
-      onLongPressStart: (details) {
-        longClick(uiMsg, context, details);
-      },
-      child: Container(
-        alignment: Alignment.centerLeft,
-        margin: const EdgeInsets.only(left: 10, top: 0, right: 60, bottom: 0),
-        child: Container(
-          padding:
-              const EdgeInsets.only(left: 10, top: 5, right: 10, bottom: 5),
-          decoration: const BoxDecoration(
-              shape: BoxShape.rectangle,
-              borderRadius: BorderRadius.all(Radius.circular(12)),
-              color: Color.fromARGB(255, 163, 33, 243)),
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                child: Text(
-                  uiMsg.getShowContent(),
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    uiMsg.getShowTime(),
-                    style: const TextStyle(
-                        color: Color.fromARGB(255, 226, 215, 215),
-                        fontSize: 12),
-                  )
-                ],
-              )
-            ],
-          ),
+  return GestureDetector(
+    onLongPressStart: (details) {
+      longClick(uiMsg, context, details);
+    },
+    child: Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.65,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
+          bottomLeft: Radius.zero,
+          bottomRight: Radius.circular(22),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            uiMsg.getShowContent(),
+            style: const TextStyle(color: Colors.black87, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            uiMsg.getShowTime(),
+            style: const TextStyle(color: Colors.black45, fontSize: 12),
+          ),
+        ],
       ),
     ),
   );
 }
 
 Widget sendTextView(UIMsg uiMsg, BuildContext context) {
-  var alignment = Alignment.bottomRight;
-  if (uiMsg.wkMsg.fromUID != UserInfo.uid) {
-    alignment = Alignment.centerLeft;
-  }
-  return Expanded(
-    child: GestureDetector(
-      onLongPressStart: (details) {
-        longClick(uiMsg, context, details);
-      },
-      child: Container(
-        padding: const EdgeInsets.only(left: 5, top: 3, right: 5, bottom: 3),
-        margin: const EdgeInsets.only(left: 60, top: 0, right: 5, bottom: 0),
-        decoration: const BoxDecoration(
-            shape: BoxShape.rectangle,
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-            color: Color.fromARGB(255, 9, 75, 243)),
-        alignment: alignment,
-        child: Column(
-          children: [
-            Container(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                uiMsg.getShowContent(),
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Text(
-                  uiMsg.getShowTime(),
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 226, 215, 215), fontSize: 12),
-                ),
-                Image(
-                    image: AssetImage(uiMsg.getStatusIV()),
-                    width: 30,
-                    height: 30)
-              ],
-            ),
-          ],
+  return GestureDetector(
+    onLongPressStart: (details) {
+      longClick(uiMsg, context, details);
+    },
+    child: Container(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.65,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: const BoxDecoration(
+        color: Color(0xFF0584FE),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(22),
+          topRight: Radius.circular(22),
+          bottomLeft: Radius.circular(22),
+          bottomRight: Radius.zero,
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            uiMsg.getShowContent(),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                uiMsg.getShowTime(),
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              const SizedBox(width: 4),
+              Image(
+                image: AssetImage(uiMsg.getStatusIV()),
+                width: 16,
+                height: 16,
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );

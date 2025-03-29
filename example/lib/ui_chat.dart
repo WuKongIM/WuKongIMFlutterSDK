@@ -210,25 +210,47 @@ class ChatListDataState extends State<ChatList> {
     });
   }
 
-  Widget _buildRow(UIMsg uiMsg) {
+  Widget _buildRow(UIMsg uiMsg, BuildContext context) {
     if (uiMsg.wkMsg.wkMsgExtra?.revoke == 1) {
-      return getRevokedView(uiMsg, context);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: getRevokedView(uiMsg, context),
+      );
     }
     if (uiMsg.wkMsg.fromUID == UserInfo.uid) {
-      return Container(
-        padding: const EdgeInsets.only(left: 0, top: 5, right: 0, bottom: 5),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            getSendView(uiMsg, context),
-            chatAvatar(uiMsg),
+            Flexible(
+              child: getSendView(uiMsg, context),
+            ),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: chatAvatar(uiMsg),
+            ),
           ],
         ),
       );
     } else {
-      return Container(
-        padding: const EdgeInsets.only(left: 0, top: 5, right: 0, bottom: 5),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
-          children: [chatAvatar(uiMsg), getRecvView(uiMsg, context)],
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: chatAvatar(uiMsg),
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: getRecvView(uiMsg, context),
+            ),
+          ],
         ),
       );
     }
@@ -334,7 +356,7 @@ class ChatListDataState extends State<ChatList> {
                   shrinkWrap: true,
                   itemCount: msgList.length,
                   itemBuilder: (context, pos) {
-                    return _buildRow(msgList[pos]);
+                    return _buildRow(msgList[pos], context);
                   }),
             ),
             Row(
@@ -476,4 +498,82 @@ class ChatListDataState extends State<ChatList> {
     WKIM.shared.messageManager.removeDeleteMsgListener('chat');
     WKIM.shared.channelManager.removeOnRefreshListener('chat');
   }
+}
+
+Widget _buildItem(UIMsg uiMsg, BuildContext context) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatPage(),
+          settings: RouteSettings(
+            arguments: ChatChannel(
+              uiMsg.wkMsg.channelID,
+              uiMsg.wkMsg.channelType,
+            ),
+          ),
+        ),
+      );
+    },
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: Image.network(
+              getChannelAvatarURL(uiMsg),
+              height: 50,
+              width: 50,
+              fit: BoxFit.cover,
+              errorBuilder: (BuildContext context, Object exception,
+                  StackTrace? stackTrace) {
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Image.asset(
+                    'assets/ic_default_avatar.png',
+                    width: 50,
+                    height: 50,
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  uiMsg.wkMsg.getFrom()?.channelName ?? '未知用户',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  uiMsg.getShowContent(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          Text(
+            uiMsg.getShowTime(),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
