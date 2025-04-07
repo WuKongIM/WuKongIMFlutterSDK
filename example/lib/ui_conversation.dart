@@ -389,7 +389,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
           bool isSuccess = await HttpUtils.createGroup(channelID);
           if (isSuccess) {
             Navigator.push(
-              ctx,
+              context,
               MaterialPageRoute(
                 builder: (context) => const ChatPage(),
                 settings: RouteSettings(
