@@ -81,6 +81,7 @@ class WKConnectionManager {
   Timer? checkNetworkTimer;
   final heartIntervalSecond = const Duration(seconds: 60);
   final checkNetworkSecond = const Duration(seconds: 1);
+  int unReceivePongCount = 0;
   final LinkedHashMap<int, SendingMsg> _sendingMsgMap = LinkedHashMap();
   HashMap<String, Function(int, int?, ConnectionInfo?)>? _connectionListenerMap;
   _WKSocket? _socket;
@@ -229,6 +230,7 @@ class WKConnectionManager {
       var packetType = b >> 4;
       if (PacketType.values[(b >> 4)] == PacketType.pong) {
         Logs.debug('pong');
+        unReceivePongCount = 0;
         Uint8List bytes = lastMsgBytes.sublist(1, lastMsgBytes.length);
         _cacheData = lastMsgBytes = bytes;
       } else {
@@ -273,6 +275,7 @@ class WKConnectionManager {
   _decodePacket(Uint8List data) {
     var packet = WKIM.shared.options.proto.decode(data);
     Logs.debug('解码出包->$packet');
+    unReceivePongCount = 0;
     if (packet.header.packetType == PacketType.connack) {
       var connackPacket = packet as ConnackPacket;
       if (connackPacket.reasonCode == 1) {
@@ -414,7 +417,14 @@ class WKConnectionManager {
   _startHeartTimer() {
     _stopHeartTimer();
     heartTimer = Timer.periodic(heartIntervalSecond, (timer) {
+      if (unReceivePongCount > 0) {
+        Logs.debug('心跳包未收到pong，重连中...');
+        isReconnection = false;
+        connect();
+        return;
+      }
       Logs.info('ping...');
+      unReceivePongCount++;
       _sendPacket(PingPacket());
     });
   }

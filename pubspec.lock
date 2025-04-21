@@ -549,22 +549,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
-  web_socket:
-    dependency: transitive
-    description:
-      name: web_socket
-      sha256: "3c12d96c0c9a4eec095246debcea7b86c0324f22df69893d538fcc6f1b8cce83"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.6"
-  web_socket_channel:
-    dependency: "direct main"
-    description:
-      name: web_socket_channel
-      sha256: "0b8e2457400d8a859b7b2030786835a28a8e80836ef64402abef392ff4f1d0e5"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.2"
   x25519:
     dependency: "direct main"
     description:
