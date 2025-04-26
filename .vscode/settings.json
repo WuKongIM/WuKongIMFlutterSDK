@@ -1,3 +1,4 @@
 {
-  "DockerRun.DisableDockerrc": true
+  "DockerRun.DisableDockerrc": true,
+  "java.compile.nullAnalysis.mode": "automatic"
 }

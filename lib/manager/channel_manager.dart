@@ -4,13 +4,17 @@ import '../db/channel.dart';
 import '../entity/channel.dart';
 
 class WKChannelManager {
-  WKChannelManager._privateConstructor();
+  WKChannelManager._privateConstructor() {
+    _refreshChannelMap = HashMap<String, Function(WKChannel)>();
+    _refreshChannelAvatarMap = HashMap<String, Function(WKChannel)>();
+  }
   static final WKChannelManager _instance =
       WKChannelManager._privateConstructor();
   static WKChannelManager get shared => _instance;
 
   final List<WKChannel> _list = [];
-  HashMap<String, Function(WKChannel)>? _refeshChannelMap;
+  late final HashMap<String, Function(WKChannel)> _refreshChannelMap;
+  late final HashMap<String, Function(WKChannel)> _refreshChannelAvatarMap;
   Function(String channelID, int channelType, Function(WKChannel) back)?
       _getChannelInfoBack;
 
@@ -70,6 +74,21 @@ class WKChannelManager {
         .searchWithChannelTypeAndFollow(searchKey, channelType, follow);
   }
 
+  // 修改头像
+  updateAvatarCacheKey(
+      String channelID, int channelType, String avatarCacheKey) async {
+    WKChannel? channel = await getChannel(channelID, channelType);
+    if (channel == null) {
+      return;
+    }
+    channel.avatarCacheKey = avatarCacheKey;
+    _updateChannel(channel);
+    ChannelDB.shared.saveOrUpdate(channel);
+    _refreshChannelAvatarMap.forEach((key, back) {
+      back(channel);
+    });
+  }
+
   addOrUpdateChannel(WKChannel channel) {
     _updateChannel(channel);
     _setRefresh(channel);
@@ -115,25 +134,28 @@ class WKChannelManager {
   }
 
   _setRefresh(WKChannel liMChannel) {
-    if (_refeshChannelMap != null) {
-      _refeshChannelMap!.forEach((key, back) {
-        back(liMChannel);
-      });
-    }
+    _refreshChannelMap.forEach((key, back) {
+      back(liMChannel);
+    });
   }
 
   addOnRefreshListener(String key, Function(WKChannel) back) {
-    _refeshChannelMap ??= HashMap();
-    _refeshChannelMap![key] = back;
+    _refreshChannelMap[key] = back;
   }
 
   removeOnRefreshListener(String key) {
-    if (_refeshChannelMap != null) {
-      _refeshChannelMap!.remove(key);
-    }
+    _refreshChannelMap.remove(key);
   }
 
   addOnGetChannelListener(Function(String, int, Function(WKChannel)) back) {
     _getChannelInfoBack = back;
+  }
+
+  addOnRefreshAvatarListener(String key, Function(WKChannel) back) {
+    _refreshChannelAvatarMap[key] = back;
+  }
+
+  removeOnRefreshAvatarListener(String key) {
+    _refreshChannelAvatarMap.remove(key);
   }
 }

@@ -5,14 +5,18 @@ import 'package:wukongimfluttersdk/db/channel_member.dart';
 import '../entity/channel_member.dart';
 
 class WKChannelMemberManager {
-  WKChannelMemberManager._privateConstructor();
+  WKChannelMemberManager._privateConstructor() {
+    _newMembersBack = HashMap<String, Function(List<WKChannelMember>)>();
+    _refreshMembersBack = HashMap<String, Function(WKChannelMember, bool)>();
+    _deleteMembersBack = HashMap<String, Function(List<WKChannelMember>)>();
+  }
   static final WKChannelMemberManager _instance =
       WKChannelMemberManager._privateConstructor();
   static WKChannelMemberManager get shared => _instance;
 
-  HashMap<String, Function(List<WKChannelMember>)>? _newMembersBack;
-  HashMap<String, Function(WKChannelMember, bool)>? _refreshMembersBack;
-  HashMap<String, Function(List<WKChannelMember>)>? _deleteMembersBack;
+  late final HashMap<String, Function(List<WKChannelMember>)> _newMembersBack;
+  late final HashMap<String, Function(WKChannelMember, bool)> _refreshMembersBack;
+  late final HashMap<String, Function(List<WKChannelMember>)> _deleteMembersBack;
 
   Future<int> getMaxVersion(String channelID, int channelType) async {
     return ChannelMemberDB.shared.getMaxVersion(channelID, channelType);
@@ -29,8 +33,9 @@ class WKChannelMemberManager {
         .queryWithUID(channelID, channelType, memberUID);
   }
 
-  saveOrUpdateList(List<WKChannelMember> list) async {
+  Future<void> saveOrUpdateList(List<WKChannelMember> list) async {
     if (list.isEmpty) return;
+    
     String channelID = list[0].channelID;
     int channelType = list[0].channelType;
 
@@ -40,7 +45,9 @@ class WKChannelMemberManager {
 
     List<WKChannelMember> existList = [];
     List<String> uidList = [];
+    
     for (WKChannelMember channelMember in list) {
+      // 分批处理，每200个UID查询一次数据库
       if (uidList.length == 200) {
         List<WKChannelMember> tempList = await ChannelMemberDB.shared
             .queryWithUIDs(
@@ -54,16 +61,16 @@ class WKChannelMemberManager {
       uidList.add(channelMember.memberUID);
     }
 
+    // 处理剩余的UID
     if (uidList.isNotEmpty) {
       List<WKChannelMember> tempList = await ChannelMemberDB.shared
           .queryWithUIDs(channelID, channelType, uidList);
       if (tempList.isNotEmpty) {
         existList.addAll(tempList);
       }
-
-      uidList.clear();
     }
 
+    // 分类处理成员：新增、更新或删除
     for (WKChannelMember channelMember in list) {
       bool isNewMember = true;
       for (int i = 0, size = existList.length; i < size; i++) {
@@ -86,77 +93,62 @@ class WKChannelMemberManager {
       }
     }
 
-    // 先保存或修改成员
-    ChannelMemberDB.shared.insertList(list);
+    // 保存或修改成员
+    await ChannelMemberDB.shared.insertList(list);
 
+    // 触发回调通知
     if (addList.isNotEmpty) {
-      setOnNewChannelMember(addList);
+      _notifyNewChannelMembers(addList);
     }
     if (deleteList.isNotEmpty) {
-      setDeleteChannelMember(deleteList);
+      _notifyDeleteChannelMembers(deleteList);
     }
-
     if (updateList.isNotEmpty) {
       for (int i = 0, size = updateList.length; i < size; i++) {
-        setRefreshChannelMember(updateList[i], i == updateList.length - 1);
+        _notifyRefreshChannelMember(updateList[i], i == updateList.length - 1);
       }
     }
   }
 
-  setRefreshChannelMember(WKChannelMember member, bool isEnd) {
-    if (_refreshMembersBack != null) {
-      _refreshMembersBack!.forEach((key, back) {
-        back(member, isEnd);
-      });
-    }
+  void _notifyRefreshChannelMember(WKChannelMember member, bool isEnd) {
+    _refreshMembersBack.forEach((key, back) {
+      back(member, isEnd);
+    });
   }
 
-  addOnRefreshMemberListener(String key, Function(WKChannelMember, bool) back) {
-    _refreshMembersBack ??= HashMap();
-    _refreshMembersBack![key] = back;
+  void addOnRefreshMemberListener(String key, Function(WKChannelMember, bool) back) {
+    _refreshMembersBack[key] = back;
   }
 
-  removeRefreshMemberListener(String key) {
-    if (_refreshMembersBack != null) {
-      _refreshMembersBack!.remove(key);
-    }
+  void removeRefreshMemberListener(String key) {
+    _refreshMembersBack.remove(key);
   }
 
-  setDeleteChannelMember(List<WKChannelMember> list) {
-    if (_deleteMembersBack != null) {
-      _deleteMembersBack!.forEach((key, back) {
-        back(list);
-      });
-    }
+  void _notifyDeleteChannelMembers(List<WKChannelMember> list) {
+    _deleteMembersBack.forEach((key, back) {
+      back(list);
+    });
   }
 
-  addOnDeleteMemberListener(String key, Function(List<WKChannelMember>) back) {
-    _deleteMembersBack ??= HashMap();
-    _deleteMembersBack![key] = back;
+  void addOnDeleteMemberListener(String key, Function(List<WKChannelMember>) back) {
+    _deleteMembersBack[key] = back;
   }
 
-  removeDeleteMemberListener(String key) {
-    if (_deleteMembersBack != null) {
-      _deleteMembersBack!.remove(key);
-    }
+  void removeDeleteMemberListener(String key) {
+    _deleteMembersBack.remove(key);
   }
 
-  setOnNewChannelMember(List<WKChannelMember> list) {
-    if (_newMembersBack != null) {
-      _newMembersBack!.forEach((key, back) {
-        back(list);
-      });
-    }
+  void _notifyNewChannelMembers(List<WKChannelMember> list) {
+    _newMembersBack.forEach((key, back) {
+      back(list);
+    });
   }
 
-  addOnNewMemberListener(String key, Function(List<WKChannelMember>) back) {
-    _newMembersBack ??= HashMap();
-    _newMembersBack![key] = back;
+  void addOnNewMemberListener(String key, Function(List<WKChannelMember>) back) {
+    _newMembersBack[key] = back;
   }
 
-  removeNewMemberListener(String key) {
-    if (_newMembersBack != null) {
-      _newMembersBack!.remove(key);
-    }
+  void removeNewMemberListener(String key) {
+    _newMembersBack.remove(key);
   }
 }

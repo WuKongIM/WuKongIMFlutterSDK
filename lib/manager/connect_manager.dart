@@ -315,6 +315,7 @@ class WKConnectionManager {
       }
     } else if (packet.header.packetType == PacketType.sendack) {
       var sendack = packet as SendAckPacket;
+      Logs.debug('发送结果：${sendack.reasonCode}');
       WKIM.shared.messageManager.updateSendResult(sendack.messageID,
           sendack.clientSeq, sendack.messageSeq, sendack.reasonCode);
       if (_sendingMsgMap.containsKey(sendack.clientSeq)) {

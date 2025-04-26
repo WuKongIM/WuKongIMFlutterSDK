@@ -81,6 +81,10 @@ class ListViewShowDataState extends State<ListViewShowData> {
       for (var i = 0; i < msgList.length; i++) {
         msgList[i].msg.unreadCount = 0;
       }
+      
+      // 清除红点后也重新排序，保持列表排序的一致性
+      _sortMessagesByTimestamp();
+      
       setState(() {});
     });
     WKIM.shared.conversationManager
@@ -107,6 +111,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
       if (list.isNotEmpty) {
         msgList.addAll(list);
       }
+      
+      _sortMessagesByTimestamp();
+      
       if (mounted) {
         setState(() {});
       }
@@ -120,11 +127,20 @@ class ListViewShowDataState extends State<ListViewShowData> {
           msgList[i].msg.setWkChannel(channel);
           msgList[i].channelAvatar = "${HttpUtils.apiURL}/${channel.avatar}";
           msgList[i].channelName = channel.channelName;
+          
+          // 刷新频道信息后重新排序（虽然时间戳没变，但保持一致性）
+          _sortMessagesByTimestamp();
+          
           setState(() {});
           break;
         }
       }
     });
+  }
+
+  /// 对会话列表按时间戳排序，最新的会话排在前面
+  void _sortMessagesByTimestamp() {
+    msgList.sort((a, b) => b.msg.lastMsgTimestamp.compareTo(a.msg.lastMsgTimestamp));
   }
 
   void _getDataList() {
@@ -134,7 +150,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
       for (var i = 0; i < result.length; i++) {
         msgList.add(UIConversation(result[i]));
       }
-
+      
+      _sortMessagesByTimestamp();
       setState(() {});
     });
   }
@@ -315,7 +332,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
                   style: const TextStyle(color: Colors.black, fontSize: 16),
                 )
               ],
-            )
+            ),
           ],
         ),
       ),

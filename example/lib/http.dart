@@ -13,125 +13,126 @@ class HttpUtils {
   // static String apiURL = "https://api.githubim.com";
   static String apiURL = "http://62.234.8.38:7090/v1";
   // static String apiURL = "http://175.27.245.108:15001";
-  static getAvatarUrl(String uid) {
+  
+  static Dio? _dio;
+  
+  /// Get Dio instance with trust all certificates configuration
+  static Dio get dio {
+    if (_dio == null) {
+      final httpClient = HttpClient();
+      httpClient.badCertificateCallback =
+          (X509Certificate cert, String host, int port) => true; // Trust all certificates
+      
+      _dio = Dio(BaseOptions(
+        baseUrl: apiURL,
+        // 允许所有状态码，避免自动抛出异常
+        validateStatus: (status) => true,
+      ));
+      (_dio!.httpClientAdapter as DefaultHttpClientAdapter).onHttpClientCreate = 
+          (client) => httpClient;
+    }
+    return _dio!;
+  }
+  
+  static String getAvatarUrl(String uid) {
     return "$apiURL/users/$uid/avatar";
   }
 
-  static getGroupAvatarUrl(String gid) {
+  static String getGroupAvatarUrl(String gid) {
     return "$apiURL/groups/$gid/avatar";
   }
 
   static Future<int> login(String uid, String token) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
-    final response = await dio.post("$apiURL/user/login", data: {
-      'uid': uid,
-      'token': token,
-      'device_flag': 0,
-      'device_level': 1
-    });
     try {
+      final response = await dio.post("/user/login", data: {
+        'uid': uid,
+        'token': token,
+        'device_flag': 0,
+        'device_level': 1
+      });
+      
       if (response.statusCode == HttpStatus.ok) {
         UserInfo.name = response.data['name'];
       }
+      return response.statusCode ?? HttpStatus.badRequest;
     } catch (e) {
-      print('获取用户信息失败');
+      print('Login error: $e');
+      return HttpStatus.internalServerError;
     }
-
-    return response.statusCode!;
   }
 
   static Future<String> getIP(String uid) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
-    String ip = '';
     try {
-      final response = await dio.get('$apiURL/users/$uid/route');
+      final response = await dio.get('/users/$uid/route');
       if (response.statusCode == HttpStatus.ok) {
-        ip = response.data['tcp_addr'];
+        return response.data['tcp_addr'] ?? '';
       }
     } catch (e) {
-      ip = '';
+      print('Get IP error: $e');
     }
-
-    return ip;
+    return '';
   }
 
-  static syncConversation(String lastSsgSeqs, int msgCount, int version,
+  static Future<void> syncConversation(String lastSsgSeqs, int msgCount, int version,
       Function(WKSyncConversation) back) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
-
-    final response = await dio.post('$apiURL/conversation/sync', data: {
-      "login_uid": UserInfo.uid, // 当前登录用户uid
-      "version": version, //  当前客户端的会话最大版本号(从保存的结果里取最大的version，如果本地没有数据则传0)，
-      "last_msg_seqs":
-          lastSsgSeqs, //   客户端所有频道会话的最后一条消息序列号拼接出来的同步串 格式： channelID:channelType:last_msg_seq|channelID:channelType:last_msg_seq  （此字段非必填，如果不填就获取全量数据，填写了获取增量数据，看你自己的需求。）
-      "msg_count": 10, // 每个会话获取最大的消息数量，一般为app点进去第一屏的数据
-      "device_uuid": UserInfo.uid,
-    });
-    // print(response.data);
-    WKSyncConversation conversation = WKSyncConversation();
-    conversation.conversations = [];
-
-    if (response.statusCode == HttpStatus.ok) {
-      try {
-        var list = response.data['conversations'];
-        // var list = jsonDecode(response.data);
-        for (int i = 0; i < list.length; i++) {
-          var json = list[i];
-          WKSyncConvMsg convMsg = WKSyncConvMsg();
-          convMsg.channelID = json['channel_id'];
-          convMsg.channelType = json['channel_type'];
-          convMsg.unread = json['unread'] ?? 0;
-          convMsg.timestamp = json['timestamp'];
-          convMsg.lastMsgSeq = json['last_msg_seq'];
-          convMsg.lastClientMsgNO = json['last_client_msg_no'];
-          convMsg.version = json['version'];
-          var msgListJson = json['recents'] as List<dynamic>;
-          List<WKSyncMsg> msgList = [];
-          if (msgListJson.isNotEmpty) {
-            for (int j = 0; j < msgListJson.length; j++) {
-              var msgJson = msgListJson[j];
-              msgList.add(getWKSyncMsg(msgJson));
-            }
-          }
-
-          convMsg.recents = msgList;
-          conversation.conversations!.add(convMsg);
-        }
-      } catch (e) {
-        print('同步最近会话错误');
+    try {
+      // 检查是否已登录
+      if (UserInfo.uid.isEmpty) {
+        print('请先登录');
+        back(WKSyncConversation()..conversations = []);
+        return;
       }
+
+      final response = await dio.post('/conversation/sync', data: {
+        "login_uid": UserInfo.uid,
+        "version": version,
+        "last_msg_seqs": lastSsgSeqs,
+        "msg_count": msgCount,
+        "device_uuid": UserInfo.uid,
+      });
+      
+      WKSyncConversation conversation = WKSyncConversation();
+      conversation.conversations = [];
+
+      if (response.statusCode == HttpStatus.ok) {
+        try {
+          var list = response.data['conversations'];
+          for (int i = 0; i < list.length; i++) {
+            var json = list[i];
+            WKSyncConvMsg convMsg = WKSyncConvMsg();
+            convMsg.channelID = json['channel_id'];
+            convMsg.channelType = json['channel_type'];
+            convMsg.unread = json['unread'] ?? 0;
+            convMsg.timestamp = json['timestamp'];
+            convMsg.lastMsgSeq = json['last_msg_seq'];
+            convMsg.lastClientMsgNO = json['last_client_msg_no'];
+            convMsg.version = json['version'];
+            var msgListJson = json['recents'] as List<dynamic>;
+            List<WKSyncMsg> msgList = [];
+            if (msgListJson.isNotEmpty) {
+              for (int j = 0; j < msgListJson.length; j++) {
+                var msgJson = msgListJson[j];
+                msgList.add(getWKSyncMsg(msgJson));
+              }
+            }
+
+            convMsg.recents = msgList;
+            conversation.conversations!.add(convMsg);
+          }
+        } catch (e) {
+          print('解析会话数据错误: $e');
+        }
+      } else {
+        print('同步会话失败: HTTP ${response.statusCode}');
+        if (response.data != null && response.data is Map) {
+          print('错误信息: ${response.data['message'] ?? response.data}');
+        }
+      }
+      back(conversation);
+    } catch (e) {
+      print('同步会话错误: $e');
+      back(WKSyncConversation()..conversations = []);
     }
-    back(conversation);
   }
 
   static syncChannelMsg(
@@ -142,42 +143,37 @@ class HttpUtils {
       int limit,
       int pullMode,
       Function(WKSyncChannelMsg) back) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
-    final response = await dio.post('$apiURL/message/channel/sync', data: {
-      "login_uid": UserInfo.uid, // 当前登录用户uid
-      "channel_id": channelID, //  频道ID
-      "channel_type": channelType, // 频道类型
-      "start_message_seq": startMsgSeq, // 开始消息列号（结果包含start_message_seq的消息）
-      "end_message_seq": endMsgSeq, // 结束消息列号（结果不包含end_message_seq的消息）
-      "limit": limit, // 消息数量限制
-      "pull_mode": pullMode // 拉取模式 0:向下拉取 1:向上拉取
-    });
-    if (response.statusCode == HttpStatus.ok) {
-      var data = response.data;
-      WKSyncChannelMsg msg = WKSyncChannelMsg();
-      msg.startMessageSeq = data['start_message_seq'];
-      msg.endMessageSeq = data['end_message_seq'];
-      msg.more = data['more'];
-      var messages = data['messages'];
+    try {
+      final response = await dio.post('/message/channel/sync', data: {
+        "login_uid": UserInfo.uid,
+        "channel_id": channelID,
+        "channel_type": channelType,
+        "start_message_seq": startMsgSeq,
+        "end_message_seq": endMsgSeq, 
+        "limit": limit,
+        "pull_mode": pullMode
+      });
+      
+      if (response.statusCode == HttpStatus.ok) {
+        var data = response.data;
+        WKSyncChannelMsg msg = WKSyncChannelMsg();
+        msg.startMessageSeq = data['start_message_seq'];
+        msg.endMessageSeq = data['end_message_seq'];
+        msg.more = data['more'];
+        var messages = data['messages'];
 
-      List<WKSyncMsg> msgList = [];
-      for (int i = 0; i < messages.length; i++) {
-        dynamic json = messages[i];
-        msgList.add(getWKSyncMsg(json));
+        List<WKSyncMsg> msgList = [];
+        for (int i = 0; i < messages.length; i++) {
+          dynamic json = messages[i];
+          msgList.add(getWKSyncMsg(json));
+        }
+        print('同步channel消息数量：${msgList.length}');
+        msg.messages = msgList;
+        back(msg);
       }
-      print('同步channel消息数量：${msgList.length}');
-      msg.messages = msgList;
-      back(msg);
+    } catch (e) {
+      print('Sync channel message error: $e');
+      back(WKSyncChannelMsg());
     }
   }
 
@@ -221,71 +217,90 @@ class HttpUtils {
     return extra;
   }
 
-  static getGroupInfo(String groupId) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
-    final response = await dio.get('$apiURL/groups/$groupId');
-    if (response.statusCode == HttpStatus.ok) {
-      var json = response.data;
-      var channel = WKChannel(groupId, WKChannelType.group);
-      channel.channelName = json['name'];
-      channel.avatar = json['avatar'];
-      WKIM.shared.channelManager.addOrUpdateChannel(channel);
-    } else {
-      print('获取群信息失败');
+  static Future<void> getGroupInfo(String groupId) async {
+    try {
+      // 检查群ID是否有效
+      if (groupId.isEmpty) {
+        print('群ID不能为空');
+        return;
+      }
+
+      // 检查是否已登录
+      if (UserInfo.uid.isEmpty) {
+        print('请先登录');
+        return;
+      }
+
+      final response = await dio.get('/groups/$groupId');
+      
+      if (response.statusCode == HttpStatus.ok) {
+        var json = response.data;
+        var channel = WKChannel(groupId, WKChannelType.group);
+        channel.channelName = json['name'];
+        channel.avatar = json['avatar'];
+        WKIM.shared.channelManager.addOrUpdateChannel(channel);
+      } else {
+        print('获取群信息失败: HTTP ${response.statusCode}');
+        // 如果服务器返回了错误消息，打印出来
+        if (response.data != null && response.data is Map) {
+          print('错误信息: ${response.data['message'] ?? response.data}');
+        }
+      }
+    } catch (e) {
+      print('获取群信息错误: $e');
     }
   }
 
-  static getUserInfo(String uid) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
+  static Future<void> getUserInfo(String uid) async {
     try {
-      final response = await dio.get('$apiURL/users/$uid');
+      // 检查UID是否有效
+      if (uid.isEmpty) {
+        print('用户ID不能为空');
+        return;
+      }
+
+      // 检查是否已登录
+      if (UserInfo.uid.isEmpty) {
+        print('请先登录');
+        return;
+      }
+
+      final response = await dio.get('/users/$uid');
+      
       if (response.statusCode == HttpStatus.ok) {
         var json = response.data;
         var channel = WKChannel(uid, WKChannelType.personal);
         channel.channelName = json['name'];
         channel.avatar = json['avatar'];
         WKIM.shared.channelManager.addOrUpdateChannel(channel);
+      } else {
+        print('获取用户信息失败: HTTP ${response.statusCode}');
+        // 如果服务器返回了错误消息，打印出来
+        if (response.data != null && response.data is Map) {
+          print('错误信息: ${response.data['message'] ?? response.data}');
+        }
       }
     } catch (e) {
-      print('获取用户信息失败$e');
+      print('获取用户信息错误: $e');
     }
   }
 
-  static revokeMsg(String clientMsgNo, String channelId, int channelType,
+  static Future<bool> revokeMsg(String clientMsgNo, String channelId, int channelType,
       int msgSeq, String msgId) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
     try {
-      final response = await dio.post('$apiURL/message/revoke', data: {
+      // 检查必要参数
+      if (clientMsgNo.isEmpty || channelId.isEmpty || msgId.isEmpty) {
+        print('撤回消息需提供完整的消息信息');
+        return false;
+      }
+
+      // 检查是否已登录
+      if (UserInfo.uid.isEmpty) {
+        print('请先登录');
+        return false;
+      }
+
+      final response = await dio.post('/message/revoke', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
@@ -293,57 +308,66 @@ class HttpUtils {
         'message_seq': msgSeq,
         'message_id': msgId,
       });
+      
       if (response.statusCode == HttpStatus.ok) {
-        print('撤回消息成功');
+        print('消息撤回成功');
+        return true;
+      } else {
+        print('撤回消息失败: HTTP ${response.statusCode}');
+        if (response.data != null && response.data is Map) {
+          print('错误信息: ${response.data['message'] ?? response.data}');
+        }
+        return false;
       }
     } catch (e) {
-      print('获取用户信息失败$e');
+      print('撤回消息错误: $e');
+      return false;
     }
   }
 
-  static deleteMsg(String clientMsgNo, String channelId, int channelType,
+  static Future<bool> deleteMsg(String clientMsgNo, String channelId, int channelType,
       int msgSeq, String msgId) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
     try {
-      final response = await dio.post('$apiURL/message/delete', data: {
+      // 检查必要参数
+      if (clientMsgNo.isEmpty || channelId.isEmpty || msgId.isEmpty) {
+        print('删除消息需提供完整的消息信息');
+        return false;
+      }
+
+      // 检查是否已登录
+      if (UserInfo.uid.isEmpty) {
+        print('请先登录');
+        return false;
+      }
+
+      final response = await dio.post('/message/delete', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
         'message_seq': msgSeq,
         'message_id': msgId,
       });
+      
       if (response.statusCode == HttpStatus.ok) {
         WKIM.shared.messageManager.deleteWithClientMsgNo(clientMsgNo);
+        print('消息删除成功');
+        return true;
+      } else {
+        print('删除消息失败: HTTP ${response.statusCode}');
+        if (response.data != null && response.data is Map) {
+          print('错误信息: ${response.data['message'] ?? response.data}');
+        }
+        return false;
       }
     } catch (e) {
-      print('删除消息失败$e');
+      print('删除消息错误: $e');
+      return false;
     }
   }
 
-  static syncMsgExtra(String channelId, int channelType, int version) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
+  static Future<void> syncMsgExtra(String channelId, int channelType, int version) async {
     try {
-      final response = await dio.post('$apiURL/message/extra/sync', data: {
+      final response = await dio.post('/message/extra/sync', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
@@ -351,6 +375,7 @@ class HttpUtils {
         'limit': 100,
         'extra_version': version,
       });
+      
       if (response.statusCode == HttpStatus.ok) {
         var arrJson = response.data;
         if (arrJson != null && arrJson.length > 0) {
@@ -371,122 +396,73 @@ class HttpUtils {
         }
       }
     } catch (e) {
-      print('同步消息扩展失败$e');
+      print('Sync message extra error: $e');
     }
   }
 
   // 清空红点
-  static clearUnread(String channelId, int channelType) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
+  static Future<void> clearUnread(String channelId, int channelType) async {
     try {
-      final response = await dio.put('$apiURL/conversation/clearUnread', data: {
+      final response = await dio.put('/conversation/clearUnread', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
         'unread': 0,
       });
+      
       if (response.statusCode == HttpStatus.ok) {
-        print('清空红点成功');
+        print('Unread count cleared successfully');
       }
     } catch (e) {
-      print('清空红点失败$e');
+      print('Clear unread count error: $e');
     }
   }
 
   // 清除频道消息
-  static clearChannelMsg(String channelId, int channelType) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
+  static Future<void> clearChannelMsg(String channelId, int channelType) async {
     try {
       int maxSeq = await WKIM.shared.messageManager
           .getMaxMessageSeq(channelId, channelType);
-      final response = await dio.post('$apiURL/message/offset', data: {
+          
+      final response = await dio.post('/message/offset', data: {
         'login_uid': UserInfo.uid,
         'channel_id': channelId,
         'channel_type': channelType,
         'message_seq': maxSeq
       });
+      
       if (response.statusCode == HttpStatus.ok) {
         WKIM.shared.messageManager.clearWithChannel(channelId, channelType);
       }
     } catch (e) {
-      print('清除频道消息失败$e');
+      print('Clear channel message error: $e');
     }
   }
 
   // 创建群
   static Future<bool> createGroup(String groupNo) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
     try {
-      final response = await dio.post('$apiURL/group/create', data: {
+      final response = await dio.post('/group/create', data: {
         'login_uid': UserInfo.uid,
         'group_no': groupNo,
       });
-      if (response.statusCode == HttpStatus.ok) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode == HttpStatus.ok;
     } catch (e) {
-      print('创建群失败$e');
+      print('Create group error: $e');
       return false;
     }
   }
 
   // 修改群名称
   static Future<bool> updateGroupName(String groupNo, String groupName) async {
-    final httpClient = HttpClient();
-    httpClient.badCertificateCallback =
-        (X509Certificate cert, String host, int port) {
-      // 信任所有证书
-      return true;
-    };
-    final dio = Dio();
-    dio.httpClientAdapter = DefaultHttpClientAdapter()
-      ..onHttpClientCreate = (client) {
-        return httpClient;
-      };
     try {
-      final response = await dio.put('$apiURL/groups/$groupNo', data: {
+      final response = await dio.put('/groups/$groupNo', data: {
         'login_uid': UserInfo.uid,
         'name': groupName,
       });
-      if (response.statusCode == HttpStatus.ok) {
-        return true;
-      } else {
-        return false;
-      }
+      return response.statusCode == HttpStatus.ok;
     } catch (e) {
-      print('修改群名称失败$e');
+      print('Update group name error: $e');
       return false;
     }
   }
