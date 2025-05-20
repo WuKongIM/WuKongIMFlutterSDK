@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:sqflite/sqflite.dart';
 
 import '../entity/channel_member.dart';
@@ -152,9 +150,7 @@ class ChannelMemberDB {
     map['forbidden_expiration_time'] = member.forbiddenExpirationTime;
     map['created_at'] = member.createdAt;
     map['updated_at'] = member.updatedAt;
-    if (member.extraMap != null) {
-      map['extra'] = jsonEncode(member.extraMap);
-    }
+    map['extra'] = member.extraMap?.toString() ?? "";
     return map;
   }
 }

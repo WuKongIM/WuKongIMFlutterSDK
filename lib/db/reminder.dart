@@ -1,5 +1,4 @@
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
@@ -180,12 +179,13 @@ class ReminderDB {
     map['done'] = reminder.done;
     map['need_upload'] = reminder.needUpload;
     map['publisher'] = reminder.publisher;
-    if (reminder.data != null) {
-      map['data'] = jsonEncode(reminder.data);
+    // 可以有错误数据
+    var len = reminder.data?.toString().length ?? 0;
+    if (len < 1000000) {
+      map['data'] = reminder.data?.toString() ?? "";
     } else {
       map['data'] = '';
     }
-
     return map;
   }
 }

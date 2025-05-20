@@ -51,6 +51,8 @@ class ChatListDataState extends State<ChatList> {
         .then((channel) {
       WKIM.shared.channelManager.fetchChannelInfo(channelID, channelType);
       title = '${channel?.channelName}';
+      print("扩展：${channel?.localExtra}");
+      print("扩展1：${channel?.remoteExtraMap}");
     });
   }
   List<UIMsg> msgList = [];
@@ -506,7 +508,7 @@ Widget _buildItem(UIMsg uiMsg, BuildContext context) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ChatPage(),
+          builder: (context) => const ChatPage(),
           settings: RouteSettings(
             arguments: ChatChannel(
               uiMsg.wkMsg.channelID,

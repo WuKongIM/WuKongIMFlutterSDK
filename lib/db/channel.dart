@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
@@ -216,12 +215,8 @@ class ChannelDB {
     data['device_flag'] = channel.deviceFlag;
     data['parent_channel_id'] = channel.parentChannelID;
     data['parent_channel_type'] = channel.parentChannelType;
-    if (channel.remoteExtraMap != null) {
-      data['remote_extra'] = jsonEncode(channel.remoteExtraMap);
-    }
-    if (channel.localExtra != null) {
-      data['extra'] = jsonEncode(channel.localExtra);
-    }
+    data['remote_extra'] = channel.remoteExtraMap?.toString() ?? "";
+    data['extra'] = channel.localExtra?.toString() ?? "";
     return data;
   }
 }
