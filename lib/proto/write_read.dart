@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 class ReadData {
@@ -108,7 +109,8 @@ class WriteData {
 
   writeString(String v) {
     if (v.isNotEmpty) {
-      var wdata = v.codeUnits;
+      // var wdata = v.codeUnits;
+      var wdata = utf8.encode(v);
       writeUint16(wdata.length);
       data.addAll(wdata);
     } else {
