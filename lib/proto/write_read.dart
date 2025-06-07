@@ -41,7 +41,7 @@ class ReadData {
     }
     var d = _data.sublist(offset, offset + len);
     offset += len;
-    return String.fromCharCodes(d);
+    return utf8.decode(d);
   }
 
   int readUint32() {
