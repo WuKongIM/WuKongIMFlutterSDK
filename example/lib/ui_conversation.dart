@@ -4,6 +4,7 @@ import 'package:example/const.dart';
 import 'package:example/http.dart';
 import 'package:flutter/material.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
+import 'package:wukongimfluttersdk/entity/channel.dart';
 import 'package:wukongimfluttersdk/entity/conversation.dart';
 import 'package:wukongimfluttersdk/entity/reminder.dart';
 import 'package:wukongimfluttersdk/type/const.dart';
@@ -130,7 +131,8 @@ class ListViewShowDataState extends State<ListViewShowData> {
           msgList[i].msg.setWkChannel(channel);
           msgList[i].channelAvatar = "${HttpUtils.apiURL}/${channel.avatar}";
           msgList[i].channelName = channel.channelName;
-
+          msgList[i].top = channel.top;
+          msgList[i].mute = channel.mute;
           // 刷新频道信息后重新排序（虽然时间戳没变，但保持一致性）
           _sortMessagesByTimestamp();
 
@@ -271,20 +273,20 @@ class ListViewShowDataState extends State<ListViewShowData> {
                     children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Text(
-                        getChannelName(uiMsg),
-                        style:
-                            const TextStyle(color: Colors.black, fontSize: 18),
-                        maxLines: 1,
-                      ),
                       Expanded(
                         child: Text(
-                          style:
-                              const TextStyle(color: Colors.grey, fontSize: 16),
-                          CommonUtils.formatDateTime(
-                              uiMsg.msg.lastMsgTimestamp),
-                          textAlign: TextAlign.right,
+                          getChannelName(uiMsg),
+                          style: const TextStyle(
+                              color: Colors.black, fontSize: 18),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
+                      ),
+                      Text(
+                        CommonUtils.formatDateTime(uiMsg.msg.lastMsgTimestamp),
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 16),
+                        textAlign: TextAlign.right,
                       ),
                     ],
                   ),
@@ -304,13 +306,54 @@ class ListViewShowDataState extends State<ListViewShowData> {
                         maxLines: 1,
                       ),
                       Expanded(
-                        child: Text(
-                          style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold),
-                          uiMsg.getUnreadCount(),
-                          textAlign: TextAlign.right,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if ((uiMsg.top) == 1)
+                              Container(
+                                margin: const EdgeInsets.only(left: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'top',
+                                  style: TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            if ((uiMsg.mute) == 1)
+                              Container(
+                                margin: const EdgeInsets.only(left: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.shade100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'mute',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            Text(
+                              uiMsg.getUnreadCount(),
+                              style: const TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.right,
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -466,6 +509,30 @@ class ListViewShowDataState extends State<ListViewShowData> {
           list.add(reminder);
           WKIM.shared.reminderManager.saveOrUpdateReminders(list);
         }));
+    // 新增测试置顶
+    items.add(PopupItem(
+      text: '测试置顶',
+      onTap: () async {
+        WKChannel? channel = await uiMsg.msg.getWkChannel();
+        if (channel != null) {
+          channel.top = channel.top == 1 ? 0 : 1;
+          WKIM.shared.channelManager.addOrUpdateChannel(channel);
+        }
+      },
+    ));
+    // 新增测试免打扰
+    items.add(PopupItem(
+      text: '测试免打扰',
+      onTap: () async {
+        WKChannel? channel = await uiMsg.msg.getWkChannel();
+        if (channel != null) {
+          channel.mute = channel.mute == 1 ? 0 : 1;
+          WKIM.shared.channelManager.addOrUpdateChannel(channel);
+          uiMsg.msg.setWkChannel(channel);
+        }
+      },
+    ));
+
     PopmenuUtil.showPopupMenu(context, details, items);
   }
 }

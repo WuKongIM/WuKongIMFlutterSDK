@@ -17,25 +17,27 @@ class WKConversationManager {
     _deleteMsgMap = HashMap<String, Function(String, int)>();
     _clearAllRedDotMap = HashMap<String, Function()>();
   }
-  
+
   static final WKConversationManager _instance =
       WKConversationManager._privateConstructor();
   static WKConversationManager get shared => _instance;
 
   /// 单个会话刷新监听器
-  late final HashMap<String, Function(WKUIConversationMsg, bool)> _refreshMsgMap;
-  
+  late final HashMap<String, Function(WKUIConversationMsg, bool)>
+      _refreshMsgMap;
+
   /// 会话列表刷新监听器
-  late final HashMap<String, Function(List<WKUIConversationMsg>)> _refreshMsgListMap;
-  
+  late final HashMap<String, Function(List<WKUIConversationMsg>)>
+      _refreshMsgListMap;
+
   /// 会话删除监听器
   late final HashMap<String, Function(String, int)> _deleteMsgMap;
-  
+
   /// 清除所有红点监听器
   late final HashMap<String, Function()> _clearAllRedDotMap;
 
   /// 同步会话回调
-  Function(String lastSsgSeqs, int msgCount, int version,
+  Function(String lastMsgSeqs, int msgCount, int version,
       Function(WKSyncConversation))? _syncConversationBack;
 
   /// 获取所有会话
@@ -109,7 +111,8 @@ class WKConversationManager {
   }
 
   /// 更新指定频道的未读数
-  Future<void> updateRedDot(String channelID, int channelType, int redDot) async {
+  Future<void> updateRedDot(
+      String channelID, int channelType, int redDot) async {
     var map = <String, Object>{};
     map['unread_count'] = redDot;
     var result = await ConversationDB.shared
@@ -237,14 +240,14 @@ class WKConversationManager {
         syncChat.conversations!.isEmpty) {
       return;
     }
-    
+
     // 初始化数据集合
     List<WKConversationMsg> conversationMsgList = [];
     List<WKMsg> msgList = [];
     List<WKMsgReaction> msgReactionList = [];
     List<WKMsgExtra> msgExtraList = [];
     List<WKUIConversationMsg> uiMsgList = [];
-    
+
     // 处理同步的会话数据
     if (syncChat.conversations != null && syncChat.conversations!.isNotEmpty) {
       for (int i = 0, size = syncChat.conversations!.length; i < size; i++) {
@@ -252,14 +255,14 @@ class WKConversationManager {
 
         int channelType = syncChat.conversations![i].channelType;
         String channelID = syncChat.conversations![i].channelID;
-        
+
         // 处理社区主题频道
         if (channelType == WKChannelType.communityTopic) {
           var str = channelID.split("@");
           conversationMsg.parentChannelID = str[0];
           conversationMsg.parentChannelType = WKChannelType.community;
         }
-        
+
         // 设置会话属性
         conversationMsg.channelID = syncChat.conversations![i].channelID;
         conversationMsg.channelType = syncChat.conversations![i].channelType;
@@ -269,28 +272,28 @@ class WKConversationManager {
         conversationMsg.lastMsgTimestamp = syncChat.conversations![i].timestamp;
         conversationMsg.unreadCount = syncChat.conversations![i].unread;
         conversationMsg.version = syncChat.conversations![i].version;
-        
+
         WKUIConversationMsg uiMsg =
             ConversationDB.shared.getUIMsg(conversationMsg);
-            
+
         // 处理最近消息
         if (syncChat.conversations![i].recents != null &&
             syncChat.conversations![i].recents!.isNotEmpty) {
           for (WKSyncMsg wkSyncRecent in syncChat.conversations![i].recents!) {
             WKMsg msg = wkSyncRecent.getWKMsg();
-            
+
             // 处理反应列表
             if (msg.reactionList != null && msg.reactionList!.isNotEmpty) {
               msgReactionList.addAll(msg.reactionList!);
             }
-            
+
             // 判断会话列表的fromUID
             if (conversationMsg.lastClientMsgNO == msg.clientMsgNO) {
               conversationMsg.isDeleted = msg.isDeleted;
               uiMsg.isDeleted = conversationMsg.isDeleted;
               uiMsg.setWkMsg(msg);
             }
-            
+
             // 处理消息扩展信息
             if (wkSyncRecent.messageExtra != null) {
               WKMsgExtra extra = WKIM.shared.messageManager
@@ -298,16 +301,16 @@ class WKConversationManager {
                       wkSyncRecent.messageExtra!);
               msgExtraList.add(extra);
             }
-            
+
             msgList.add(msg);
           }
         }
-        
+
         conversationMsgList.add(conversationMsg);
         uiMsgList.add(uiMsg);
       }
     }
-    
+
     // 保存各类数据到数据库
     if (msgExtraList.isNotEmpty) {
       MessageDB.shared.insertMsgExtras(msgExtraList);
@@ -316,26 +319,26 @@ class WKConversationManager {
     if (msgList.isNotEmpty) {
       MessageDB.shared.insertMsgList(msgList);
     }
-    
+
     if (conversationMsgList.isNotEmpty) {
       ConversationDB.shared.insetMsgs(conversationMsgList);
     }
-    
+
     if (msgReactionList.isNotEmpty) {
       ReactionDB.shared.insertOrUpdateReactionList(msgReactionList);
     }
-    
+
     // 消息少于20条时，按顺序推送新消息
     if (msgList.isNotEmpty && msgList.length < 20) {
       msgList.sort((a, b) => a.messageSeq.compareTo(b.messageSeq));
       WKIM.shared.messageManager.pushNewMsg(msgList);
     }
-    
+
     // 刷新会话UI
     if (uiMsgList.isNotEmpty) {
       setRefreshUIMsgs(uiMsgList);
     }
-    
+
     // 处理命令
     if (syncChat.cmds != null && syncChat.cmds!.isNotEmpty) {
       for (int i = 0, size = syncChat.cmds!.length; i < size; i++) {
