@@ -67,7 +67,7 @@ class HttpUtils {
     try {
       final response = await dio.get('/users/$uid/route');
       if (response.statusCode == HttpStatus.ok) {
-        return response.data['tcp_addr'] ?? '';
+        return response.data['wss_addr'] ?? '';
       }
     } catch (e) {
       print('Get IP error: $e');
