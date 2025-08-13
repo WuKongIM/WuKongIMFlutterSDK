@@ -72,14 +72,15 @@ class ListViewShowDataState extends State<ListViewShowData> {
         _connectionStatusStr = '未连接';
       } else if (status == WKConnectStatus.syncCompleted) {
         _connectionStatusStr = '连接成功(节点:$nodeId)';
+         WKIM.shared.conversationManager.getAllUnreadCount().then((value) {
+      allUnreadCount = value;
+    });
       }
       if (mounted) {
         setState(() {});
       }
     });
-    WKIM.shared.conversationManager.getAllUnreadCount().then((value) {
-      allUnreadCount = value;
-    });
+   
     WKIM.shared.conversationManager
         .addOnClearAllRedDotListener("chat_conversation", () {
       for (var i = 0; i < msgList.length; i++) {

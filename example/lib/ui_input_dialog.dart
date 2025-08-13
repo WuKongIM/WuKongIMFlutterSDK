@@ -15,7 +15,7 @@ class InputDialog extends StatefulWidget {
   final bool isOnlyText;
   @override
   State<InputDialog> createState() => _InputDialogState(
-      title: this.title, hintText: this.hintText, back: this.back);
+      title: title, hintText: hintText, back: back);
 }
 
 enum RadioValue { personal, group }
@@ -88,7 +88,7 @@ class _InputDialogState extends State<InputDialog> {
       actions: [
         ElevatedButton(
           style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.green)),
+              backgroundColor: WidgetStateProperty.all(Colors.green)),
           onPressed: () {
             int channelType = WKChannelType.personal;
             if (_radioValue == RadioValue.group) {
@@ -104,8 +104,8 @@ class _InputDialogState extends State<InputDialog> {
         ),
         ElevatedButton(
           style: ButtonStyle(
-              backgroundColor: MaterialStateProperty.all(Colors.transparent),
-              elevation: MaterialStateProperty.all(0)),
+              backgroundColor: WidgetStateProperty.all(Colors.transparent),
+              elevation: WidgetStateProperty.all(0)),
           onPressed: () {
             Navigator.pop(context);
           },
