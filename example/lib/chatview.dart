@@ -224,15 +224,22 @@ Widget recvTextView(UIMsg uiMsg, BuildContext context) {
       constraints: BoxConstraints(
         maxWidth: MediaQuery.of(context).size.width * 0.65,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22),
-          topRight: Radius.circular(22),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
           bottomLeft: Radius.zero,
-          bottomRight: Radius.circular(22),
+          bottomRight: Radius.circular(16),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,12 +247,13 @@ Widget recvTextView(UIMsg uiMsg, BuildContext context) {
         children: [
           Text(
             uiMsg.getShowContent(),
-            style: const TextStyle(color: Colors.black87, fontSize: 16),
+            style: const TextStyle(
+                color: Color(0xFF1D1D1F), fontSize: 16, height: 1.4),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Text(
             uiMsg.getShowTime(),
-            style: const TextStyle(color: Colors.black45, fontSize: 12),
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 11),
           ),
         ],
       ),
@@ -262,13 +270,17 @@ Widget sendTextView(UIMsg uiMsg, BuildContext context) {
       constraints: BoxConstraints(
         maxWidth: MediaQuery.of(context).size.width * 0.65,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: const BoxDecoration(
-        color: Color(0xFF0584FE),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0584FE), Color(0xFF00C6FF)],
+        ),
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(22),
-          topRight: Radius.circular(22),
-          bottomLeft: Radius.circular(22),
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(16),
           bottomRight: Radius.zero,
         ),
       ),
@@ -278,21 +290,24 @@ Widget sendTextView(UIMsg uiMsg, BuildContext context) {
         children: [
           Text(
             uiMsg.getShowContent(),
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 16, height: 1.4),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 uiMsg.getShowTime(),
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: TextStyle(
+                    color: Colors.white.withOpacity(0.7), fontSize: 11),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 6),
               Image(
                 image: AssetImage(uiMsg.getStatusIV()),
-                width: 16,
-                height: 16,
+                width: 14,
+                height: 14,
+                color: Colors.white.withOpacity(0.7),
               ),
             ],
           ),

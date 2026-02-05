@@ -20,12 +20,7 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final ChatChannel channel =
         ModalRoute.of(context)!.settings.arguments as ChatChannel;
-    return MaterialApp(
-      theme: ThemeData(
-        primaryColor: Colors.redAccent,
-      ),
-      home: ChatList(channel.channelID, channel.channelType),
-    );
+    return ChatList(channel.channelID, channel.channelType);
   }
 }
 
@@ -263,10 +258,27 @@ class ChatListDataState extends State<ChatList> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(title),
+        elevation: 0.5,
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1D1D1F), size: 20),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        iconTheme: const IconThemeData(color: Color(0xFF1D1D1F)),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFF1D1D1F),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         actions: [
           PopupMenuButton<String>(
+            icon: const Icon(Icons.more_horiz, color: Color(0xFF1D1D1F)),
             onSelected: (value) => {
               if (value == '清空聊天记录')
                 {
@@ -275,38 +287,34 @@ class ChatListDataState extends State<ChatList> {
                       builder: (context) {
                         return AlertDialog(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5.0),
+                            borderRadius: BorderRadius.circular(16.0),
                           ),
                           backgroundColor: Colors.white,
                           title: const Text('确认清空聊天记录？'),
                           content: const Text('清空后将无法恢复，确定要清空吗?'),
                           actions: <Widget>[
-                            GestureDetector(
-                              child: const Text(
-                                '取消',
-                                style: TextStyle(
-                                    color: Color.fromARGB(255, 113, 112, 112),
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              onTap: () {
+                            TextButton(
+                              onPressed: () {
                                 Navigator.of(context).pop();
                               },
-                            ),
-                            GestureDetector(
-                              child: Container(
-                                margin: const EdgeInsets.only(left: 20),
-                                child: const Text('确认',
-                                    style: TextStyle(
-                                        color: Colors.red,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold)),
+                              child: Text(
+                                '取消',
+                                style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 16),
                               ),
-                              onTap: () {
+                            ),
+                            TextButton(
+                              onPressed: () {
                                 Navigator.of(context).pop();
                                 HttpUtils.clearChannelMsg(
                                     channelID, channelType);
                               },
+                              child: const Text('确认',
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
                             ),
                           ],
                         );
@@ -325,137 +333,135 @@ class ChatListDataState extends State<ChatList> {
           crossAxisAlignment: CrossAxisAlignment.end,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            FloatingActionButton(
-              heroTag: 'previous',
-              onPressed: () {
-                getPrevious();
-              },
-              tooltip: '上一页',
-              backgroundColor: Colors.white,
-              child: const Icon(Icons.vertical_align_top),
+            SizedBox(
+              width: 45,
+              height: 45,
+              child: FloatingActionButton(
+                heroTag: 'previous',
+                onPressed: () {
+                  getPrevious();
+                },
+                tooltip: '上一页',
+                backgroundColor: Colors.white.withOpacity(0.8),
+                elevation: 2,
+                child: const Icon(Icons.keyboard_arrow_up, color: Color(0xFF0584FE)),
+              ),
             ),
             const SizedBox(height: 10.0),
-            FloatingActionButton(
-              heroTag: 'next',
-              onPressed: () {
-                getLast();
-              },
-              backgroundColor: Colors.white,
-              tooltip: '下一页',
-              child: const Icon(Icons.vertical_align_bottom),
+            SizedBox(
+              width: 45,
+              height: 45,
+              child: FloatingActionButton(
+                heroTag: 'next',
+                onPressed: () {
+                  getLast();
+                },
+                backgroundColor: Colors.white.withOpacity(0.8),
+                elevation: 2,
+                tooltip: '下一页',
+                child: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF0584FE)),
+              ),
             ),
-            const SizedBox(height: 70.0),
+            const SizedBox(height: 80.0),
           ]),
-      body: Container(
-        padding:
-            const EdgeInsets.only(left: 10, top: 10, right: 10, bottom: 10),
-        color: const Color.fromARGB(255, 221, 221, 221),
+      body: SafeArea(
         child: Column(
           children: [
             Expanded(
               child: ListView.builder(
                   controller: _scrollController,
-                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                   itemCount: msgList.length,
                   itemBuilder: (context, pos) {
                     return _buildRow(msgList[pos], context);
                   }),
             ),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                      onChanged: (v) {
-                        content = v;
-                      },
-                      controller: _textEditingController,
-                      decoration: const InputDecoration(hintText: '请输入内容'),
-                      autofocus: true),
-                ),
-                MaterialButton(
-                  onPressed: () {
-                    DateTime now = DateTime.now();
-                    var orderMsg = OrderMsg();
-                    orderMsg.title = "问界M9纯电版 旗舰SUV 2024款 3.0L 自动 豪华版";
-                    orderMsg.num = 300;
-                    orderMsg.price = 20;
-                    orderMsg.orderNo = '${now.millisecondsSinceEpoch}';
-                    orderMsg.imgUrl =
-                        "https://img0.baidu.com/it/u=4245434814,3643211003&fm=253&fmt=auto&app=120&f=JPEG?w=674&h=500";
-                    WKIM.shared.messageManager.sendMessage(
-                        orderMsg, WKChannel(channelID, channelType));
-                  },
-                  color: Colors.brown,
-                  child: const Text("自定义消息",
-                      style: TextStyle(color: Colors.white)),
-                ),
-                const SizedBox(width: 10.0),
-                MaterialButton(
-                  onPressed: () {
-                    if (content != '') {
-                      _textEditingController.text = '';
-                      Setting setting = Setting();
-                      setting.receipt = 1; //开启回执
-                      // 回复
-                      WKTextContent text = WKTextContent(content);
-                      WKReply reply = WKReply();
-                      reply.messageId = "11";
-                      reply.rootMid = "111";
-                      reply.fromUID = "11";
-                      reply.fromName = "12";
-                      WKTextContent payloadText = WKTextContent("dds");
-                      reply.payload = payloadText;
-                      text.reply = reply;
-                      // 标记
-                      List<WKMsgEntity> list = [];
-                      WKMsgEntity entity = WKMsgEntity();
-                      entity.offset = 0;
-                      entity.value = "1";
-                      entity.length = 1;
-                      list.add(entity);
-                      text.entities = list;
-                      // 艾特
-                      WKMentionInfo mentionInfo = WKMentionInfo();
-                      mentionInfo.mentionAll = true;
-                      mentionInfo.uids = ['uid_1', 'uid_2'];
-                      text.mentionInfo = mentionInfo;
-                      // CustomMsg customMsg = CustomMsg(content);
-                      var option = WKSendOptions();
-                      option.setting = setting;
-                      WKIM.shared.messageManager.sendWithOption(
-                          text, WKChannel(channelID, channelType), option);
-
-                      // WKImageContent imageContent = WKImageContent(100, 200);
-                      // imageContent.localPath = 'addskds';
-                      // WKIM.shared.messageManager.sendMessage(
-                      //     imageContent, WKChannel(channelID, channelType));
-                      // WKCardContent cardContent = WKCardContent('333', '我333');
-                      // WKIM.shared.messageManager.sendMessage(
-                      //     cardContent, WKChannel(channelID, channelType));
-                      // WKVideoContent videoContent = WKVideoContent();
-                      // videoContent.coverLocalPath = 'coverLocalPath';
-                      // videoContent.localPath = 'localPath';
-                      // videoContent.height = 10;
-                      // videoContent.width = 100;
-                      // videoContent.size = 122;
-                      // videoContent.second = 9;
-                      // WKIM.shared.messageManager.sendMessage(
-                      //     videoContent, WKChannel(channelID, channelType));
-                      // WKVoiceContent voiceContent = WKVoiceContent(10);
-                      // voiceContent.localPath = 'videoContent';
-                      // voiceContent.waveform = 'waveform';
-                      // WKIM.shared.messageManager.sendMessage(
-                      //     voiceContent, WKChannel(channelID, channelType));
-                    }
-                  },
-                  color: Colors.blue,
-                  child: const Text(
-                    '发送',
-                    style: TextStyle(color: Colors.white),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, -2),
                   ),
-                )
-              ],
-            )
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F7),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                          onChanged: (v) {
+                            content = v;
+                          },
+                          controller: _textEditingController,
+                          decoration: const InputDecoration(
+                            hintText: '输入消息...',
+                            border: InputBorder.none,
+                            hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
+                          ),
+                          style: const TextStyle(fontSize: 15),
+                          maxLines: null,
+                          autofocus: false),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      DateTime now = DateTime.now();
+                      var orderMsg = OrderMsg();
+                      orderMsg.title = "问界M9纯电版 旗舰SUV 2024款 3.0L 自动 豪华版";
+                      orderMsg.num = 300;
+                      orderMsg.price = 20;
+                      orderMsg.orderNo = '${now.millisecondsSinceEpoch}';
+                      orderMsg.imgUrl =
+                          "https://img0.baidu.com/it/u=4245434814,3643211003&fm=253&fmt=auto&app=120&f=JPEG?w=674&h=500";
+                      WKIM.shared.messageManager.sendMessage(
+                          orderMsg, WKChannel(channelID, channelType));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.card_giftcard, color: Colors.orange, size: 24),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () {
+                      if (content != '') {
+                        _textEditingController.text = '';
+                        Setting setting = Setting();
+                        setting.receipt = 1; //开启回执
+                        WKTextContent text = WKTextContent(content);
+                        var option = WKSendOptions();
+                        option.setting = setting;
+                        WKIM.shared.messageManager.sendWithOption(
+                            text, WKChannel(channelID, channelType), option);
+                        content = '';
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0584FE),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.send, color: Colors.white, size: 24),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

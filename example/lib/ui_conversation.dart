@@ -243,211 +243,260 @@ class ListViewShowDataState extends State<ListViewShowData> {
 
   Widget _buildRow(UIConversation uiMsg) {
     return Container(
-        color: Colors.white,
-        padding: const EdgeInsets.all(10),
-        child: Row(
-          children: [
-            Container(
-              decoration: const BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(20)),
-                  color: Colors.blue),
-              width: 50,
-              alignment: Alignment.center,
-              height: 50,
-              margin: const EdgeInsets.fromLTRB(0, 0, 10, 0),
-              child: Image.network(
-                getChannelAvatarURL(uiMsg),
-                height: 200,
-                width: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (BuildContext context, Object exception,
-                    StackTrace? stackTrace) {
-                  return Image.asset('assets/ic_default_avatar.png');
-                },
-              ),
-            ),
-            Expanded(
-                child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          getChannelName(uiMsg),
-                          style: const TextStyle(
-                              color: Colors.black, fontSize: 18),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Text(
-                        CommonUtils.formatDateTime(uiMsg.msg.lastMsgTimestamp),
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 16),
-                        textAlign: TextAlign.right,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        getReminderText(uiMsg),
-                        style: const TextStyle(
-                            color: Color.fromARGB(255, 247, 2, 2),
-                            fontSize: 14),
-                        maxLines: 1,
-                      ),
-                      Text(
-                        getShowContent(uiMsg),
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 14),
-                        maxLines: 1,
-                      ),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            if ((uiMsg.top) == 1)
-                              Container(
-                                margin: const EdgeInsets.only(left: 4),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.shade100,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'top',
-                                  style: TextStyle(
-                                    color: Colors.orange,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            if ((uiMsg.mute) == 1)
-                              Container(
-                                margin: const EdgeInsets.only(left: 4),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'mute',
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            Text(
-                              uiMsg.getUnreadCount(),
+      color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: const Color(0xFF0584FE).withOpacity(0.1),
+                    ),
+                    width: 55,
+                    height: 55,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Image.network(
+                        getChannelAvatarURL(uiMsg),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Center(
+                            child: Text(
+                              getChannelName(uiMsg).isNotEmpty
+                                  ? getChannelName(uiMsg).substring(0, 1)
+                                  : "?",
                               style: const TextStyle(
-                                  color: Colors.red,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.right,
+                                color: Color(0xFF0584FE),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ],
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  if (uiMsg.msg.unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.fromBorderSide(
+                            BorderSide(color: Colors.white, width: 2),
+                          ),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          uiMsg.msg.unreadCount > 99
+                              ? '99+'
+                              : '${uiMsg.msg.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ],
-                  )
-                ]))
-          ],
-        ));
+                    ),
+                ],
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            getChannelName(uiMsg),
+                            style: const TextStyle(
+                              color: Color(0xFF1D1D1F),
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          CommonUtils.formatDateTime(uiMsg.msg.lastMsgTimestamp)
+                              .split(' ')
+                              .last,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        if (getReminderText(uiMsg).isNotEmpty)
+                          Text(
+                            '[${getReminderText(uiMsg)}] ',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 13,
+                            ),
+                          ),
+                        Expanded(
+                          child: Text(
+                            getShowContent(uiMsg),
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (uiMsg.mute == 1)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Icon(
+                              Icons.notifications_off_outlined,
+                              size: 14,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        if (uiMsg.top == 1)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4),
+                            child: Icon(
+                              Icons.push_pin_outlined,
+                              size: 14,
+                              color: Colors.orange.shade300,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 221, 221, 221),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 251, 246, 246),
+        elevation: 0.5,
+        backgroundColor: Colors.white,
+        centerTitle: true,
         title: Column(
           children: [
-            Text(_connectionStatusStr),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '用户:${UserInfo.name}',
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                ),
-                Container(
-                  margin: const EdgeInsets.all(10.0),
-                ),
-                Text(
-                  '未读消息数量($allUnreadCount)',
-                  style: const TextStyle(color: Colors.black, fontSize: 16),
-                )
-              ],
+            Text(
+              _connectionStatusStr,
+              style: const TextStyle(
+                color: Color(0xFF1D1D1F),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              '用户:${UserInfo.name} • 未读($allUnreadCount)',
+              style: TextStyle(
+                color: Colors.grey.shade500,
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+              ),
             ),
           ],
         ),
       ),
-      body: ListView.builder(
-          shrinkWrap: true,
-          itemCount: msgList.length,
-          itemBuilder: (context, pos) {
-            return GestureDetector(
-              onLongPressStart: (details) {
-                longClick(msgList[pos], context, details);
-              },
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChatPage(),
-                    settings: RouteSettings(
-                      arguments: ChatChannel(
-                        msgList[pos].msg.channelID,
-                        msgList[pos].msg.channelType,
-                      ),
+      body: ListView.separated(
+        itemCount: msgList.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          indent: 83,
+          color: Colors.grey.shade100,
+        ),
+        itemBuilder: (context, pos) {
+          return GestureDetector(
+            onLongPressStart: (details) {
+              longClick(msgList[pos], context, details);
+            },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChatPage(),
+                  settings: RouteSettings(
+                    arguments: ChatChannel(
+                      msgList[pos].msg.channelID,
+                      msgList[pos].msg.channelType,
                     ),
                   ),
-                );
-              },
-              child: _buildRow(msgList[pos]),
-            );
-          }),
+                ),
+              );
+            },
+            child: _buildRow(msgList[pos]),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showDialog(context);
         },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFF0584FE),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       persistentFooterButtons: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-          ),
-          onPressed: () {
-            WKIM.shared.connectionManager.disconnect(false);
-          },
-          child: const Text(
-            '断开',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color.fromARGB(255, 31, 27, 239),
-          ),
-          onPressed: () {
-            WKIM.shared.connectionManager.connect();
-          },
-          child: const Text(
-            '重连',
-            style: TextStyle(color: Colors.white),
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: TextButton.icon(
+                  onPressed: () => WKIM.shared.connectionManager.disconnect(false),
+                  icon: const Icon(Icons.power_settings_new, color: Colors.red),
+                  label: const Text('断开', style: TextStyle(color: Colors.red)),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.red.withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: TextButton.icon(
+                  onPressed: () => WKIM.shared.connectionManager.connect(),
+                  icon: const Icon(Icons.refresh, color: Color(0xFF0584FE)),
+                  label: const Text('重连', style: TextStyle(color: Color(0xFF0584FE))),
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFF0584FE).withOpacity(0.1),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
