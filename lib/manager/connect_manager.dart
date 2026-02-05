@@ -28,10 +28,26 @@ class _WKSocket {
   _WKSocket._internal(this._socket);
 
   factory _WKSocket.newSocket(Socket socket) {
+     if (_instance != null) {
+      // 销毁旧的 socket
+      _instance!._destroySocket();
+    }
     _instance ??= _WKSocket._internal(socket);
     return _instance!;
   }
 
+  /// 内部方法：仅销毁 socket，不清除实例
+  void _destroySocket() {
+    _isListening = false;
+    try {
+      _socket?.close();
+    } catch (e) {
+      Logs.debug('关闭socket错误: $e');
+    } finally {
+      _socket = null;
+    }
+  }
+  
   void close() {
     _isListening = false;
     _instance = null;
