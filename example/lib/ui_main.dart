@@ -88,7 +88,8 @@ class LoginDemoState extends State<LoginDemo> {
                       Image.network(
                         'https://img.shields.io/pub/v/wukongimfluttersdk.svg',
                         height: 25,
-                        errorBuilder: (context, error, stackTrace) => const Text(
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Text(
                           'V1.6.7',
                           style: TextStyle(color: Colors.white70),
                         ),
@@ -122,7 +123,8 @@ class LoginDemoState extends State<LoginDemo> {
                         decoration: InputDecoration(
                           labelText: 'API基地址',
                           hintText: '默认 http://62.234.8.38:7090/v1',
-                          prefixIcon: const Icon(Icons.link, color: Color(0xFF0584FE)),
+                          prefixIcon:
+                              const Icon(Icons.link, color: Color(0xFF0584FE)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -139,7 +141,8 @@ class LoginDemoState extends State<LoginDemo> {
                         decoration: InputDecoration(
                           labelText: 'UID',
                           hintText: '随意输入',
-                          prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF0584FE)),
+                          prefixIcon: const Icon(Icons.person_outline,
+                              color: Color(0xFF0584FE)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -156,7 +159,8 @@ class LoginDemoState extends State<LoginDemo> {
                         decoration: InputDecoration(
                           labelText: 'Token',
                           hintText: '随意输入',
-                          prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF0584FE)),
+                          prefixIcon: const Icon(Icons.lock_outline,
+                              color: Color(0xFF0584FE)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -193,7 +197,8 @@ class LoginDemoState extends State<LoginDemo> {
                                   builder: (context) {
                                     return AlertDialog(
                                       shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16)),
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
                                       title: const Text('提示'),
                                       content: const Text('UID和Token不能为空'),
                                       actions: <Widget>[
@@ -208,18 +213,47 @@ class LoginDemoState extends State<LoginDemo> {
                                   });
                               return;
                             }
-                            var status = await HttpUtils.login(uidStr, tokenStr);
-                            if (status == HttpStatus.ok) {
+                            print(
+                                '开始登录: uid=$uidStr, apiURL=${HttpUtils.apiURL}');
+                            int loginStatus =
+                                await HttpUtils.login(uidStr, tokenStr);
+                            if (!mounted) return;
+                            print('登录返回状态码: $loginStatus');
+                            if (loginStatus == HttpStatus.ok) {
                               UserInfo.token = tokenStr;
                               UserInfo.uid = uidStr;
-                              IMUtils.initIM().then((result) {
-                                if (result) {
-                                  Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(builder: (_) => const HomePage()),
-                                      (Route<dynamic> route) => false);
-                                }
-                              });
+                              var result = await IMUtils.initIM();
+                              print('IM初始化结果: $result');
+                              if (!mounted) return;
+                              if (result) {
+                                Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const HomePage()),
+                                    (Route<dynamic> route) => false);
+                              }
+                            } else {
+                              print('登录失败，状态码: $loginStatus');
+                              showDialog(
+                                  context: context,
+                                  builder: (dialogContext) {
+                                    return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
+                                      title: const Text('登录失败'),
+                                      content: Text(
+                                          '服务器返回错误，状态码: $loginStatus\n请查看控制台日志获取详细信息'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.pop(context);
+                                          },
+                                          child: const Text("确定"),
+                                        ),
+                                      ],
+                                    );
+                                  });
                             }
                           },
                           child: const Text(

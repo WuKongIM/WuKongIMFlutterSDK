@@ -46,6 +46,7 @@ class HttpUtils {
 
   static Future<int> login(String uid, String token) async {
     try {
+      print('发起登录请求: $apiURL/user/login, uid=$uid');
       final response = await dio.post("/user/login", data: {
         'uid': uid,
         'token': token,
@@ -55,6 +56,8 @@ class HttpUtils {
 
       if (response.statusCode == HttpStatus.ok) {
         UserInfo.name = response.data['name'];
+      } else {
+        print('登录失败: HTTP ${response.statusCode}, 响应: ${response.data}');
       }
       return response.statusCode ?? HttpStatus.badRequest;
     } catch (e) {
