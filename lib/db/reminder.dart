@@ -54,8 +54,7 @@ class ReminderDB {
     for (int i = 0, size = list.length; i < size; i++) {
       bool isAdd = true;
       for (String channelId in channelIds) {
-        if (list[i].channelID == list[i].channelID &&
-            channelId == list[i].channelID) {
+        if (channelId == list[i].channelID) {
           isAdd = false;
           break;
         }
@@ -72,7 +71,7 @@ class ReminderDB {
       bool isAdd = true;
       for (WKReminder reminder in allList) {
         if (reminder.reminderID == list[i].reminderID) {
-          updateList.add(getMap(reminder));
+          updateList.add(getMap(list[i]));
           isAdd = false;
           break;
         }
@@ -83,7 +82,7 @@ class ReminderDB {
     }
 
     if (addList.isNotEmpty || updateList.isNotEmpty) {
-      WKDBHelper.shared.getDB()!.transaction((txn) async {
+      await WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (addList.isNotEmpty) {
           for (Map<String, dynamic> value in addList) {
             txn.insert(WKDBConst.tableReminders, value,
