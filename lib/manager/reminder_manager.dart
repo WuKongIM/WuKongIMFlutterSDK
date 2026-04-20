@@ -16,6 +16,12 @@ class WKReminderManager {
     return ReminderDB.shared.queryWithChannel(channelID, channelType, done);
   }
 
+  Future<List<WKReminder>> getWithChannelAndType(
+      String channelID, int channelType, int type, int? done) {
+    return ReminderDB.shared
+        .queryWithChannelAndType(channelID, channelType, type, done);
+  }
+
   addOnNewReminderListener(String key, Function(List<WKReminder>) back) {
     _newReminderback ??= HashMap();
     _newReminderback![key] = back;
