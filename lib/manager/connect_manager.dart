@@ -28,7 +28,7 @@ class _WKSocket {
   _WKSocket._internal(this._socket);
 
   factory _WKSocket.newSocket(Socket socket) {
-     if (_instance != null) {
+    if (_instance != null) {
       // 销毁旧的 socket
       _instance!._destroySocket();
     }
@@ -47,7 +47,7 @@ class _WKSocket {
       _socket = null;
     }
   }
-  
+
   void close() {
     _isListening = false;
     _instance = null;
@@ -396,6 +396,17 @@ class WKConnectionManager {
     checkNetworkTimer = Timer.periodic(checkNetworkSecond, (timer) {
       var connectivityResult = _connectivity.checkConnectivity();
       connectivityResult.then((value) {
+        /**
+         * 经过查阅 connectivity_plus 官方文档和源码确认：                                                                                                   
+          checkConnectivity() 返回的 List<ConnectivityResult> 中，ConnectivityResult.none 只会单独出现，不会和其他连接类型（如 wifi、mobile）混合在同一个列表中。官方文档原文：               
+          "The returned list is never empty. In case of no connectivity, the list contains a single element of [ConnectivityResult.none]. Note also that this is the only case where
+          ConnectivityResult.none is present."
+          参考链接：
+          - https://pub.dev/documentation/connectivity_plus_platform_interface/latest/connectivity_plus_platform_interface/ConnectivityResult.html
+          - https://github.com/fluttercommunity/plus_plugins/blob/main/packages/connectivity_plus/connectivity_plus/lib/connectivity_plus.dart
+          所以 value.contains(ConnectivityResult.none) 在真机上的判断是可靠的，不会出现混合值误触发的情况。
+          如果你是在模拟器上遇到反复触发"网络断开了"的问题，这通常是模拟器本身网络状态不稳定导致的，建议在真机上验证一下。
+        */
         if (value.contains(ConnectivityResult.none)) {
           isReconnection = true;
           isNetworkUnavailable = true;
