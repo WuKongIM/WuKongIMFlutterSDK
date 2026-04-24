@@ -203,12 +203,7 @@ class ReminderDB {
     map['need_upload'] = reminder.needUpload;
     map['publisher'] = reminder.publisher;
     // 可以有错误数据
-    var len = reminder.data?.toString().length ?? 0;
-    if (len < 1000000) {
-      map['data'] = reminder.data?.toString() ?? "";
-    } else {
-      map['data'] = '';
-    }
+    map['data'] = WKDBConst.safeJsonEncode(reminder.data);
     return map;
   }
 }

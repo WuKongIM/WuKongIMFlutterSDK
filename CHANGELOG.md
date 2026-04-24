@@ -79,6 +79,8 @@
  ### 1.3.9
  * fix: Update RecvAckPacket header encode method
  ### 1.4.0
+ * fix: Optimize JSON storage for channel, conversation, message, reminder extra fields and harden sync parsing
+ ### 1.4.0
  * fix: Modifying the issue of a large number of offline messages getting stuck during synchronization
  ### 1.4.1
  * fix: Modifying non JSON serialization errors in extended fields
@@ -142,5 +144,5 @@
  * fix: 向下兼容一些第三方库
 ### 1.7.1
  * fix: 提醒项支持按类型查询
-### 1.7.2
+### 1.7.3
  * fix: 优化扩展字段 JSON 存储与会话同步解析错误

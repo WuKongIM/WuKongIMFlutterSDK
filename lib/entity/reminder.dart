@@ -8,7 +8,7 @@ class WKReminder {
   int isLocate = 0;
   String uid = '';
   String text = '';
-  dynamic data;
+  Map<String, dynamic>? data;
   int version = 0;
   int done = 0;
   int needUpload = 0;
