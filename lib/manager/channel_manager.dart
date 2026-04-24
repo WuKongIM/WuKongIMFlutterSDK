@@ -12,7 +12,7 @@ class WKChannelManager {
       WKChannelManager._privateConstructor();
   static WKChannelManager get shared => _instance;
 
-  final List<WKChannel> _list = [];
+  final Map<String, WKChannel> _list = {};
   late final HashMap<String, Function(WKChannel)> _refreshChannelMap;
   late final HashMap<String, Function(WKChannel)> _refreshChannelAvatarMap;
   Function(String channelID, int channelType, Function(WKChannel) back)?
@@ -33,20 +33,12 @@ class WKChannelManager {
   }
 
   Future<WKChannel?> getChannel(String channelID, int channelType) async {
-    WKChannel? channel;
-    if (_list.isNotEmpty) {
-      for (int i = 0; i < _list.length; i++) {
-        if (_list[i].channelID == channelID &&
-            _list[i].channelType == channelType) {
-          channel = _list[i];
-          break;
-        }
-      }
-    }
+    String key = _getKey(channelID, channelType);
+    WKChannel? channel = _list[key];
     if (channel == null || channel.channelID == '') {
       channel = await ChannelDB.shared.query(channelID, channelType);
       if (channel != null) {
-        _list.add(channel);
+        _list[key] = channel;
       }
     }
     return channel;
@@ -96,40 +88,35 @@ class WKChannelManager {
   }
 
   _updateChannel(WKChannel channel) {
-    bool isAdd = true;
-    for (int i = 0, size = _list.length; i < size; i++) {
-      if (_list[i].channelID == channel.channelID &&
-          _list[i].channelType == channel.channelType) {
-        isAdd = false;
-        _list[i].forbidden = channel.forbidden;
-        _list[i].channelName = channel.channelName;
-        _list[i].avatar = channel.avatar;
-        _list[i].category = channel.category;
-        _list[i].lastOffline = channel.lastOffline;
-        _list[i].online = channel.online;
-        _list[i].follow = channel.follow;
-        _list[i].top = channel.top;
-        _list[i].channelRemark = channel.channelRemark;
-        _list[i].status = channel.status;
-        _list[i].version = channel.version;
-        _list[i].invite = channel.invite;
-        _list[i].localExtra = channel.localExtra;
-        _list[i].mute = channel.mute;
-        _list[i].save = channel.save;
-        _list[i].showNick = channel.showNick;
-        _list[i].isDeleted = channel.isDeleted;
-        _list[i].receipt = channel.receipt;
-        _list[i].robot = channel.robot;
-        _list[i].deviceFlag = channel.deviceFlag;
-        _list[i].parentChannelID = channel.parentChannelID;
-        _list[i].parentChannelType = channel.parentChannelType;
-        _list[i].avatarCacheKey = channel.avatarCacheKey;
-        _list[i].remoteExtraMap = channel.remoteExtraMap;
-        break;
-      }
-    }
-    if (isAdd) {
-      _list.add(channel);
+    String key = _getKey(channel.channelID, channel.channelType);
+    WKChannel? exist = _list[key];
+    if (exist != null) {
+      exist.forbidden = channel.forbidden;
+      exist.channelName = channel.channelName;
+      exist.avatar = channel.avatar;
+      exist.category = channel.category;
+      exist.lastOffline = channel.lastOffline;
+      exist.online = channel.online;
+      exist.follow = channel.follow;
+      exist.top = channel.top;
+      exist.channelRemark = channel.channelRemark;
+      exist.status = channel.status;
+      exist.version = channel.version;
+      exist.invite = channel.invite;
+      exist.localExtra = channel.localExtra;
+      exist.mute = channel.mute;
+      exist.save = channel.save;
+      exist.showNick = channel.showNick;
+      exist.isDeleted = channel.isDeleted;
+      exist.receipt = channel.receipt;
+      exist.robot = channel.robot;
+      exist.deviceFlag = channel.deviceFlag;
+      exist.parentChannelID = channel.parentChannelID;
+      exist.parentChannelType = channel.parentChannelType;
+      exist.avatarCacheKey = channel.avatarCacheKey;
+      exist.remoteExtraMap = channel.remoteExtraMap;
+    } else {
+      _list[key] = channel;
     }
   }
 
@@ -137,6 +124,10 @@ class WKChannelManager {
     _refreshChannelMap.forEach((key, back) {
       back(liMChannel);
     });
+  }
+
+  String _getKey(String channelID, int channelType) {
+    return '$channelID:$channelType';
   }
 
   addOnRefreshListener(String key, Function(WKChannel) back) {

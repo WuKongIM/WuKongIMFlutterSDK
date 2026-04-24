@@ -32,8 +32,8 @@ class ConversationDB {
         WKConversationMsg msg = WKDBConst.serializeCoversation(data);
         WKChannel wkChannel = WKDBConst.serializeChannel(data);
         wkChannel.remoteExtraMap =
-            WKDBConst.readDynamic(data, 'channel_remote_extra');
-        wkChannel.localExtra = WKDBConst.readDynamic(data, 'channel_extra');
+            WKDBConst.readJsonValue(data, 'channel_remote_extra');
+        wkChannel.localExtra = WKDBConst.readJsonValue(data, 'channel_extra');
         WKUIConversationMsg uiMsg = getUIMsg(msg);
         uiMsg.setWkChannel(wkChannel);
         list.add(uiMsg);
@@ -324,7 +324,7 @@ class ConversationDB {
     data['parent_channel_id'] = msg.parentChannelID;
     data['parent_channel_type'] = msg.parentChannelType;
     data['is_deleted'] = msg.isDeleted;
-    data['extra'] = msg.localExtraMap?.toString() ?? "";
+    data['extra'] = WKDBConst.safeJsonEncode(msg.localExtraMap);
     if (isSync) {
       data['version'] = msg.version;
     }

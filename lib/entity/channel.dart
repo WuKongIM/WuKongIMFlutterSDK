@@ -32,7 +32,7 @@ class WKChannel {
   //版本
   int version = 0;
   //扩展字段
-  dynamic localExtra;
+  Map<String, dynamic>? localExtra;
   //是否在线
   int online = 0;
   //最后一次离线时间
@@ -47,7 +47,7 @@ class WKChannel {
   String category = "";
   String username = "";
   String avatarCacheKey = "";
-  dynamic remoteExtraMap;
+  Map<String, dynamic>? remoteExtraMap;
   String parentChannelID = "";
   int parentChannelType = 0;
   WKChannel(this.channelID, this.channelType);

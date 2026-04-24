@@ -150,7 +150,7 @@ class ChannelMemberDB {
     map['forbidden_expiration_time'] = member.forbiddenExpirationTime;
     map['created_at'] = member.createdAt;
     map['updated_at'] = member.updatedAt;
-    map['extra'] = member.extraMap?.toString() ?? "";
+    map['extra'] = WKDBConst.safeJsonEncode(member.extraMap);
     return map;
   }
 }

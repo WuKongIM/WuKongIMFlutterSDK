@@ -998,7 +998,7 @@ class MessageDB {
     // 这里有错误数据，需要清理
     var len = msg.localExtraMap?.toString().length ?? 0;
     if (len < 1000000) {
-      map['extra'] = msg.localExtraMap?.toString() ?? "";
+      map['extra'] = WKDBConst.safeJsonEncode(msg.localExtraMap);
     } else {
       map['extra'] = '';
     }

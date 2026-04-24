@@ -35,7 +35,7 @@ class WKMsg {
   int viewed = 0;
   int viewedAt = 0;
   String topicID = "";
-  dynamic localExtraMap;
+  Map<String, dynamic>? localExtraMap;
   WKMsgExtra? wkMsgExtra;
   List<WKMsgReaction>? reactionList;
   WKMessageContent? messageContent;

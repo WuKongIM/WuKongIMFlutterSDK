@@ -29,7 +29,16 @@ class WKMessageContent {
     if (result == Null || result == null) {
       return 0;
     }
-    return result as int;
+    if (result is int) {
+      return result;
+    }
+    if (result is double) {
+      return result.toInt();
+    }
+    if (result is num) {
+      return result.toInt();
+    }
+    return int.tryParse(result.toString()) ?? 0;
   }
 
   String readString(dynamic json, String key) {

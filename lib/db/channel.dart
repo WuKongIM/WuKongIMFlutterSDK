@@ -215,8 +215,8 @@ class ChannelDB {
     data['device_flag'] = channel.deviceFlag;
     data['parent_channel_id'] = channel.parentChannelID;
     data['parent_channel_type'] = channel.parentChannelType;
-    data['remote_extra'] = channel.remoteExtraMap?.toString() ?? "";
-    data['extra'] = channel.localExtra?.toString() ?? "";
+    data['remote_extra'] = WKDBConst.safeJsonEncode(channel.remoteExtraMap);
+    data['extra'] = WKDBConst.safeJsonEncode(channel.localExtra);
     return data;
   }
 }

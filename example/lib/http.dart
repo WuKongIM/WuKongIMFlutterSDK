@@ -105,14 +105,17 @@ class HttpUtils {
           for (int i = 0; i < list.length; i++) {
             var json = list[i];
             WKSyncConvMsg convMsg = WKSyncConvMsg();
-            convMsg.channelID = json['channel_id'];
-            convMsg.channelType = json['channel_type'];
-            convMsg.unread = json['unread'] ?? 0;
-            convMsg.timestamp = json['timestamp'];
-            convMsg.lastMsgSeq = json['last_msg_seq'];
-            convMsg.lastClientMsgNO = json['last_client_msg_no'];
-            convMsg.version = json['version'];
-            var msgListJson = json['recents'] as List<dynamic>;
+            convMsg.channelID = json['channel_id']?.toString() ?? '';
+            convMsg.channelType = safeInt(json['channel_type']);
+            convMsg.unread = safeInt(json['unread'] ?? 0);
+            convMsg.timestamp = safeInt(json['timestamp']);
+            convMsg.lastMsgSeq = safeInt(json['last_msg_seq']);
+            convMsg.lastClientMsgNO = json['last_client_msg_no']?.toString() ?? '';
+            convMsg.version = safeInt(json['version']);
+            var msgListJson = json['recents'];
+            if (msgListJson is! List) {
+              continue;
+            }
             List<WKSyncMsg> msgList = [];
             if (msgListJson.isNotEmpty) {
               for (int j = 0; j < msgListJson.length; j++) {
@@ -124,8 +127,9 @@ class HttpUtils {
             convMsg.recents = msgList;
             conversation.conversations!.add(convMsg);
           }
-        } catch (e) {
+        } catch (e, stack) {
           print('解析会话数据错误: $e');
+          print('解析会话堆栈: $stack');
         }
       } else {
         print('同步会话失败: HTTP ${response.statusCode}');
@@ -154,8 +158,9 @@ class HttpUtils {
       //   conversation.conversations!.add(convMsg);
       // }
       back(conversation);
-    } catch (e) {
+    } catch (e, stack) {
       print('同步会话错误: $e');
+      print('同步会话堆栈: $stack');
       back(WKSyncConversation()..conversations = []);
     }
   }
@@ -182,9 +187,9 @@ class HttpUtils {
       if (response.statusCode == HttpStatus.ok) {
         var data = response.data;
         WKSyncChannelMsg msg = WKSyncChannelMsg();
-        msg.startMessageSeq = data['start_message_seq'];
-        msg.endMessageSeq = data['end_message_seq'];
-        msg.more = data['more'];
+        msg.startMessageSeq = safeInt(data['start_message_seq']);
+        msg.endMessageSeq = safeInt(data['end_message_seq']);
+        msg.more = safeInt(data['more']);
         var messages = data['messages'];
 
         List<WKSyncMsg> msgList = [];
@@ -204,14 +209,14 @@ class HttpUtils {
 
   static WKSyncMsg getWKSyncMsg(dynamic json) {
     WKSyncMsg msg = WKSyncMsg();
-    msg.channelID = json['channel_id'];
+    msg.channelID = json['channel_id']?.toString() ?? '';
     msg.messageID = json['message_id'].toString();
-    msg.channelType = json['channel_type'];
-    msg.clientMsgNO = json['client_msg_no'];
-    msg.messageSeq = json['message_seq'];
-    msg.fromUID = json['from_uid'];
-    msg.isDeleted = json['is_deleted'];
-    msg.timestamp = json['timestamp'];
+    msg.channelType = safeInt(json['channel_type']);
+    msg.clientMsgNO = json['client_msg_no']?.toString() ?? '';
+    msg.messageSeq = safeInt(json['message_seq']);
+    msg.fromUID = json['from_uid']?.toString() ?? '';
+    msg.isDeleted = safeInt(json['is_deleted']);
+    msg.timestamp = safeInt(json['timestamp']);
     //  msg.payload = json['payload'];
 
     // String payload = json['payload'];
@@ -232,14 +237,30 @@ class HttpUtils {
 
   static WKSyncExtraMsg getMsgExtra(dynamic extraJson) {
     var extra = WKSyncExtraMsg();
-    extra.messageID = extraJson['message_id'];
-    extra.messageIdStr = extraJson['message_id_str'];
-    extra.revoke = extraJson['revoke'] ?? 0;
-    extra.revoker = extraJson['revoker'] ?? '';
-    extra.readed = extraJson['readed'] ?? 0;
-    extra.readedCount = extraJson['readed_count'] ?? 0;
-    extra.isMutualDeleted = extraJson['is_mutual_deleted'] ?? 0;
+    extra.messageID = safeInt(extraJson['message_id']);
+    extra.messageIdStr = extraJson['message_id_str']?.toString() ?? '';
+    extra.revoke = safeInt(extraJson['revoke'] ?? 0);
+    extra.revoker = extraJson['revoker']?.toString() ?? '';
+    extra.readed = safeInt(extraJson['readed'] ?? 0);
+    extra.readedCount = safeInt(extraJson['readed_count'] ?? 0);
+    extra.isMutualDeleted = safeInt(extraJson['is_mutual_deleted'] ?? 0);
     return extra;
+  }
+
+  static int safeInt(dynamic value) {
+    if (value == null) {
+      return 0;
+    }
+    if (value is int) {
+      return value;
+    }
+    if (value is double) {
+      return value.toInt();
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return int.tryParse(value.toString()) ?? 0;
   }
 
   static Future<void> getGroupInfo(String groupId) async {
@@ -261,8 +282,8 @@ class HttpUtils {
       if (response.statusCode == HttpStatus.ok) {
         var json = response.data;
         var channel = WKChannel(groupId, WKChannelType.group);
-        channel.channelName = json['name'];
-        channel.avatar = json['avatar'];
+        channel.channelName = json['name']?.toString() ?? '';
+        channel.avatar = json['avatar']?.toString() ?? '';
         WKIM.shared.channelManager.addOrUpdateChannel(channel);
       } else {
         print('获取群信息失败: HTTP ${response.statusCode}');
@@ -295,8 +316,8 @@ class HttpUtils {
       if (response.statusCode == HttpStatus.ok) {
         var json = response.data;
         var channel = WKChannel(uid, WKChannelType.personal);
-        channel.channelName = json['name'];
-        channel.avatar = json['avatar'];
+        channel.channelName = json['name']?.toString() ?? '';
+        channel.avatar = json['avatar']?.toString() ?? '';
         WKIM.shared.channelManager.addOrUpdateChannel(channel);
       } else {
         print('获取用户信息失败: HTTP ${response.statusCode}');

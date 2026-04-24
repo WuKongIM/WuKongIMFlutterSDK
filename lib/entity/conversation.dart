@@ -24,7 +24,7 @@ class WKConversationMsg {
   //最后一条消息序号
   int lastMsgSeq = 0;
   //扩展字段
-  dynamic localExtraMap;
+  Map<String, dynamic>? localExtraMap;
   WKConversationMsgExtra? msgExtra;
   String parentChannelID = '';
   int parentChannelType = 0;
@@ -61,7 +61,7 @@ class WKUIConversationMsg {
   //高亮内容[{type:1,text:'[有人@你]'}]
   List<WKReminder>? _reminderList;
   //扩展字段
-  dynamic localExtraMap;
+  Map<String, dynamic>? localExtraMap;
   String parentChannelID = '';
   int parentChannelType = 0;
 

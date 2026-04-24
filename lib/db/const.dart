@@ -49,7 +49,7 @@ class WKDBConst {
     msg.expireTimestamp = readInt(data, 'expire_timestamp');
     // 扩展表数据
     msg.wkMsgExtra = serializeMsgExtra(data);
-    msg.localExtraMap = readDynamic(data, 'extra');
+    msg.localExtraMap = readJsonValue(data, 'extra');
     if (msg.content != '') {
       dynamic contentJson = jsonDecode(msg.content);
       if (contentJson != null && contentJson != '') {
@@ -115,7 +115,7 @@ class WKDBConst {
     msg.lastMsgSeq = readInt(data, 'last_msg_seq');
     msg.parentChannelID = readString(data, 'parent_channel_id');
     msg.parentChannelType = readInt(data, 'parent_channel_type');
-    msg.localExtraMap = readDynamic(data, 'extra');
+    msg.localExtraMap = readJsonValue(data, 'extra');
     msg.msgExtra = serializeConversationExtra(data);
     return msg;
   }
@@ -170,8 +170,8 @@ class WKDBConst {
     }
     channel.createdAt = readString(data, 'created_at');
     channel.updatedAt = readString(data, 'updated_at');
-    channel.remoteExtraMap = readDynamic(data, 'remote_extra');
-    channel.localExtra = readDynamic(data, 'extra');
+    channel.remoteExtraMap = readJsonValue(data, 'remote_extra');
+    channel.localExtra = readJsonValue(data, 'extra');
     return channel;
   }
 
@@ -207,7 +207,7 @@ class WKDBConst {
     } else {
       member.memberAvatarCacheKey = readString(data, 'member_avatar_cache_key');
     }
-    member.extraMap = readDynamic(data, 'extra');
+    member.extraMap = readJsonValue(data, 'extra');
     return member;
   }
 
@@ -225,7 +225,7 @@ class WKDBConst {
     reminder.done = readInt(data, 'done');
     reminder.needUpload = readInt(data, 'need_upload');
     reminder.publisher = readString(data, 'publisher');
-    reminder.data = readDynamic(data, 'data');
+    reminder.data = readJsonValue(data, 'data');
     return reminder;
   }
 
@@ -235,9 +235,15 @@ class WKDBConst {
       return 0;
     }
     if (result is int) {
-      return int.parse(result.toString());
+      return result;
     }
-    return 0;
+    if (result is double) {
+      return result.toInt();
+    }
+    if (result is num) {
+      return result.toInt();
+    }
+    return int.tryParse(result.toString()) ?? 0;
   }
 
   static String readString(dynamic data, String key) {
@@ -248,12 +254,18 @@ class WKDBConst {
     return result.toString();
   }
 
-  static dynamic readDynamic(dynamic data, String key) {
+  static Map<String, dynamic>? readJsonValue(dynamic data, String key) {
     String jsonStr = readString(data, key);
     if (jsonStr != '' && isJsonString(jsonStr)) {
-      return jsonDecode(jsonStr);
+      dynamic decoded = jsonDecode(jsonStr);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      if (decoded is Map) {
+        return Map<String, dynamic>.from(decoded);
+      }
     }
-    return jsonStr;
+    return null;
   }
 
   static bool isJsonString(String str) {
@@ -262,6 +274,20 @@ class WKDBConst {
       return parsed is Map || parsed is List;
     } on FormatException {
       return false;
+    }
+  }
+
+  static String safeJsonEncode(dynamic value) {
+    if (value == null) {
+      return '';
+    }
+    if (value is String) {
+      return value;
+    }
+    try {
+      return jsonEncode(value);
+    } catch (_) {
+      return value.toString();
     }
   }
 

@@ -25,7 +25,7 @@ class WKChannelMember {
   // 机器人0否1是
   int robot = 0;
   //扩展字段
-  dynamic extraMap;
+  Map<String, dynamic>? extraMap;
   // 用户备注
   String remark = "";
   // 邀请者uid
