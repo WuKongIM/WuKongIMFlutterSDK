@@ -739,7 +739,8 @@ class WKMessageManager {
       int orderSeq = await WKIM.shared.messageManager
           .getMessageOrderSeq(messageSeq, wkMsg.channelID, wkMsg.channelType);
       map['order_seq'] = orderSeq;
-      MessageDB.shared.updateMsgWithField(map, clientSeq);
+      await MessageDB.shared.updateMsgWithField(map, clientSeq);
+      wkMsg.orderSeq = orderSeq;
       setRefreshMsg(wkMsg);
 
       // 更新最近会话
@@ -772,6 +773,8 @@ class WKMessageManager {
       int result = await MessageDB.shared
           .updateMsgWithFieldAndClientMsgNo(map, clientMsgNO);
       if (isRefreshUI && result > 0) {
+        wkMsg.messageContent = messageContent;
+        wkMsg.content = _getSendPayload(wkMsg);
         setRefreshMsg(wkMsg);
       }
     }
@@ -781,14 +784,16 @@ class WKMessageManager {
     MessageDB.shared.updateSendingMsgFail();
   }
 
-  updateLocalExtraWithClientMsgNo(String clientMsgNO, dynamic data) async {
+  updateLocalExtraWithClientMsgNo(
+      String clientMsgNO, Map<String, dynamic>? data) async {
     WKMsg? wkMsg = await MessageDB.shared.queryWithClientMsgNo(clientMsgNO);
     if (wkMsg != null) {
       var map = <String, Object>{};
-      map['extra'] = jsonEncode(data);
+      map['extra'] = WKDBConst.safeJsonEncode(data);
       int result = await MessageDB.shared
           .updateMsgWithFieldAndClientMsgNo(map, clientMsgNO);
       if (result > 0) {
+        wkMsg.localExtraMap = data;
         setRefreshMsg(wkMsg);
       }
     }
