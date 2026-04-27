@@ -190,14 +190,9 @@ class ListViewShowDataState extends State<ListViewShowData> {
         if (uiConversation.reminders![i].type ==
                 WKMentionType.wkReminderTypeMentionMe &&
             uiConversation.reminders![i].done == 0) {
-          var d = uiConversation.reminders![i].data;
-          if (d is Map) {
-            content = d['type'];
-          } else if (d is String && WKDBConst.isJsonString(d)) {
-            var obj = jsonDecode(d);
-            content = obj['type'];
-          } else {
-            content = d;
+          final d = uiConversation.reminders![i].data;
+          if (d != null) {
+            content = d['type'] as String? ?? '';
           }
           // content = uiConversation.reminders![i].data;
           break;
@@ -554,7 +549,7 @@ class ListViewShowDataState extends State<ListViewShowData> {
           reminder.channelID = uiMsg.msg.channelID;
           reminder.channelType = uiMsg.msg.channelType;
           // 这两种都可以
-          reminder.data = "[有人@你]";
+          reminder.data = {"type": "[有人@你]"};
           // reminder.data = jsonEncode({"type": "[有人@你]"});
           list.add(reminder);
           WKIM.shared.reminderManager.saveOrUpdateReminders(list);

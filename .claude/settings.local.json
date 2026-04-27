@@ -7,7 +7,11 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:pub.dev)",
       "Bash(gh api:*)",
-      "Bash(find lib:*)"
+      "Bash(find lib:*)",
+      "Bash(find assets:*)",
+      "Bash(open /Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/Runner.xcworkspace)",
+      "Bash(security find-identity:*)",
+      "Bash(security find-certificate:*)"
     ]
   }
 }

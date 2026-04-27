@@ -157,3 +157,5 @@
  * fix: 修复 message.dart 中空 clientMsgNO 被添加到查询列表的逻辑错误
  * fix: 修复 channel_member.dart 中冗余的条件检查
  * fix: 修复 channel.dart 中 insert 和 update 方法缺少返回类型和返回值的问题
+### 1.7.6
+ * fix: 调整消息回应限制同一个频道同一条消息只能有一次回应
