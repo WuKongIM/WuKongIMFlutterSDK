@@ -122,11 +122,9 @@ class ChannelMemberDB {
     }
     if (insertCVList.isNotEmpty) {
       WKDBHelper.shared.getDB()!.transaction((txn) async {
-        if (insertCVList.isNotEmpty) {
-          for (Map<String, dynamic> value in insertCVList) {
-            txn.insert(WKDBConst.tableChannelMember, value,
-                conflictAlgorithm: ConflictAlgorithm.replace);
-          }
+        for (Map<String, dynamic> value in insertCVList) {
+          txn.insert(WKDBConst.tableChannelMember, value,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       });
     }

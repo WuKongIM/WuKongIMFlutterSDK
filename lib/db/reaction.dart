@@ -90,8 +90,8 @@ class ReactionDB {
   //       whereArgs: [reaction.messageID, reaction.uid]);
   // }
 
-  insertReaction(WKMsgReaction reaction) {
-    WKDBHelper.shared.getDB()!.insert(
+  Future<int> insertReaction(WKMsgReaction reaction) async {
+    return await WKDBHelper.shared.getDB()!.insert(
         WKDBConst.tableMessageReaction, getReactionMap(reaction),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -108,9 +108,8 @@ class ReactionDB {
     return isExist;
   }
 
-  dynamic getReactionMap(WKMsgReaction reaction) {
+  Map<String, Object> getReactionMap(WKMsgReaction reaction) {
     var map = <String, Object>{};
-    map['channel_id'] = reaction.channelID;
     map['channel_id'] = reaction.channelID;
     map['channel_type'] = reaction.channelType;
     map['message_id'] = reaction.messageID;
@@ -120,5 +119,6 @@ class ReactionDB {
     map['seq'] = reaction.seq;
     map['emoji'] = reaction.emoji;
     map['created_at'] = reaction.createdAt;
+    return map;
   }
 }

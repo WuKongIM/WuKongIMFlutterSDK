@@ -148,3 +148,12 @@
  * fix: 优化扩展字段 JSON 存储与会话同步解析错误
 ### 1.7.4
  * fix: 修复消息本地扩展字段更新时类型不一致问题，统一使用 Map<String, dynamic> 类型
+### 1.7.5
+ * fix: 修复 reaction.dart 中 insertReaction 方法缺少返回值导致调用失败的问题
+ * fix: 修复 reaction.dart 中 getReactionMap 方法缺少 return 语句的问题
+ * fix: 修复 reaction.dart 中 channel_id 字段重复赋值的问题
+### 1.7.6
+ * fix: 修复 message.dart 中批量更新消息扩展数据时使用错误数组索引导致数据更新错误的严重问题
+ * fix: 修复 message.dart 中空 clientMsgNO 被添加到查询列表的逻辑错误
+ * fix: 修复 channel_member.dart 中冗余的条件检查
+ * fix: 修复 channel.dart 中 insert 和 update 方法缺少返回类型和返回值的问题

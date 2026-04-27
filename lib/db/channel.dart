@@ -53,13 +53,13 @@ class ChannelDB {
     insert(channel);
   }
 
-  insert(WKChannel channel) {
-    WKDBHelper.shared.getDB()?.insert(WKDBConst.tableChannel, getMap(channel),
+  Future<int?> insert(WKChannel channel) async {
+    return await WKDBHelper.shared.getDB()?.insert(WKDBConst.tableChannel, getMap(channel),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  update(WKChannel channel) {
-    WKDBHelper.shared.getDB()?.update(WKDBConst.tableChannel, getMap(channel),
+  Future<int?> update(WKChannel channel) async {
+    return await WKDBHelper.shared.getDB()?.update(WKDBConst.tableChannel, getMap(channel),
         where: "channel_id=? and channel_type=?",
         whereArgs: [channel.channelID, channel.channelType]);
   }

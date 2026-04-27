@@ -593,8 +593,9 @@ class MessageDB {
 
         clientMsgNos.clear();
       }
-      if (saveList[i].clientMsgNO != '') {}
-      clientMsgNos.add(saveList[i].clientMsgNO);
+      if (saveList[i].clientMsgNO != '') {
+        clientMsgNos.add(saveList[i].clientMsgNO);
+      }
     }
     if (clientMsgNos.isNotEmpty) {
       List<WKMsg> tempList = await queryWithClientMsgNos(clientMsgNos);
@@ -702,7 +703,7 @@ class MessageDB {
         }
         if (updateCVList.isNotEmpty) {
           for (int i = 0; i < updateCVList.length; i++) {
-            txn.update(WKDBConst.tableMessageExtra, updateCVList[0],
+            txn.update(WKDBConst.tableMessageExtra, updateCVList[i],
                 where: "message_id=?",
                 whereArgs: [updateCVList[i]['message_id']]);
           }
