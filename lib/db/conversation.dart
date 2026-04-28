@@ -5,8 +5,10 @@ import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/db/channel.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
+import 'package:wukongimfluttersdk/entity/msg.dart';
 
 import '../entity/conversation.dart';
+import 'message.dart';
 import 'wk_db_helper.dart';
 
 class ConversationDB {
@@ -27,19 +29,158 @@ class ConversationDB {
     }
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB()!.rawQuery(sql);
-    if (results.isNotEmpty) {
-      for (Map<String, Object?> data in results) {
-        WKConversationMsg msg = WKDBConst.serializeCoversation(data);
-        WKChannel wkChannel = WKDBConst.serializeChannel(data);
-        wkChannel.remoteExtraMap =
-            WKDBConst.readJsonValue(data, 'channel_remote_extra');
-        wkChannel.localExtra = WKDBConst.readJsonValue(data, 'channel_extra');
-        WKUIConversationMsg uiMsg = getUIMsg(msg);
-        uiMsg.setWkChannel(wkChannel);
-        list.add(uiMsg);
+    if (results.isEmpty) {
+      return list;
+    }
+    final clientMsgNos = <String>[];
+    for (Map<String, Object?> data in results) {
+      WKConversationMsg msg = WKDBConst.serializeCoversation(data);
+      WKChannel wkChannel = WKDBConst.serializeChannel(data);
+      wkChannel.remoteExtraMap =
+          WKDBConst.readJsonValue(data, 'channel_remote_extra');
+      wkChannel.localExtra = WKDBConst.readJsonValue(data, 'channel_extra');
+      WKUIConversationMsg uiMsg = getUIMsg(msg);
+      uiMsg.setWkChannel(wkChannel);
+      list.add(uiMsg);
+      if (uiMsg.clientMsgNo.isNotEmpty) {
+        clientMsgNos.add(uiMsg.clientMsgNo);
       }
     }
+    if (clientMsgNos.isEmpty) {
+      return list;
+    }
+    await _fillConversationMessages(list, clientMsgNos);
     return list;
+  }
+
+  Future<void> _fillConversationMessages(
+    List<WKUIConversationMsg> list,
+    List<String> clientMsgNos,
+  ) async {
+    final msgList = await _queryWithClientMsgNos(clientMsgNos);
+    if (msgList.isEmpty) {
+      return;
+    }
+    final msgMap = <String, WKMsg>{};
+    final msgIds = <String>[];
+    final fromUIDs = <String>{};
+    for (final msg in msgList) {
+      msgMap[msg.clientMsgNO] = msg;
+      if (msg.messageID.isNotEmpty) {
+        msgIds.add(msg.messageID);
+      }
+      if (msg.fromUID.isNotEmpty) {
+        fromUIDs.add(msg.fromUID);
+      }
+    }
+    for (final uiMsg in list) {
+      final wkMsg = msgMap[uiMsg.clientMsgNo];
+      if (wkMsg != null) {
+        uiMsg.setWkMsg(wkMsg);
+      }
+    }
+    await _fillMessageExtras(msgList, msgIds);
+    await _fillMessageFroms(msgList, fromUIDs.toList());
+  }
+
+  Future<void> _fillMessageExtras(
+    List<WKMsg> msgList,
+    List<String> msgIds,
+  ) async {
+    if (msgIds.isEmpty) {
+      return;
+    }
+    final extraList = await _queryWithMsgIds(msgIds);
+    if (extraList.isEmpty) {
+      return;
+    }
+    final extraMap = <String, WKMsgExtra>{};
+    for (final extra in extraList) {
+      extraMap[extra.messageID] = extra;
+    }
+    for (final msg in msgList) {
+      final extra = extraMap[msg.messageID];
+      if (extra != null) {
+        msg.wkMsgExtra = extra;
+      }
+    }
+  }
+
+  Future<void> _fillMessageFroms(
+    List<WKMsg> msgList,
+    List<String> fromUIDs,
+  ) async {
+    if (fromUIDs.isEmpty) {
+      return;
+    }
+    final fromList = await _queryFromChannelsWithUIDs(fromUIDs);
+    if (fromList.isEmpty) {
+      return;
+    }
+    final fromMap = <String, WKChannel>{};
+    for (final from in fromList) {
+      fromMap[from.channelID] = from;
+    }
+    for (final msg in msgList) {
+      final from = fromMap[msg.fromUID];
+      if (from != null) {
+        msg.setFrom(from);
+      }
+    }
+  }
+
+  Future<List<WKMsg>> _queryWithClientMsgNos(List<String> clientMsgNos) async {
+    List<WKMsg> msgList = [];
+    List<String> nos = [];
+    for (int i = 0, size = clientMsgNos.length; i < size; i++) {
+      if (nos.length == 200) {
+        List<WKMsg> list = await MessageDB.shared.queryWithClientMsgNos(nos);
+        if (list.isNotEmpty) {
+          msgList.addAll(list);
+        }
+        nos.clear();
+      }
+      nos.add(clientMsgNos[i]);
+    }
+    if (nos.isNotEmpty) {
+      List<WKMsg> list = await MessageDB.shared.queryWithClientMsgNos(nos);
+      if (list.isNotEmpty) {
+        msgList.addAll(list);
+      }
+    }
+    return msgList;
+  }
+
+  Future<List<WKMsgExtra>> _queryWithMsgIds(List<String> msgIds) async {
+    List<WKMsgExtra> msgExtraList = [];
+    List<String> ids = [];
+    for (int i = 0, size = msgIds.length; i < size; i++) {
+      if (ids.length == 200) {
+        List<WKMsgExtra> list =
+            await MessageDB.shared.queryMsgExtrasWithMsgIds(ids);
+        if (list.isNotEmpty) {
+          msgExtraList.addAll(list);
+        }
+        ids.clear();
+      }
+      ids.add(msgIds[i]);
+    }
+    if (ids.isNotEmpty) {
+      List<WKMsgExtra> list = await MessageDB.shared.queryMsgExtrasWithMsgIds(
+        ids,
+      );
+      if (list.isNotEmpty) {
+        msgExtraList.addAll(list);
+      }
+    }
+    return msgExtraList;
+  }
+
+  Future<List<WKChannel>> _queryFromChannelsWithUIDs(List<String> fromUIDs) {
+    return ChannelDB.shared.queryWithChannelIdsAndChannelType(
+      fromUIDs,
+      1,
+    );
   }
 
   Future<bool> delete(String channelID, int channelType) async {

@@ -69,6 +69,28 @@ class WKMsg {
   WKChannel? getFrom() {
     return _from;
   }
+
+  // 异步获取发送者信息
+  Future<WKChannel?> getFromAsync() async {
+    if (_from != null) {
+      return _from;
+    }
+    // 从数据库或其他源获取
+    _from = await WKIM.shared.channelManager
+        .getChannel(fromUID, WKChannelType.personal);
+    return _from;
+  }
+
+  // 异步获取成员信息
+  Future<WKChannelMember?> getMemberOfFromAsync() async {
+    if (_memberOfFrom != null) {
+      return _memberOfFrom;
+    }
+    // 从数据库或其他源获取
+    _memberOfFrom = await WKIM.shared.channelMemberManager
+        .getMember(channelID, channelType, fromUID);
+    return _memberOfFrom;
+  }
 }
 
 class MessageHeader {

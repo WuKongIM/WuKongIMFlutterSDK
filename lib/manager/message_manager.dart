@@ -335,7 +335,7 @@ class WKMessageManager {
       msgIds.add(reaction.messageID);
       reactionList.add(reaction);
     }
-    ReactionDB.shared.insertOrUpdateReactionList(reactionList);
+    await ReactionDB.shared.insertOrUpdateReactionList(reactionList);
     List<WKMsg> msgList = await MessageDB.shared.queryWithMessageIds(msgIds);
     getMsgReactionsAndRefreshMsg(msgIds, msgList);
   }
@@ -856,5 +856,9 @@ class WKMessageManager {
         }
       }
     }
+  }
+
+  Future<int> getMaxReactionSeqWithChannel(String channelID, int channelType) {
+    return ReactionDB.shared.queryMaxSeqWithChannel(channelID, channelType);
   }
 }
