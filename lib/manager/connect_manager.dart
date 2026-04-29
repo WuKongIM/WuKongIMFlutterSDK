@@ -552,7 +552,7 @@ class WKConnectionManager {
       int row = await WKIM.shared.messageManager.saveMsg(msg);
       msg.clientSeq = row;
       WKUIConversationMsg? uiMsg = await WKIM.shared.conversationManager
-          .saveWithLiMMsg(msg, msg.header.redDot ? 1 : 0);
+          .saveWithWKMsg(msg, msg.header.redDot ? 1 : 0);
       if (uiMsg != null) {
         List<WKUIConversationMsg> list = [];
         list.add(uiMsg);

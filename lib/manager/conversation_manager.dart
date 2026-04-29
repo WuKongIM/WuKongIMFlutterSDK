@@ -55,7 +55,7 @@ class WKConversationManager {
   }
 
   /// 根据消息保存会话
-  Future<WKUIConversationMsg?> saveWithLiMMsg(WKMsg msg, int redDot) async {
+  Future<WKUIConversationMsg?> saveWithWKMsg(WKMsg msg, int redDot) async {
     WKConversationMsg wkConversationMsg = WKConversationMsg();
     if (msg.channelType == WKChannelType.communityTopic &&
         msg.channelID.isNotEmpty) {

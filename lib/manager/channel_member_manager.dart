@@ -15,8 +15,10 @@ class WKChannelMemberManager {
   static WKChannelMemberManager get shared => _instance;
 
   late final HashMap<String, Function(List<WKChannelMember>)> _newMembersBack;
-  late final HashMap<String, Function(WKChannelMember, bool)> _refreshMembersBack;
-  late final HashMap<String, Function(List<WKChannelMember>)> _deleteMembersBack;
+  late final HashMap<String, Function(WKChannelMember, bool)>
+      _refreshMembersBack;
+  late final HashMap<String, Function(List<WKChannelMember>)>
+      _deleteMembersBack;
 
   Future<int> getMaxVersion(String channelID, int channelType) async {
     return ChannelMemberDB.shared.getMaxVersion(channelID, channelType);
@@ -35,7 +37,7 @@ class WKChannelMemberManager {
 
   Future<void> saveOrUpdateList(List<WKChannelMember> list) async {
     if (list.isEmpty) return;
-    
+
     String channelID = list[0].channelID;
     int channelType = list[0].channelType;
 
@@ -45,12 +47,12 @@ class WKChannelMemberManager {
 
     List<WKChannelMember> existList = [];
     List<String> uidList = [];
-    
+
     for (WKChannelMember channelMember in list) {
       // 分批处理，每200个UID查询一次数据库
       if (uidList.length == 200) {
         List<WKChannelMember> tempList = await ChannelMemberDB.shared
-            .queryWithUIDs(
+            .queryMemberWithUIDs(
                 channelMember.channelID, channelMember.channelType, uidList);
         if (tempList.isNotEmpty) {
           existList.addAll(tempList);
@@ -64,7 +66,7 @@ class WKChannelMemberManager {
     // 处理剩余的UID
     if (uidList.isNotEmpty) {
       List<WKChannelMember> tempList = await ChannelMemberDB.shared
-          .queryWithUIDs(channelID, channelType, uidList);
+          .queryMemberWithUIDs(channelID, channelType, uidList);
       if (tempList.isNotEmpty) {
         existList.addAll(tempList);
       }
@@ -116,7 +118,8 @@ class WKChannelMemberManager {
     });
   }
 
-  void addOnRefreshMemberListener(String key, Function(WKChannelMember, bool) back) {
+  void addOnRefreshMemberListener(
+      String key, Function(WKChannelMember, bool) back) {
     _refreshMembersBack[key] = back;
   }
 
@@ -130,7 +133,8 @@ class WKChannelMemberManager {
     });
   }
 
-  void addOnDeleteMemberListener(String key, Function(List<WKChannelMember>) back) {
+  void addOnDeleteMemberListener(
+      String key, Function(List<WKChannelMember>) back) {
     _deleteMembersBack[key] = back;
   }
 
@@ -144,7 +148,8 @@ class WKChannelMemberManager {
     });
   }
 
-  void addOnNewMemberListener(String key, Function(List<WKChannelMember>) back) {
+  void addOnNewMemberListener(
+      String key, Function(List<WKChannelMember>) back) {
     _newMembersBack[key] = back;
   }
 

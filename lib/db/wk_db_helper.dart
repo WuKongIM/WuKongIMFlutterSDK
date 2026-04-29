@@ -47,7 +47,7 @@ class WKDBHelper {
         for (String sql in sqlList) {
           String exeSql = sql.replaceAll('\n', '');
           if (exeSql != '') {
-            db.execute(exeSql);
+            await db.execute(exeSql);
           }
         }
         if (version > saveVersion) {

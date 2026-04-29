@@ -11,7 +11,8 @@
       "Bash(find assets:*)",
       "Bash(open /Users/songlun/Desktop/workspace/flutterworkspace/wukongimfluttersdk/example/ios/Runner.xcworkspace)",
       "Bash(security find-identity:*)",
-      "Bash(security find-certificate:*)"
+      "Bash(security find-certificate:*)",
+      "Bash(git commit:*)"
     ]
   }
 }
