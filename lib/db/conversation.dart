@@ -1,7 +1,6 @@
 import 'dart:collection';
 
 import 'package:sqflite/sqflite.dart';
-import 'package:wukongimfluttersdk/common/logs.dart';
 import 'package:wukongimfluttersdk/db/channel.dart';
 import 'package:wukongimfluttersdk/db/const.dart';
 import 'package:wukongimfluttersdk/entity/channel.dart';
@@ -133,7 +132,7 @@ class ConversationDB {
     List<WKMsg> msgList = [];
     List<String> nos = [];
     for (int i = 0, size = clientMsgNos.length; i < size; i++) {
-      if (nos.length == 200) {
+      if (nos.length == 200 || i == size - 1) {
         List<WKMsg> list = await MessageDB.shared.queryWithClientMsgNos(nos);
         if (list.isNotEmpty) {
           msgList.addAll(list);
@@ -187,7 +186,7 @@ class ConversationDB {
     if (WKDBHelper.shared.getDB() == null) {
       return false;
     }
-    Map<String, dynamic> data = HashMap<String, Object>();
+    Map<String, dynamic> data = HashMap<String, dynamic>();
     data['is_deleted'] = 1;
     int row = await WKDBHelper.shared.getDB()!.update(
         WKDBConst.tableConversation, data,
@@ -256,7 +255,7 @@ class ConversationDB {
       }
       sql =
           "select SUM(unread_count) count from ${WKDBConst.tableConversation} where channel_id not in (${WKDBConst.getPlaceholders(channelIds.length)})";
-      list = await WKDBHelper.shared.getDB()!.rawQuery(sql, channelIds);
+      list = await WKDBHelper.shared.getDB()?.rawQuery(sql, channelIds);
     } else {
       sql =
           "select SUM(unread_count) count from ${WKDBConst.tableConversation}";
@@ -267,7 +266,6 @@ class ConversationDB {
     }
     dynamic data = list[0];
     count = WKDBConst.readInt(data, 'count');
-    Logs.error('总数量$count');
     return count;
   }
 
@@ -332,7 +330,7 @@ class ConversationDB {
     for (WKConversationMsg msg in list) {
       insertList.add(getMap(msg, true));
     }
-    WKDBHelper.shared.getDB()!.transaction((txn) async {
+    await WKDBHelper.shared.getDB()?.transaction((txn) async {
       if (insertList.isNotEmpty) {
         for (int i = 0; i < insertList.length; i++) {
           txn.insert(WKDBConst.tableConversation, insertList[i],
@@ -455,7 +453,7 @@ class ConversationDB {
   }
 
   Map<String, dynamic> getMap(WKConversationMsg msg, bool isSync) {
-    Map<String, dynamic> data = HashMap<String, Object>();
+    Map<String, dynamic> data = HashMap<String, dynamic>();
     data['channel_id'] = msg.channelID;
     data['channel_type'] = msg.channelType;
     data['last_client_msg_no'] = msg.lastClientMsgNO;

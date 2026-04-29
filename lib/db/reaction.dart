@@ -12,7 +12,7 @@ class ReactionDB {
   Future<int> queryMaxSeqWithChannel(String channelID, int channelType) async {
     String sql =
         "select max(seq) seq from ${WKDBConst.tableMessageReaction} where channel_id=? and channel_type=? limit 0, 1";
-    int version = 0;
+    int maxSeq = 0;
 
     List<Map<String, Object?>> list = await WKDBHelper.shared
         .getDB()!
@@ -20,10 +20,10 @@ class ReactionDB {
     if (list.isNotEmpty) {
       dynamic data = list[0];
       if (data != null) {
-        version = WKDBConst.readInt(data, 'seq');
+        maxSeq = WKDBConst.readInt(data, 'seq');
       }
     }
-    return version;
+    return maxSeq;
   }
 
   Future<List<WKMsgReaction>> queryWithMessageId(String messageId) async {
@@ -35,7 +35,7 @@ class ReactionDB {
         orderBy: "created_at desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeMsgReation(data));
+        list.add(WKDBConst.serializeMsgReaction(data));
       }
     }
     return list;
@@ -52,7 +52,7 @@ class ReactionDB {
         orderBy: "created_at desc");
     if (results.isNotEmpty) {
       for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeMsgReation(data));
+        list.add(WKDBConst.serializeMsgReaction(data));
       }
     }
     return list;
@@ -60,35 +60,15 @@ class ReactionDB {
 
   Future<bool> insertOrUpdateReactionList(List<WKMsgReaction> list) async {
     if (list.isEmpty) return true;
-    bool isSuccess = true;
     for (int i = 0, size = list.length; i < size; i++) {
       // insertOrUpdateReaction(list[i]);
       int row = await insertReaction(list[i]);
-      if (isSuccess) {
-        isSuccess = row > 0;
+      if (row <= 0) {
+        return false;
       }
     }
-    return isSuccess;
+    return true;
   }
-
-  // insertOrUpdateReaction(WKMsgReaction reaction) async {
-  //   bool isExist = await isExistReaction(reaction.uid, reaction.messageID);
-  //   if (isExist) {
-  //     updateReaction(reaction);
-  //   } else {
-  //     insertReaction(reaction);
-  //   }
-  // }
-
-  // updateReaction(WKMsgReaction reaction) {
-  //   var map = <String, Object>{};
-  //   map['is_deleted'] = reaction.isDeleted;
-  //   map['seq'] = reaction.seq;
-  //   map['emoji'] = reaction.emoji;
-  //   WKDBHelper.shared.getDB().update(WKDBConst.tableMessageReaction, map,
-  //       where: "message_id=? and uid=?",
-  //       whereArgs: [reaction.messageID, reaction.uid]);
-  // }
 
   Future<int> insertReaction(WKMsgReaction reaction) async {
     return await WKDBHelper.shared.getDB()!.insert(
@@ -97,19 +77,15 @@ class ReactionDB {
   }
 
   Future<bool> isExistReaction(String uid, String messageID) async {
-    bool isExist = false;
     List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableMessageReaction,
         where: "message_id=? and uid=?",
         whereArgs: [messageID, uid]);
-    if (list.isNotEmpty) {
-      isExist = true;
-    }
-    return isExist;
+    return list.isNotEmpty;
   }
 
-  Map<String, Object> getReactionMap(WKMsgReaction reaction) {
-    var map = <String, Object>{};
+  Map<String, dynamic> getReactionMap(WKMsgReaction reaction) {
+    var map = <String, dynamic>{};
     map['channel_id'] = reaction.channelID;
     map['channel_type'] = reaction.channelType;
     map['message_id'] = reaction.messageID;

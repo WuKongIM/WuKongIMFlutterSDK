@@ -27,7 +27,7 @@ class ChannelDB {
     return channel;
   }
 
-  insertOrUpdateList(List<WKChannel> list) async {
+  Future<void> insertOrUpdateList(List<WKChannel> list) async {
     if (WKDBHelper.shared.getDB() == null) {
       return;
     }
@@ -38,12 +38,10 @@ class ChannelDB {
       }
     }
     if (addList.isNotEmpty) {
-      WKDBHelper.shared.getDB()!.transaction((txn) async {
-        if (addList.isNotEmpty) {
-          for (Map<String, dynamic> value in addList) {
-            txn.insert(WKDBConst.tableChannel, value,
-                conflictAlgorithm: ConflictAlgorithm.replace);
-          }
+      await WKDBHelper.shared.getDB()!.transaction((txn) async {
+        for (Map<String, dynamic> value in addList) {
+          txn.insert(WKDBConst.tableChannel, value,
+              conflictAlgorithm: ConflictAlgorithm.replace);
         }
       });
     }
@@ -65,24 +63,14 @@ class ChannelDB {
   }
 
   Future<bool> isExist(String channelID, int channelType) async {
-    bool isExit = false;
     if (WKDBHelper.shared.getDB() == null) {
-      return isExit;
+      return false;
     }
     List<Map<String, Object?>> list = await WKDBHelper.shared.getDB()!.query(
         WKDBConst.tableChannel,
         where: "channel_id=? and channel_type=?",
         whereArgs: [channelID, channelType]);
-    if (list.isNotEmpty) {
-      dynamic data = list[0];
-      if (data != null) {
-        String channelID = WKDBConst.readString(data, 'channel_id');
-        if (channelID != '') {
-          isExit = true;
-        }
-      }
-    }
-    return isExit;
+    return list.isNotEmpty;
   }
 
   Future<List<WKChannel>> queryWithChannelIdsAndChannelType(
@@ -186,8 +174,8 @@ class ChannelDB {
     return list;
   }
 
-  dynamic getMap(WKChannel channel) {
-    var data = HashMap<String, Object>();
+  Map<String, dynamic> getMap(WKChannel channel) {
+    var data = HashMap<String, dynamic>();
     data['channel_id'] = channel.channelID;
     data['channel_type'] = channel.channelType;
     data['channel_name'] = channel.channelName;

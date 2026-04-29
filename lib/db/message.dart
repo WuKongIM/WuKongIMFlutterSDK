@@ -223,7 +223,7 @@ class MessageDB {
     }
     List<String> messageIds = [];
     List<String> replyMsgIds = [];
-    List<String> fromUIDs = [];
+    Set<String> fromUIDs = {};
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB()!.rawQuery(sql, args);
     if (results.isNotEmpty) {
@@ -242,16 +242,7 @@ class MessageDB {
           replyMsgIds.add(wkMsg.messageContent!.reply!.messageId);
         }
         if (wkMsg.fromUID != '') {
-          bool isAdd = true;
-          for (int i = 0; i < fromUIDs.length; i++) {
-            if (fromUIDs[i] == wkMsg.fromUID) {
-              isAdd = false;
-              break;
-            }
-          }
-          if (isAdd) {
-            fromUIDs.add(wkMsg.fromUID);
-          }
+          fromUIDs.add(wkMsg.fromUID);
         }
         if (pullMode == 0) {
           msgList.insert(0, wkMsg);
@@ -278,7 +269,7 @@ class MessageDB {
     // 发送者成员信息
     if (channelType == WKChannelType.group) {
       List<WKChannelMember> memberList = await ChannelMemberDB.shared
-          .queryMemberWithUIDs(channelId, channelType, fromUIDs);
+          .queryMemberWithUIDs(channelId, channelType, fromUIDs.toList());
       if (memberList.isNotEmpty) {
         for (WKChannelMember member in memberList) {
           for (int i = 0, size = msgList.length; i < size; i++) {
@@ -292,7 +283,8 @@ class MessageDB {
     }
     //消息发送者信息
     List<WKChannel> wkChannels = await ChannelDB.shared
-        .queryWithChannelIdsAndChannelType(fromUIDs, WKChannelType.personal);
+        .queryWithChannelIdsAndChannelType(
+            fromUIDs.toList(), WKChannelType.personal);
     if (wkChannels.isNotEmpty) {
       for (WKChannel wkChannel in wkChannels) {
         for (int i = 0, size = msgList.length; i < size; i++) {
@@ -324,7 +316,7 @@ class MessageDB {
                     msgList[i].messageContent!.reply!.messageId) {
               msgList[i].messageContent!.reply!.editAt = extra.editedAt;
               msgList[i].messageContent!.reply!.contentEdit = extra.contentEdit;
-              var json = jsonEncode(extra.contentEdit);
+              dynamic json = jsonDecode(extra.contentEdit);
               var type = WKDBConst.readInt(json, 'type');
               msgList[i].messageContent!.reply!.contentEditMsgModel =
                   WKIM.shared.messageManager.getMessageModel(type, json);
@@ -590,7 +582,6 @@ class MessageDB {
         if (tempList.isNotEmpty) {
           existMsgList.addAll(tempList);
         }
-
         clientMsgNos.clear();
       }
       if (saveList[i].clientMsgNO != '') {
@@ -623,7 +614,7 @@ class MessageDB {
       cvList.add(getMap(wkMsg));
     }
     if (cvList.isNotEmpty) {
-      WKDBHelper.shared.getDB()!.transaction((txn) async {
+      await WKDBHelper.shared.getDB()!.transaction((txn) async {
         for (int i = 0; i < cvList.length; i++) {
           txn.insert(WKDBConst.tableMessage, cvList[i],
               conflictAlgorithm: ConflictAlgorithm.replace);
@@ -659,7 +650,7 @@ class MessageDB {
     for (int i = 0, size = list.length; i < size; i++) {
       insertCVList.add(getExtraMap(list[i]));
     }
-    WKDBHelper.shared.getDB()!.transaction((txn) async {
+    await WKDBHelper.shared.getDB()!.transaction((txn) async {
       if (insertCVList.isNotEmpty) {
         for (int i = 0; i < insertCVList.length; i++) {
           txn.insert(WKDBConst.tableMessageExtra, insertCVList[i],
@@ -694,7 +685,7 @@ class MessageDB {
       }
     }
     if (insertCVList.isNotEmpty || updateCVList.isNotEmpty) {
-      WKDBHelper.shared.getDB()!.transaction((txn) async {
+      await WKDBHelper.shared.getDB()!.transaction((txn) async {
         if (insertCVList.isNotEmpty) {
           for (int i = 0; i < insertCVList.length; i++) {
             txn.insert(WKDBConst.tableMessageExtra, insertCVList[i],
@@ -855,7 +846,7 @@ class MessageDB {
     List<Map<String, Object?>> results = await WKDBHelper.shared
         .getDB()!
         .rawQuery(sql, ['%$keyword%', channelId, channelType]);
-    List<String> fromUIDs = [];
+    Set<String> fromUIDs = {};
     WKChannel? channel =
         await WKIM.shared.channelManager.getChannel(channelId, channelType);
 
@@ -870,31 +861,32 @@ class MessageDB {
       list.add(msg);
     }
     if (fromUIDs.isNotEmpty) {
-      List<String> uniqueList = fromUIDs.toSet().toList();
       List<WKChannel> wkChannels = await ChannelDB.shared
           .queryWithChannelIdsAndChannelType(
-              uniqueList, WKChannelType.personal);
+              fromUIDs.toList(), WKChannelType.personal);
       if (wkChannels.isNotEmpty) {
+        Map<String, WKChannel> channelMap = {};
         for (WKChannel channel in wkChannels) {
-          for (WKMsg msg in list) {
-            if (msg.fromUID == channel.channelID) {
-              msg.setFrom(channel);
-              break;
-            }
+          channelMap[channel.channelID] = channel;
+        }
+        for (WKMsg msg in list) {
+          if (msg.fromUID != '' && channelMap.containsKey(msg.fromUID)) {
+            msg.setFrom(channelMap[msg.fromUID]!);
           }
         }
       }
 
       if (channelType == WKChannelType.group) {
         List<WKChannelMember> members = await ChannelMemberDB.shared
-            .queryMemberWithUIDs(channelId, channelType, uniqueList);
+            .queryMemberWithUIDs(channelId, channelType, fromUIDs.toList());
         if (members.isNotEmpty) {
+          Map<String, WKChannelMember> memberMap = {};
           for (WKChannelMember member in members) {
-            for (WKMsg msg in list) {
-              if (msg.fromUID == member.memberUID) {
-                msg.setMemberOfFrom(member);
-                break;
-              }
+            memberMap[member.memberUID] = member;
+          }
+          for (WKMsg msg in list) {
+            if (msg.fromUID != '' && memberMap.containsKey(msg.fromUID)) {
+              msg.setMemberOfFrom(memberMap[msg.fromUID]!);
             }
           }
         }
@@ -923,7 +915,7 @@ class MessageDB {
     }
     List<Map<String, Object?>> results =
         await WKDBHelper.shared.getDB()!.rawQuery(sql, arguments);
-    List<String> fromUIDs = [];
+    Set<String> fromUIDs = {};
     WKChannel? channel =
         await WKIM.shared.channelManager.getChannel(channelID, channelType);
 
@@ -938,31 +930,32 @@ class MessageDB {
       list.add(msg);
     }
     if (fromUIDs.isNotEmpty) {
-      List<String> uniqueList = fromUIDs.toSet().toList();
       List<WKChannel> wkChannels = await ChannelDB.shared
           .queryWithChannelIdsAndChannelType(
-              uniqueList, WKChannelType.personal);
+              fromUIDs.toList(), WKChannelType.personal);
       if (wkChannels.isNotEmpty) {
+        Map<String, WKChannel> channelMap = {};
         for (WKChannel channel in wkChannels) {
-          for (WKMsg msg in list) {
-            if (msg.fromUID == channel.channelID) {
-              msg.setFrom(channel);
-              break;
-            }
+          channelMap[channel.channelID] = channel;
+        }
+        for (WKMsg msg in list) {
+          if (msg.fromUID != '' && channelMap.containsKey(msg.fromUID)) {
+            msg.setFrom(channelMap[msg.fromUID]!);
           }
         }
       }
 
       if (channelType == WKChannelType.group) {
         List<WKChannelMember> members = await ChannelMemberDB.shared
-            .queryMemberWithUIDs(channelID, channelType, uniqueList);
+            .queryMemberWithUIDs(channelID, channelType, fromUIDs.toList());
         if (members.isNotEmpty) {
+          Map<String, WKChannelMember> memberMap = {};
           for (WKChannelMember member in members) {
-            for (WKMsg msg in list) {
-              if (msg.fromUID == member.memberUID) {
-                msg.setMemberOfFrom(member);
-                break;
-              }
+            memberMap[member.memberUID] = member;
+          }
+          for (WKMsg msg in list) {
+            if (msg.fromUID != '' && memberMap.containsKey(msg.fromUID)) {
+              msg.setMemberOfFrom(memberMap[msg.fromUID]!);
             }
           }
         }

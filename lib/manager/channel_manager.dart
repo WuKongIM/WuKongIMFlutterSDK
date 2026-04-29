@@ -18,7 +18,7 @@ class WKChannelManager {
   Function(String channelID, int channelType, Function(WKChannel) back)?
       _getChannelInfoBack;
 
-  fetchChannelInfo(String channelID, int channelType) {
+  void fetchChannelInfo(String channelID, int channelType) {
     if (_getChannelInfoBack != null) {
       _getChannelInfoBack!(channelID, channelType, (wkChannel) {
         addOrUpdateChannel(wkChannel);
@@ -44,12 +44,12 @@ class WKChannelManager {
     return channel;
   }
 
-  addOrUpdateChannels(List<WKChannel> list) {
+  void addOrUpdateChannels(List<WKChannel> list) {
     if (list.isEmpty) {
       return;
     }
-    for (WKChannel liMChannel in list) {
-      _updateChannel(liMChannel);
+    for (WKChannel channel in list) {
+      _updateChannel(channel);
     }
     ChannelDB.shared.insertOrUpdateList(list);
   }
@@ -67,7 +67,7 @@ class WKChannelManager {
   }
 
   // 修改头像
-  updateAvatarCacheKey(
+  Future<void> updateAvatarCacheKey(
       String channelID, int channelType, String avatarCacheKey) async {
     WKChannel? channel = await getChannel(channelID, channelType);
     if (channel == null) {
@@ -81,48 +81,25 @@ class WKChannelManager {
     });
   }
 
-  addOrUpdateChannel(WKChannel channel) {
+  void addOrUpdateChannel(WKChannel channel) {
     _updateChannel(channel);
     _setRefresh(channel);
     ChannelDB.shared.saveOrUpdate(channel);
   }
 
-  _updateChannel(WKChannel channel) {
+  void _updateChannel(WKChannel channel) {
     String key = _getKey(channel.channelID, channel.channelType);
     WKChannel? exist = _list[key];
     if (exist != null) {
-      exist.forbidden = channel.forbidden;
-      exist.channelName = channel.channelName;
-      exist.avatar = channel.avatar;
-      exist.category = channel.category;
-      exist.lastOffline = channel.lastOffline;
-      exist.online = channel.online;
-      exist.follow = channel.follow;
-      exist.top = channel.top;
-      exist.channelRemark = channel.channelRemark;
-      exist.status = channel.status;
-      exist.version = channel.version;
-      exist.invite = channel.invite;
-      exist.localExtra = channel.localExtra;
-      exist.mute = channel.mute;
-      exist.save = channel.save;
-      exist.showNick = channel.showNick;
-      exist.isDeleted = channel.isDeleted;
-      exist.receipt = channel.receipt;
-      exist.robot = channel.robot;
-      exist.deviceFlag = channel.deviceFlag;
-      exist.parentChannelID = channel.parentChannelID;
-      exist.parentChannelType = channel.parentChannelType;
-      exist.avatarCacheKey = channel.avatarCacheKey;
-      exist.remoteExtraMap = channel.remoteExtraMap;
+      exist.updateFrom(channel);
     } else {
       _list[key] = channel;
     }
   }
 
-  _setRefresh(WKChannel liMChannel) {
+  void _setRefresh(WKChannel channel) {
     _refreshChannelMap.forEach((key, back) {
-      back(liMChannel);
+      back(channel);
     });
   }
 
@@ -130,23 +107,23 @@ class WKChannelManager {
     return '$channelID:$channelType';
   }
 
-  addOnRefreshListener(String key, Function(WKChannel) back) {
+  void addOnRefreshListener(String key, Function(WKChannel) back) {
     _refreshChannelMap[key] = back;
   }
 
-  removeOnRefreshListener(String key) {
+  void removeOnRefreshListener(String key) {
     _refreshChannelMap.remove(key);
   }
 
-  addOnGetChannelListener(Function(String, int, Function(WKChannel)) back) {
+  void addOnGetChannelListener(Function(String, int, Function(WKChannel)) back) {
     _getChannelInfoBack = back;
   }
 
-  addOnRefreshAvatarListener(String key, Function(WKChannel) back) {
+  void addOnRefreshAvatarListener(String key, Function(WKChannel) back) {
     _refreshChannelAvatarMap[key] = back;
   }
 
-  removeOnRefreshAvatarListener(String key) {
+  void removeOnRefreshAvatarListener(String key) {
     _refreshChannelAvatarMap.remove(key);
   }
 }

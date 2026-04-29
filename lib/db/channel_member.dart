@@ -88,31 +88,7 @@ class ChannelMemberDB {
     return list;
   }
 
-  Future<List<WKChannelMember>> queryWithUIDs(
-      String channelID, int channelType, List<String> uidList) async {
-    List<Object> args = [];
-    args.add(channelID);
-    args.add(channelType);
-    args.addAll(uidList);
-
-    List<WKChannelMember> list = [];
-    if (WKDBHelper.shared.getDB() == null) {
-      return list;
-    }
-    List<Map<String, Object?>> results = await WKDBHelper.shared.getDB()!.query(
-        WKDBConst.tableChannelMember,
-        where:
-            "channel_id=? and channel_type=? and member_uid in (${WKDBConst.getPlaceholders(uidList.length)}) ",
-        whereArgs: args);
-    if (results.isNotEmpty) {
-      for (Map<String, Object?> data in results) {
-        list.add(WKDBConst.serializeChannelMember(data));
-      }
-    }
-    return list;
-  }
-
-  insertList(List<WKChannelMember> allMemberList) {
+  Future<void> insertList(List<WKChannelMember> allMemberList) async {
     if (WKDBHelper.shared.getDB() == null) {
       return;
     }
@@ -121,7 +97,7 @@ class ChannelMemberDB {
       insertCVList.add(getMap(channelMember));
     }
     if (insertCVList.isNotEmpty) {
-      WKDBHelper.shared.getDB()!.transaction((txn) async {
+      await WKDBHelper.shared.getDB()!.transaction((txn) async {
         for (Map<String, dynamic> value in insertCVList) {
           txn.insert(WKDBConst.tableChannelMember, value,
               conflictAlgorithm: ConflictAlgorithm.replace);

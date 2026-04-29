@@ -51,6 +51,36 @@ class WKChannel {
   String parentChannelID = "";
   int parentChannelType = 0;
   WKChannel(this.channelID, this.channelType);
+
+  void updateFrom(WKChannel other) {
+    forbidden = other.forbidden;
+    channelName = other.channelName;
+    avatar = other.avatar;
+    category = other.category;
+    lastOffline = other.lastOffline;
+    online = other.online;
+    follow = other.follow;
+    top = other.top;
+    channelRemark = other.channelRemark;
+    status = other.status;
+    version = other.version;
+    invite = other.invite;
+    localExtra = other.localExtra;
+    mute = other.mute;
+    save = other.save;
+    showNick = other.showNick;
+    isDeleted = other.isDeleted;
+    receipt = other.receipt;
+    robot = other.robot;
+    deviceFlag = other.deviceFlag;
+    parentChannelID = other.parentChannelID;
+    parentChannelType = other.parentChannelType;
+    avatarCacheKey = other.avatarCacheKey;
+    remoteExtraMap = other.remoteExtraMap;
+    username = other.username;
+    createdAt = other.createdAt;
+    updatedAt = other.updatedAt;
+  }
 }
 
 class WKChannelSearchResult {

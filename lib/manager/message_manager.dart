@@ -29,7 +29,7 @@ class WKMessageManager {
       HashMap<int, WKMessageContent Function(dynamic data)>();
   Function(WKMsg wkMsg, Function(bool isSuccess, WKMsg wkMsg))?
       _uploadAttachmentBack;
-  Function(WKMsg liMMsg)? _msgInsertedBack;
+  Function(WKMsg msg)? _msgInsertedBack;
   Function(WKMsgExtra)? _iUploadMsgExtraListener;
   HashMap<String, Function(List<WKMsg>)>? _newMsgBack;
   HashMap<String, Function(WKMsg)>? _refreshMsgBack;
@@ -46,7 +46,7 @@ class WKMessageManager {
 
   final int wkOrderSeqFactor = 1000;
 
-  registerMsgContent(
+  void registerMsgContent(
       int type, WKMessageContent Function(dynamic data) createMsgContent) {
     _msgContentList[type] = createMsgContent;
   }
@@ -106,31 +106,36 @@ class WKMessageManager {
     return content;
   }
 
-  parsingMsg(WKMsg wkMsg) {
+  void parsingMsg(WKMsg wkMsg) {
     if (wkMsg.content == '') {
       wkMsg.contentType = WkMessageContentType.contentFormatError;
       return;
     }
-    dynamic json = jsonDecode(wkMsg.content);
-    if (json == null) {
-      wkMsg.contentType = WkMessageContentType.contentFormatError;
-      return;
-    }
-    if (wkMsg.fromUID == "") {
-      wkMsg.fromUID = WKDBConst.readString(json, 'from_uid');
-    }
-    if (wkMsg.channelType == WKChannelType.personal &&
-        wkMsg.channelID != '' &&
-        wkMsg.fromUID != '' &&
-        wkMsg.channelID == WKIM.shared.options.uid) {
-      wkMsg.channelID = wkMsg.fromUID;
-    }
-    if (wkMsg.contentType == WkMessageContentType.insideMsg) {
-      if (json != null) {
-        json['channel_id'] = wkMsg.channelID;
-        json['channel_type'] = wkMsg.channelType;
+    try {
+      dynamic json = jsonDecode(wkMsg.content);
+      if (json == null) {
+        wkMsg.contentType = WkMessageContentType.contentFormatError;
+        return;
       }
-      WKIM.shared.cmdManager.handleCMD(json);
+      if (wkMsg.fromUID == "") {
+        wkMsg.fromUID = WKDBConst.readString(json, 'from_uid');
+      }
+      if (wkMsg.channelType == WKChannelType.personal &&
+          wkMsg.channelID != '' &&
+          wkMsg.fromUID != '' &&
+          wkMsg.channelID == WKIM.shared.options.uid) {
+        wkMsg.channelID = wkMsg.fromUID;
+      }
+      if (wkMsg.contentType == WkMessageContentType.insideMsg) {
+        if (json != null) {
+          json['channel_id'] = wkMsg.channelID;
+          json['channel_type'] = wkMsg.channelType;
+        }
+        WKIM.shared.cmdManager.handleCMD(json);
+      }
+    } catch (e) {
+      wkMsg.contentType = WkMessageContentType.contentFormatError;
+      Logs.error('parsingMsg error: $e');
     }
   }
 
@@ -203,36 +208,43 @@ class WKMessageManager {
         .queryMaxExtraVersionWithChannel(channelID, channelType);
   }
 
-  saveRemoteExtraMsg(List<WKMsgExtra> list) async {
+  Future<void> saveRemoteExtraMsg(List<WKMsgExtra> list) async {
     MessageDB.shared.insertMsgExtras(list);
     List<String> msgIds = [];
     List<String> deletedMsgIds = [];
+
+    // 创建 Map 用于快速查找，避免嵌套循环
+    Map<String, WKMsgExtra> extraMap = {};
     for (var extra in list) {
       msgIds.add(extra.messageID);
+      extraMap[extra.messageID] = extra;
       if (extra.isMutualDeleted == 1) {
         deletedMsgIds.add(extra.messageID);
       }
     }
+
     var msgList = await MessageDB.shared.queryWithMessageIds(msgIds);
     for (var msg in msgList) {
-      for (var extra in list) {
-        msg.wkMsgExtra ??= WKMsgExtra();
-        if (msg.messageID == extra.messageID) {
-          msg.wkMsgExtra!.readed = extra.readed;
-          msg.wkMsgExtra!.readedCount = extra.readedCount;
-          msg.wkMsgExtra!.unreadCount = extra.unreadCount;
-          msg.wkMsgExtra!.revoke = extra.revoke;
-          msg.wkMsgExtra!.revoker = extra.revoker;
-          msg.wkMsgExtra!.isMutualDeleted = extra.isMutualDeleted;
-          msg.wkMsgExtra!.editedAt = extra.editedAt;
-          msg.wkMsgExtra!.contentEdit = extra.contentEdit;
-          msg.wkMsgExtra!.extraVersion = extra.extraVersion;
-          if (extra.contentEdit != '') {
+      msg.wkMsgExtra ??= WKMsgExtra();
+      var extra = extraMap[msg.messageID];
+      if (extra != null) {
+        msg.wkMsgExtra!.readed = extra.readed;
+        msg.wkMsgExtra!.readedCount = extra.readedCount;
+        msg.wkMsgExtra!.unreadCount = extra.unreadCount;
+        msg.wkMsgExtra!.revoke = extra.revoke;
+        msg.wkMsgExtra!.revoker = extra.revoker;
+        msg.wkMsgExtra!.isMutualDeleted = extra.isMutualDeleted;
+        msg.wkMsgExtra!.editedAt = extra.editedAt;
+        msg.wkMsgExtra!.contentEdit = extra.contentEdit;
+        msg.wkMsgExtra!.extraVersion = extra.extraVersion;
+        if (extra.contentEdit != '') {
+          try {
             dynamic contentJson = jsonDecode(extra.contentEdit);
             msg.wkMsgExtra!.messageContent = WKIM.shared.messageManager
                 .getMessageModel(WkMessageContentType.text, contentJson);
+          } catch (e) {
+            Logs.error('saveRemoteExtraMsg jsonDecode error: $e');
           }
-          break;
         }
       }
       setRefreshMsg(msg);
@@ -625,7 +637,7 @@ class WKMessageManager {
       wkMsg.clientSeq = row;
       if (row > 0) {
         WKUIConversationMsg? uiMsg =
-            await WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
+            await WKIM.shared.conversationManager.saveWithWKMsg(wkMsg, 0);
         WKIM.shared.messageManager.setOnMsgInserted(wkMsg);
         if (uiMsg != null) {
           List<WKUIConversationMsg> uiMsgs = [];
@@ -744,7 +756,7 @@ class WKMessageManager {
       setRefreshMsg(wkMsg);
 
       // 更新最近会话
-      WKIM.shared.conversationManager.saveWithLiMMsg(wkMsg, 0);
+      WKIM.shared.conversationManager.saveWithWKMsg(wkMsg, 0);
     }
   }
 
@@ -845,8 +857,8 @@ class WKMessageManager {
           var tempMsg = await MessageDB.shared.queryMaxOrderSeqMsgWithChannel(
               wkMsg.channelID, wkMsg.channelType);
           if (tempMsg != null) {
-            var uiMsg = await WKIM.shared.conversationManager
-                .saveWithLiMMsg(tempMsg, 0);
+            var uiMsg =
+                await WKIM.shared.conversationManager.saveWithWKMsg(tempMsg, 0);
             if (uiMsg != null) {
               List<WKUIConversationMsg> uiMsgs = [];
               uiMsgs.add(uiMsg);

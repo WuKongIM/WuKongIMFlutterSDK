@@ -16,7 +16,7 @@ class ReminderDB {
 
   Future<int> getMaxVersion() async {
     String sql =
-        "select * from ${WKDBConst.tableReminders} order by version desc limit 1";
+        "select max(version) version from ${WKDBConst.tableReminders}";
     int version = 0;
 
     List<Map<String, Object?>> list =
@@ -74,20 +74,12 @@ class ReminderDB {
 
   Future<List<WKReminder>> saveReminders(List<WKReminder> list) async {
     List<int> ids = [];
-    List<String> channelIds = [];
+    Set<String> channelIdSet = {};
     for (int i = 0, size = list.length; i < size; i++) {
-      bool isAdd = true;
-      for (String channelId in channelIds) {
-        if (channelId == list[i].channelID) {
-          isAdd = false;
-          break;
-        }
-      }
-      if (isAdd) {
-        channelIds.add(list[i].channelID);
-      }
+      channelIdSet.add(list[i].channelID);
       ids.add(list[i].reminderID);
     }
+    List<String> channelIds = channelIdSet.toList();
     List<Map<String, dynamic>> addList = [];
     List<Map<String, dynamic>> updateList = [];
     List<WKReminder> allList = await queryWithIds(ids);
@@ -116,14 +108,15 @@ class ReminderDB {
         if (updateList.isNotEmpty) {
           for (Map<String, dynamic> value in updateList) {
             txn.update(WKDBConst.tableReminders, value,
-                where: "reminder_id=${value['reminder_id']}");
+                where: "reminder_id=?",
+                whereArgs: [value['reminder_id']]);
           }
         }
       });
     }
 
     List<WKReminder> reminderList = await queryWithChannelIds(channelIds);
-    HashMap<String, List<WKReminder>?> maps = listToMap(reminderList);
+    HashMap<String, List<WKReminder>> maps = listToMap(reminderList);
     List<WKUIConversationMsg> uiMsgList = [];
     List<WKConversationMsg> msgs =
         await ConversationDB.shared.queryWithChannelIds(channelIds);
@@ -132,7 +125,7 @@ class ReminderDB {
     }
     for (int i = 0, size = uiMsgList.length; i < size; i++) {
       String key = "${uiMsgList[i].channelID}_${uiMsgList[i].channelType}";
-      if (maps.containsKey(key) && maps[key] != null) {
+      if (maps.containsKey(key)) {
         uiMsgList[i].setReminderList(maps[key]!);
       }
     }
@@ -169,26 +162,22 @@ class ReminderDB {
     return list;
   }
 
-  HashMap<String, List<WKReminder>?> listToMap(List<WKReminder> list) {
-    HashMap<String, List<WKReminder>?> map = HashMap();
+  HashMap<String, List<WKReminder>> listToMap(List<WKReminder> list) {
+    HashMap<String, List<WKReminder>> map = HashMap();
     if (list.isEmpty) {
       return map;
     }
     for (WKReminder reminder in list) {
       String key = "${reminder.channelID}_${reminder.channelType}";
-      List<WKReminder>? tempList = [];
-      if (map.containsKey(key)) {
-        tempList = map[key];
-      }
-      tempList ??= [];
+      List<WKReminder> tempList = map[key] ?? [];
       tempList.add(reminder);
       map[key] = tempList;
     }
     return map;
   }
 
-  dynamic getMap(WKReminder reminder) {
-    var map = <String, Object>{};
+  Map<String, dynamic> getMap(WKReminder reminder) {
+    var map = <String, dynamic>{};
     map['channel_id'] = reminder.channelID;
     map['channel_type'] = reminder.channelType;
     map['reminder_id'] = reminder.reminderID;
